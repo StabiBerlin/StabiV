@@ -11,6 +11,8 @@ import org.apache.logging.log4j.core.config.composite.CompositeConfiguration;
 
 public class Logging {
 
+    private static final Level[] VERBOSITY_LEVELS = { Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE };
+
     public static Configuration getLoggingConfiguration(boolean json) {
         ConfigurationFactory configFactory = ConfigurationFactory.getInstance();
         AbstractConfiguration commonConfig = (AbstractConfiguration) configFactory.getConfiguration(
@@ -30,7 +32,8 @@ public class Logging {
         Configurator.reconfigure(Logging.getLoggingConfiguration(json));
     }
 
-    public static void setLogLevel(boolean verbose) {
-        Configurator.setLevel("de.spkberlin", verbose ? Level.DEBUG : Level.INFO);
+    public static void setLogLevel(int verbosity) {
+        int idx = Math.max(0, Math.min(VERBOSITY_LEVELS.length - 1, verbosity));
+        Configurator.setLevel("de.spkberlin", VERBOSITY_LEVELS[idx]);
     }
 }

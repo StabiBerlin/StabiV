@@ -2,12 +2,18 @@ package de.spkberlin.imagevalidation.cli.commands;
 
 import de.spkberlin.imagevalidation.cli.common.Constants;
 import de.spkberlin.imagevalidation.cli.common.Logging;
+import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvWriter;
+import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
+import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
+import de.spkberlin.imagevalidation.common.extract.Extractor;
+import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,6 +22,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -24,62 +31,145 @@ import picocli.CommandLine.Parameters;
     name = Constants.CLI_COMMAND_NAME,
     mixinStandardHelpOptions = true, // automatically add help option
     showAtFileInUsageHelp = true, // allow to provide list of directories and files as a file instead of as cli arguments
-    version = Constants.VERSION,
-    description = "Validates all images inside directories given the provided configuration file."
+    showDefaultValues = true,
+    version = {
+        Constants.CLI_COMMAND_NAME + " v" + Constants.VERSION,
+        "",
+        "JVM: ${java.version} (${java.vendor} ${java.vm.name} ${java.vm.version})",
+        "OS: ${os.name} ${os.version} ${os.arch}",
+    },
+    usageHelpAutoWidth = true,
+    optionListHeading = "%n@|bold General Options|@%n%n",
+    description = "%nValidates all images inside directories given the provided configuration file or CLI options.",
+    exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
+    exitCodeList = {
+        "0:successful validation without errors",
+        "1:generic program error, validation aborted",
+        "2:no program errors, but validation finished with errors",
+        "64:an unknown option or invalid parameter was specified",
+    }
 )
 public class ValidateCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateCommand.class);
 
-    /** The filepath to the configuration file. */
-    @Option(names = { "-c", "--config" }, description = "Configuration file (default \"validationConfig.yaml\")")
-    private File configFile = new File("./validationConfig.yaml");
+    @ArgGroup(validate = false, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
+    public InputOptions inputOptions = new InputOptions();
 
-    /** The filepath to the generated CSV file. */
-    @Option(names = { "--csv" }, description = "CSV output file (default \"validationResults.csv\")")
-    private Path csvOutputPath = Path.of("./validationResults.csv");
+    static class InputOptions {
 
-    /** Wether to use json based log output. */
-    @Option(names = { "-j", "--json" }, description = "print logging in JSON format")
-    private boolean jsonLogging = false;
+        /** The list of directories and files that are being validated. */
+        @Parameters(paramLabel = "PATHS", arity = "1..*", description = "directories or individual files to validate as glob pattern")
+        Path[] pathArgs;
+    }
 
-    /** Wether to show additional log messages. */
-    @Option(names = { "-v", "--verbose" }, description = "print more logging")
-    private boolean verbose = false;
+    @ArgGroup(validate = false, heading = "%n@|bold Configuration Options|@%n%n", order = 2, exclusive = false)
+    public ConfigOptions configOptions = new ConfigOptions();
 
-    /** The list of directories and files that are being validated. */
-    @Parameters(paramLabel = "PATHS", arity = "1..*", description = "directories or individual files to validate as glob pattern")
-    private Path[] pathArgs;
+    static class ConfigOptions {
+
+        /** The filepath to the configuration file. */
+        @Option(names = { "--config" }, description = "Configuration file containing additional options")
+        File configFile;
+
+        /** Which extraction modules to apply */
+        @Option(
+            names = { "--extractors" },
+            split = ",",
+            defaultValue = "exiftool,jhove",
+            paramLabel = "module",
+            description = "Extraction modules that are applied to each image file"
+        )
+        List<ExtractorType> extractors;
+
+        @Option(
+            names = { "--rule" },
+            paramLabel = "rule",
+            description = "Validation rules that are checked against extracted image properties"
+        )
+        List<String> rules;
+    }
+
+    @ArgGroup(validate = false, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
+    public OutputOptions outputOptions = new OutputOptions();
+
+    static class OutputOptions {
+
+        /** The filepath to the generated CSV file. */
+        @Option(names = { "--csv" }, defaultValue = "validationResults.csv", description = "CSV output file")
+        Path csvOutputPath;
+    }
+
+    @ArgGroup(validate = false, heading = "%n@|bold Logging Options|@%n%n", order = 4, exclusive = false)
+    private LoggingOptions loggingOptions = new LoggingOptions();
+
+    static class LoggingOptions {
+
+        /** Wether to use json based log output. */
+        @Option(names = { "--json" }, description = "print validation results in JSON format")
+        boolean jsonLogging;
+
+        /** Wether to show additional log messages. */
+        @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
+        boolean[] verbosity;
+    }
 
     /** Called when CLI arguments were successfully parsed. */
     @Override
     public Integer call() throws Exception {
-        Logging.setLogMode(jsonLogging);
-        Logging.setLogLevel(verbose);
+        Logging.setLogMode(false);
+        Logging.setLogLevel(Objects.isNull(loggingOptions.verbosity) ? 0 : loggingOptions.verbosity.length);
 
         logger.info("run validate command");
 
         logger.debug(
             "filepath pattern arguments are: {}",
-            Arrays.stream(pathArgs)
+            Arrays.stream(inputOptions.pathArgs)
                 .map(p -> p.toString())
                 .collect(Collectors.joining(", "))
         );
 
-        List<Path> resolvedFiles = GlobResolver.resolveMany(Arrays.asList(pathArgs));
+        List<Path> resolvedFiles = GlobResolver.resolveMany(Arrays.asList(inputOptions.pathArgs));
 
         Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
+        Map<Path, ExtractionResult> extractionResultsByFile = new HashMap<>();
 
         for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
-            logger.info("process directory '{}'", entry.getKey());
+            Path directory = entry.getKey();
+            logger.info("process directory '{}'", directory);
             for (Path filename : entry.getValue()) {
-                logger.info("process file '{}'", filename);
+                Path filepath = directory.resolve(filename);
+                logger.info("process file '{}'", filepath);
+
+                for (ExtractorType extratorType : configOptions.extractors) {
+                    logger.debug("apply extractor {}", extratorType);
+
+                    if (extratorType.equals(ExtractorType.EXIFTOOL)) {
+                        Extractor extractor = new ExiftoolExtractor();
+                        ExtractionResult extractionResult = extractor.extractProperties(filepath);
+                        extractionResultsByFile.put(filepath, extractionResult);
+
+                        // logger.info("extraction result: {}", extractionResult);
+                    }
+                }
+
+                logger.info("validation of file {} was successful", filepath);
+                if (loggingOptions.jsonLogging) {
+                    JsonLogWriter.writeFileValidationLog(filepath, true);
+                }
+            }
+
+            logger.info("validation of directory {} was successful", directory);
+            if (loggingOptions.jsonLogging) {
+                JsonLogWriter.writeDirectoryValidationLog(directory, true);
             }
         }
 
-        if (Objects.nonNull(csvOutputPath)) {
+        logger.info("done validating all files");
+
+        if (Objects.nonNull(outputOptions.csvOutputPath)) {
             logger.info("write CSV file");
-            CsvWriter.writeReport(filesByDirectory, csvOutputPath);
+            CsvWriter.writeReport(filesByDirectory, extractionResultsByFile, outputOptions.csvOutputPath);
         }
 
         return 0;

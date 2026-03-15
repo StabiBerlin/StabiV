@@ -6,8 +6,8 @@
                        https://logging.apache.org/xml/ns/log4j-config-2.xsd">
 
   <Appenders>
-    <Console name="CONSOLE">
-      <JsonTemplateLayout />
+    <Console name="CONSOLE" target="System.out">
+      <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
     </Console>
   </Appenders>
 

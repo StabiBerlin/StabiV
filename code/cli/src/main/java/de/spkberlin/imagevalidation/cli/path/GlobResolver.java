@@ -79,7 +79,7 @@ public class GlobResolver {
         logger.debug("resolve path pattern '{}' for base directory '{}'", absolutePattern, baseDir);
         return Files.walk(baseDir)
             .map(p -> {
-                logger.debug("match file path '{}'", p);
+                logger.trace("match file path '{}'", p);
                 return p;
             })
             .filter(Files::isRegularFile)

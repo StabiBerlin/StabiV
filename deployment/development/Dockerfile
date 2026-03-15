@@ -26,6 +26,12 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# install image validation dependencies
+RUN apt-get update && \
+    apt-get install -y exiftool && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # copy custom screenrc for convenience
 COPY ./tmux.conf /root/.tmux.conf
 

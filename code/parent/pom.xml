@@ -13,6 +13,8 @@
   <modules>
     <module>../cli</module>
     <module>../common</module>
+    <module>../extractor-exiftool</module>
+    <module>../extractor-jhove</module>
   </modules>
 
   <properties>
@@ -23,7 +25,9 @@
     <!--dependency versions -->
     <commons-csv.version>1.14.1</commons-csv.version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
+    <jackson-databind.version>3.1.0</jackson-databind.version>
     <jpackage-maven-plugin.version>1.7.4</jpackage-maven-plugin.version>
+    <json.version>20251224</json.version>
     <junit-bom.version>6.0.3</junit-bom.version>
     <log4j.version>2.25.3</log4j.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -85,6 +89,26 @@
         <artifactId>picocli-codegen</artifactId>
         <version>${picocli.version}</version>
       </dependency>
+      <dependency>
+        <groupId>tools.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson-databind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.spkberlin.imagevalidation</groupId>
+        <artifactId>imagevalidation-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.spkberlin.imagevalidation</groupId>
+        <artifactId>imagevalidation-extractor-exiftool</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.spkberlin.imagevalidation</groupId>
+        <artifactId>imagevalidation-extractor-jhove</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -107,6 +131,9 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>${exec-maven-plugin.version}</version>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>

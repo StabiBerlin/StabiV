@@ -11,7 +11,7 @@
   <artifactId>imagevalidation-common</artifactId>
   <packaging>jar</packaging>
 
-  <name>Image Validation Common</name>
+  <name>Image Validation Common Code and API</name>
 
   <properties/>
 
