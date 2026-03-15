@@ -24,15 +24,15 @@ Jhove (Rel. 1.34.0, 2025-07-02)
    Offset: 64448754
   MIMEtype: image/tiff
   Profile: Baseline RGB (Class R), DLF Benchmark for Faithful Digital Reproductions of Monographs and Serials: color
-  TIFFMetadata: 
+  TIFFMetadata:
    ByteOrder: little-endian
-   IFDs: 
+   IFDs:
     Number: 3
-    IFD: 
+    IFD:
      Offset: 64399260
      Type: TIFF
-     Entries: 
-      NisoImageMetadata: 
+     Entries:
+      NisoImageMetadata:
        FormatName: image/tiff
        ByteOrder: little_endian
        CompressionScheme: uncompressed
@@ -53,10 +53,10 @@ Jhove (Rel. 1.34.0, 2025-07-02)
        BitsPerSample: 8, 8, 8
        BitsPerSampleUnit: integer
        SamplesPerPixel: 3
-      ImageDescription: 
+      ImageDescription:
       DateTime: 2021:07:07 13:41:16
       NewSubfileType: 0
-      Copyright: 
+      Copyright:
       SampleFormat: 1, 1, 1
       MinSampleValue: 0, 0, 0
       MaxSampleValue: 255, 255, 255
@@ -66,7 +66,7 @@ Jhove (Rel. 1.34.0, 2025-07-02)
       RowsPerStrip: 1
       StripByteCounts: 11583, 11583, 11583, 11583, 11583, [...........]
       PlanarConfiguration: 1
-      TIFFITProperties: 
+      TIFFITProperties:
        BackgroundColorIndicator: background not defined
        ImageColorIndicator: image not defined
        TransparencyIndicator: no transparency
@@ -74,13 +74,13 @@ Jhove (Rel. 1.34.0, 2025-07-02)
        RasterPadding: 1 byte
        BitsPerRunLength: 8
        BitsPerExtendedRunLength: 16
-      TIFFEPProperties: 
+      TIFFEPProperties:
        ICCProfile: true
-    IFD: 
+    IFD:
      Offset: 64444214
      Type: TIFF
-     Entries: 
-      NisoImageMetadata: 
+     Entries:
+      NisoImageMetadata:
        FormatName: image/tiff
        ByteOrder: little_endian
        CompressionScheme: LZW
@@ -106,7 +106,7 @@ Jhove (Rel. 1.34.0, 2025-07-02)
       RowsPerStrip: 49
       StripByteCounts: 13111, 13439, 5729
       PlanarConfiguration: 1
-      TIFFITProperties: 
+      TIFFITProperties:
        BackgroundColorIndicator: background not defined
        ImageColorIndicator: image not defined
        TransparencyIndicator: no transparency
@@ -114,12 +114,12 @@ Jhove (Rel. 1.34.0, 2025-07-02)
        RasterPadding: 1 byte
        BitsPerRunLength: 8
        BitsPerExtendedRunLength: 16
-    IFD: 
+    IFD:
      Offset: 64444446
      Type: Exif
-     Entries: 
+     Entries:
       FlashpixVersion: 0100
-      UserComment: 
+      UserComment:
        IDCode: UNICODE
        Value: UNICODE
        RawValue: 85, 78, 73, 67, 79, 68, 69, 0
@@ -131,7 +131,7 @@ Jhove (Rel. 1.34.0, 2025-07-02)
 
 C Bibliothek und verschiedene CLI Programme
 
-Beispiel: `tiffdump 00000001.tif` 
+Beispiel: `tiffdump 00000001.tif`
 
 ```
 00000001.tif:
@@ -183,34 +183,34 @@ TIFF Directory at offset 0x3d6a79c (64399260)
   Rows/Strip: 1
   Planar Configuration: single image plane
   SubIFD Offsets: 64444214
-  ImageDescription: 
+  ImageDescription:
   Make: i2S Corp.
   Model: SupraScan Quartz A1 [SN: 365002] - CamQuartzHD [SN: 365002]
   Software: Capture v3.4.0
   DateTime: 2021:07:07 13:41:16
   Artist: Staatsbibliothek zu Berlin
-  HostComputer: 
-  Copyright: 
+  HostComputer:
+  Copyright:
   EXIFIFDOffset: 0x3d7581e
   ICC Profile: <present>, 1992 bytes
   Tag 36867: 2021:07:07 13:41:16
   Tag 36868: 2021:07:07 13:41:16
---- EXIF directory within directory 0 
+--- EXIF directory within directory 0
 TIFF Directory at offset 0x3d7581e (64444446)
   Compression Scheme: None
-  Tag 269: 
-  Tag 285: 
+  Tag 269:
+  Tag 285:
   Tag 286: 0.000000
   Tag 287: 0.000000
   Tag 297: 0,0
   Tag 34675: 0,0,7,200,65,68,66,69,2,64 [........]
   Tag 37393: 0
   UserComment: 0x55,0x4e,0x49,0x43,0x4f,0x44,0x45,0x0
-  Tag 40091: 
-  Tag 40092: 
+  Tag 40091:
+  Tag 40092:
   Tag 40093: Staatsbibliothek zu Berlin
-  Tag 40094: 
-  Tag 40095: 
+  Tag 40094:
+  Tag 40095:
   Tag 50708: CamQuartzHD
   Tag 50709: CamQuartzHD
   Tag 50735: 365002
@@ -234,10 +234,12 @@ TIFF Directory at offset 0x3d75736 (64444214)
 ## [ImageMagick](https://imagemagick.org/)
 
 Allgemeines
+
 - C Bibliothek
 - [Quelltext](https://github.com/ImageMagick/ImageMagick)
 
 Bindings für
+
 - Java mit [JMagick](http://www.jmagick.org/)
 - uvm., siehe [Dokumentation](https://imagemagick.org/script/develop.php#gsc.tab=0)
 
@@ -324,23 +326,23 @@ Image:
   Profiles:
     Profile-icc: 1992 bytes
   Properties:
-    comment: 
+    comment:
     date:create: 2026-01-13T09:05:24+00:00
     date:modify: 2021-07-07T09:41:54+00:00
     date:timestamp: 2026-01-27T11:01:25+00:00
     exif:Compression Scheme: None
-    exif:Tag 269: 
-    exif:Tag 285: 
+    exif:Tag 269:
+    exif:Tag 285:
     exif:Tag 286: 0.000000
     exif:Tag 287: 0.000000
     exif:Tag 297: 0,0
     exif:Tag 34675: 0,0,7,200,65,68,66,69,2,64,0,0,109,110,116,[..........]
     exif:Tag 37393: 0
-    exif:Tag 40091: 
-    exif:Tag 40092: 
+    exif:Tag 40091:
+    exif:Tag 40092:
     exif:Tag 40093: Staatsbibliothek zu Berlin
-    exif:Tag 40094: 
-    exif:Tag 40095: 
+    exif:Tag 40094:
+    exif:Tag 40095:
     exif:Tag 50708: CamQuartzHD
     exif:Tag 50709: CamQuartzHD
     exif:Tag 50735: 365002
@@ -350,9 +352,9 @@ Image:
     icc:description: eciRGB v2
     signature: 007170fcff3de2645753a3b59a7bf6ceb90706e533722b7e7f7acc2af7c9fda2
     tiff:artist: Staatsbibliothek zu Berlin
-    tiff:copyright: 
+    tiff:copyright:
     tiff:endian: lsb
-    tiff:hostcomputer: 
+    tiff:hostcomputer:
     tiff:kodak-36867: 2021:07:07 13:41:16
     tiff:make: i2S Corp.
     tiff:model: SupraScan Quartz A1 [SN: 365002] - CamQuartzHD [SN: 365002]
@@ -371,7 +373,6 @@ Image:
   Elapsed time: 0:01.124
   Version: ImageMagick 7.1.1-47 Q16-HDRI x86_64 22763 https://imagemagick.org
 ```
-
 
 ## [checkit_tiff](https://git.fsfe.org/art1pirat/checkit_tiff)
 
@@ -454,7 +455,7 @@ Image Height                    : 5557
 Bits Per Sample                 : 8 8 8
 Compression                     : Uncompressed
 Photometric Interpretation      : RGB
-Image Description               : 
+Image Description               :
 Make                            : i2S Corp.
 Camera Model Name               : SupraScan Quartz A1 [SN: 365002] - CamQuartzHD [SN: 365002]
 Orientation                     : Horizontal (normal)
@@ -467,24 +468,24 @@ Resolution Unit                 : inches
 Software                        : Capture v3.4.0
 Modify Date                     : 2021:07:07 13:41:16
 Artist                          : Staatsbibliothek zu Berlin
-Host Computer                   : 
+Host Computer                   :
 Subfile Type                    : Full-resolution image
 Strip Offsets                   : 64366747 64379858 64393297
 Strip Byte Counts               : 13111 13439 5729
 Predictor                       : Horizontal differencing
-Copyright                       : 
-Document Name                   : 
-Page Name                       : 
+Copyright                       :
+Document Name                   :
+Page Name                       :
 X Position                      : 0
 Y Position                      : 0
 Page Number                     : 0 0
 Image Number                    : 0
-User Comment                    : 
-XP Title                        : 
-XP Comment                      : 
+User Comment                    :
+XP Title                        :
+XP Comment                      :
 XP Author                       : 瑓慡獴楢汢潩桴步稠⁵敂汲湩
-XP Keywords                     : 
-XP Subject                      : 
+XP Keywords                     :
+XP Subject                      :
 Unique Camera Model             : CamQuartzHD
 Localized Camera Model          : CamQuartzHD
 Camera Serial Number            : 365002
@@ -498,8 +499,8 @@ Profile Date Time               : 2007:03:02 10:07:41
 Profile File Signature          : acsp
 Primary Platform                : Unknown ()
 CMM Flags                       : Not Embedded, Independent
-Device Manufacturer             : 
-Device Model                    : 
+Device Manufacturer             :
+Device Model                    :
 Device Attributes               : Reflective, Glossy, Positive, Color
 Rendering Intent                : Perceptual
 Connection Space Illuminant     : 0.9642 1 0.82491
@@ -669,6 +670,6 @@ Beispiel: `exiftool -X 0000001.tif`
 
 Python
 
-## [metadata-extractor](https://github.com/drewnoakes/metadata-extractor) 
+## [metadata-extractor](https://github.com/drewnoakes/metadata-extractor)
 
 Java, used by Apache Tika
