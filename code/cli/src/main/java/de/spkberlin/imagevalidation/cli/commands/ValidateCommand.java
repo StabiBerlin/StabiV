@@ -101,7 +101,7 @@ public class ValidateCommand implements Callable<Integer> {
     static class OutputOptions {
 
         /** The filepath to the generated CSV file. */
-        @Option(names = { "--csv" }, defaultValue = "validationResults.csv", description = "CSV output file")
+        @Option(names = { "--csv" }, description = "CSV output file")
         Path csvOutputPath;
     }
 
@@ -173,7 +173,7 @@ public class ValidateCommand implements Callable<Integer> {
         logger.info("done validating all files");
 
         if (Objects.nonNull(outputOptions.csvOutputPath)) {
-            logger.info("write CSV file");
+            logger.info("write csv output file '{}'", outputOptions.csvOutputPath);
             CsvWriter.writeReport(filesByDirectory, extractionResultsByFile, outputOptions.csvOutputPath);
         }
 
