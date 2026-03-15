@@ -40,7 +40,7 @@ import picocli.CommandLine.Parameters;
     },
     usageHelpAutoWidth = true,
     optionListHeading = "%n@|bold General Options|@%n%n",
-    description = "%nValidates all images inside directories given the provided configuration file or CLI options.",
+    description = "%nValidates all images files given the provided configuration or CLI options.",
     exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
     exitCodeList = {
         "0:successful validation without errors",
@@ -53,17 +53,21 @@ public class ValidateCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateCommand.class);
 
-    @ArgGroup(validate = false, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
-    public InputOptions inputOptions = new InputOptions();
+    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 4, exclusive = false)
+    private LoggingOptions loggingOptions = new LoggingOptions();
 
-    static class InputOptions {
+    static class LoggingOptions {
 
-        /** The list of directories and files that are being validated. */
-        @Parameters(paramLabel = "PATHS", arity = "1..*", description = "directories or individual files to validate as glob pattern")
-        Path[] pathArgs;
+        /** Wether to use json based log output. */
+        @Option(names = { "--json" }, description = "print validation results in JSON format to stdout (and other log messages to stderr)")
+        boolean jsonLogging;
+
+        /** Wether to show additional log messages. */
+        @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
+        boolean[] verbosity;
     }
 
-    @ArgGroup(validate = false, heading = "%n@|bold Configuration Options|@%n%n", order = 2, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Configuration Options|@%n%n", order = 2, exclusive = false)
     public ConfigOptions configOptions = new ConfigOptions();
 
     static class ConfigOptions {
@@ -80,17 +84,18 @@ public class ValidateCommand implements Callable<Integer> {
             paramLabel = "module",
             description = "Extraction modules that are applied to each image file"
         )
-        List<ExtractorType> extractors;
+        ExtractorType[] extractors = {};
 
         @Option(
             names = { "--rule" },
             paramLabel = "rule",
+            arity = "0..*",
             description = "Validation rules that are checked against extracted image properties"
         )
-        List<String> rules;
+        String[] rules = {};
     }
 
-    @ArgGroup(validate = false, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
     public OutputOptions outputOptions = new OutputOptions();
 
     static class OutputOptions {
@@ -100,24 +105,20 @@ public class ValidateCommand implements Callable<Integer> {
         Path csvOutputPath;
     }
 
-    @ArgGroup(validate = false, heading = "%n@|bold Logging Options|@%n%n", order = 4, exclusive = false)
-    private LoggingOptions loggingOptions = new LoggingOptions();
+    @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
+    public InputOptions inputOptions = new InputOptions();
 
-    static class LoggingOptions {
+    static class InputOptions {
 
-        /** Wether to use json based log output. */
-        @Option(names = { "--json" }, description = "print validation results in JSON format")
-        boolean jsonLogging;
-
-        /** Wether to show additional log messages. */
-        @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
-        boolean[] verbosity;
+        /** The list of directories and files that are being validated. */
+        @Parameters(paramLabel = "PATHS", arity = "0..*", description = "directories or individual files to validate as glob pattern")
+        Path[] pathArgs = {};
     }
 
     /** Called when CLI arguments were successfully parsed. */
     @Override
     public Integer call() throws Exception {
-        Logging.setLogMode(false);
+        Logging.setLogMode(loggingOptions.jsonLogging);
         Logging.setLogLevel(Objects.isNull(loggingOptions.verbosity) ? 0 : loggingOptions.verbosity.length);
 
         logger.info("run validate command");
@@ -130,6 +131,10 @@ public class ValidateCommand implements Callable<Integer> {
         );
 
         List<Path> resolvedFiles = GlobResolver.resolveMany(Arrays.asList(inputOptions.pathArgs));
+
+        if (resolvedFiles.isEmpty()) {
+            logger.warn("no files to validate");
+        }
 
         Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
         Map<Path, ExtractionResult> extractionResultsByFile = new HashMap<>();
@@ -153,13 +158,13 @@ public class ValidateCommand implements Callable<Integer> {
                     }
                 }
 
-                logger.info("validation of file {} was successful", filepath);
+                logger.info("validation of file '{}' was successful", filepath);
                 if (loggingOptions.jsonLogging) {
                     JsonLogWriter.writeFileValidationLog(filepath, true);
                 }
             }
 
-            logger.info("validation of directory {} was successful", directory);
+            logger.info("validation of directory '{}' was successful", directory);
             if (loggingOptions.jsonLogging) {
                 JsonLogWriter.writeDirectoryValidationLog(directory, true);
             }
