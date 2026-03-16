@@ -3,7 +3,7 @@ package de.spkberlin.imagevalidation.cli.entrypoint;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_AT_FILE_PARAMETER;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_OPTION_LIST;
 
-import de.spkberlin.imagevalidation.cli.commands.ValidateCommand;
+import de.spkberlin.imagevalidation.cli.commands.MainCommand;
 import java.util.ArrayList;
 import java.util.List;
 import picocli.CommandLine;
@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String... args) {
         // set up validate command
-        CommandLine cmd = new CommandLine(new ValidateCommand());
+        CommandLine cmd = new CommandLine(new MainCommand());
         cmd.setCaseInsensitiveEnumValuesAllowed(true);
 
         // move "at file" help hint to options section

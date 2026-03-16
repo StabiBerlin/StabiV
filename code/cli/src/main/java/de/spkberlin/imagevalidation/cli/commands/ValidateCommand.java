@@ -1,5 +1,6 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
+import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Constants;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
@@ -24,23 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(
-    name = Constants.CLI_COMMAND_NAME,
-    mixinStandardHelpOptions = true, // automatically add help option
+    name = "validate",
+    description = "%nValidate all image files according to a specification.",
     showAtFileInUsageHelp = true, // allow to provide list of directories and files as a file instead of as cli arguments
-    showDefaultValues = true,
-    version = {
-        Constants.CLI_COMMAND_NAME + " v" + Constants.VERSION,
-        "",
-        "JVM: ${java.version} (${java.vendor} ${java.vm.name} ${java.vm.version})",
-        "OS: ${os.name} ${os.version} ${os.arch}",
-    },
-    usageHelpAutoWidth = true,
     optionListHeading = "%n@|bold General Options|@%n%n",
-    description = "%nValidates all images files given the provided configuration or CLI options.",
     exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
     exitCodeList = {
         "0:successful validation without errors",
@@ -52,6 +45,9 @@ import picocli.CommandLine.Parameters;
 public class ValidateCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateCommand.class);
+
+    @Mixin
+    private CommonOptions commonOptions;
 
     @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 4, exclusive = false)
     private LoggingOptions loggingOptions = new LoggingOptions();
