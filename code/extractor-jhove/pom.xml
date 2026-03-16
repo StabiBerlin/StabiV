@@ -17,6 +17,30 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.openpreservation.jhove</groupId>
+      <artifactId>jhove-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openpreservation.jhove.modules</groupId>
+      <artifactId>gif-hul</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openpreservation.jhove.modules</groupId>
+      <artifactId>jpeg2000-hul</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openpreservation.jhove.modules</groupId>
+      <artifactId>jpeg-hul</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openpreservation.jhove.modules</groupId>
+      <artifactId>pdf-hul</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openpreservation.jhove.modules</groupId>
+      <artifactId>tiff-hul</artifactId>
+    </dependency>
+    <dependency>
       <groupId>de.spkberlin.imagevalidation</groupId>
       <artifactId>imagevalidation-common</artifactId>
     </dependency>

@@ -26,6 +26,12 @@
     <commons-csv.version>1.14.1</commons-csv.version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
     <jackson-databind.version>3.1.0</jackson-databind.version>
+    <jhove.version>1.32.1</jhove.version>
+    <jhove.modules.gif.hul.version>1.4.3</jhove.modules.gif.hul.version>
+    <jhove.modules.jpeg2000.hul.version>1.4.4</jhove.modules.jpeg2000.hul.version>
+    <jhove.modules.jpeg.hul.version>1.5.4</jhove.modules.jpeg.hul.version>
+    <jhove.modules.pdf.hul.version>1.12.7</jhove.modules.pdf.hul.version>
+    <jhove.modules.tiff.hul.version>1.9.5</jhove.modules.tiff.hul.version>
     <jpackage-maven-plugin.version>1.7.4</jpackage-maven-plugin.version>
     <json.version>20251224</json.version>
     <junit-bom.version>6.0.3</junit-bom.version>
@@ -93,6 +99,36 @@
         <groupId>tools.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson-databind.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove</groupId>
+        <artifactId>jhove-core</artifactId>
+        <version>${jhove.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove.modules</groupId>
+        <artifactId>gif-hul</artifactId>
+        <version>${jhove.modules.gif.hul.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove.modules</groupId>
+        <artifactId>jpeg2000-hul</artifactId>
+        <version>${jhove.modules.jpeg2000.hul.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove.modules</groupId>
+        <artifactId>jpeg-hul</artifactId>
+        <version>${jhove.modules.jpeg.hul.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove.modules</groupId>
+        <artifactId>pdf-hul</artifactId>
+        <version>${jhove.modules.pdf.hul.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openpreservation.jhove.modules</groupId>
+        <artifactId>tiff-hul</artifactId>
+        <version>${jhove.modules.tiff.hul.version}</version>
       </dependency>
       <dependency>
         <groupId>de.spkberlin.imagevalidation</groupId>
