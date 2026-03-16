@@ -1,7 +1,6 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
-import de.spkberlin.imagevalidation.cli.common.Constants;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvWriter;

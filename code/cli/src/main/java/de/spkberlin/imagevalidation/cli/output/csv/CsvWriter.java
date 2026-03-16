@@ -45,7 +45,7 @@ public class CsvWriter {
                         null,
                         null,
                         null,
-                        extractionResult.properties().getOrDefault("/TIFF/IFD0/PhotometricInterpretation", null)
+                        extractionResult.properties().getOrDefault("TIFF/IFD0/PhotometricInterpretation", null)
                     );
                 }
             }
