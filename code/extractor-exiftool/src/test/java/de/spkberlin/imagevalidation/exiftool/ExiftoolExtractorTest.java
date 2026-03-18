@@ -11,8 +11,8 @@ public class ExiftoolExtractorTest {
     @Test
     public void testTransformPropertyName() {
         assertEquals(
-            ExiftoolExtractor.transformPropertyName("[TIFF-IFD0-ICC_Profile-Header] ProfileVersion"),
-            "TIFF/IFD0/ICC_Profile/Header/ProfileVersion"
+            "TIFF/IFD[0]/ICC_Profile/Header/ProfileVersion",
+            ExiftoolExtractor.transformPropertyName("[TIFF-IFD0-ICC_Profile-Header] ProfileVersion")
         );
     }
 }

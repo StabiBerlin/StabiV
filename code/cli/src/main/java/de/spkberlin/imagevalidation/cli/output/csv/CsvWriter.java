@@ -1,6 +1,5 @@
 package de.spkberlin.imagevalidation.cli.output.csv;
 
-import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,16 +11,11 @@ import org.apache.commons.csv.CSVPrinter;
 
 public class CsvWriter {
 
-    public static void writeReport(Map<Path, List<Path>> filesByDirectory, Map<Path, ExtractionResult> extractionResultsByFile, Path path) {
-        writeReport(filesByDirectory, extractionResultsByFile, path, CSVFormat.EXCEL);
+    public static void writeReport(Map<Path, List<Path>> filesByDirectory, Path path) {
+        writeReport(filesByDirectory, path, CSVFormat.EXCEL);
     }
 
-    public static void writeReport(
-        Map<Path, List<Path>> filesByDirectory,
-        Map<Path, ExtractionResult> extractionResultsByFile,
-        Path path,
-        CSVFormat format
-    ) {
+    public static void writeReport(Map<Path, List<Path>> filesByDirectory, Path path, CSVFormat format) {
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(path.toFile()), format)) {
             printer.printRecord(
                 "Ordner",
@@ -38,14 +32,14 @@ public class CsvWriter {
 
                 for (Path filename : entry.getValue()) {
                     Path filepath = directory.resolve(filename);
-                    ExtractionResult extractionResult = extractionResultsByFile.get(filepath);
+                    // ExtractionResult extractionResult = extractionResultsByFile.get(filepath);
                     printer.printRecord(
                         null,
                         filename.toString(),
                         null,
                         null,
-                        null,
-                        extractionResult.properties().getOrDefault("TIFF/IFD0/PhotometricInterpretation", null)
+                        null
+                        // extractionResult.properties().getOrDefault("TIFF/IFD0/PhotometricInterpretation", null)
                     );
                 }
             }

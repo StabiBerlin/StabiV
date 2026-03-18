@@ -1,13 +1,15 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
-import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
+import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
 import java.nio.file.Path;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
@@ -53,19 +55,23 @@ public class ExtractCommand implements Callable<Integer> {
 
         logger.info("extract properties from file '{}'", filepath);
 
+        Map<String, Object> propertyTree = new HashMap<>();
         for (ExtractorType extratorType : extractors) {
             logger.debug("apply extractor {}", extratorType);
 
-            if (extratorType.equals(ExtractorType.EXIFTOOL)) {
+            if (extratorType.equals(ExtractorType.exiftool)) {
                 Extractor extractor = new ExiftoolExtractor();
-                ExtractionResult extractionResult = extractor.extractProperties(filepath);
+                propertyTree.put(ExtractorType.exiftool.name(), extractor.extractProperties(filepath));
+            }
 
-                for (Entry<String, String> entry : extractionResult.properties().entrySet()) {
-                    System.out.println(entry.getKey());
-                    System.out.println("    " + entry.getValue());
-                }
+            if (extratorType.equals(ExtractorType.jhove)) {
+                Extractor extractor = new JHoveExtractor();
+                propertyTree.put(ExtractorType.jhove.name(), extractor.extractProperties(filepath));
             }
         }
+
+        String json = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(propertyTree);
+        System.out.println(json);
 
         logger.info("done extracting properties");
 

@@ -1,16 +1,19 @@
 package de.spkberlin.imagevalidation.exiftool;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionError;
-import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
+import de.spkberlin.imagevalidation.common.properties.PathPropertiesTree;
+import de.spkberlin.imagevalidation.common.properties.PathProperty;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,7 +28,10 @@ public class ExiftoolExtractor implements Extractor {
     private static final String EXIFTOOL_CMD = "exiftool";
     private static final String[] EXIFTOOL_ARGS = { "-a", "-u", "-s", "-G5" };
 
-    public ExtractionResult extractProperties(Path filename) throws ExtractionError {
+    private static final Pattern LINE_PATTERN = Pattern.compile("\\[([^\\]]+)\\]\\s*(.+)");
+    private static final Pattern ARRAY_PATTERN = Pattern.compile("^(.*?)([0-9]+)?$");
+
+    public Map<String, Object> extractProperties(Path filename) throws ExtractionError {
         String output = runExifTool(filename);
         return parseExifToolOutput(output);
     }
@@ -68,8 +74,8 @@ public class ExiftoolExtractor implements Extractor {
         return stdout.toString();
     }
 
-    public ExtractionResult parseExifToolOutput(String output) {
-        Map<String, String> properties = new HashMap<>();
+    public Map<String, Object> parseExifToolOutput(String output) {
+        Set<PathProperty> properties = new HashSet<>();
         String[] lines = output.split(NEWLINE);
 
         for (String line : lines) {
@@ -80,18 +86,28 @@ public class ExiftoolExtractor implements Extractor {
                 continue;
             }
 
-            String propertyName = transformPropertyName(propertyArray[0].trim());
+            String propertyPath = transformPropertyName(propertyArray[0].trim());
             String propertyValue = propertyArray[1].trim();
 
-            properties.put(propertyName, propertyValue);
+            properties.add(new PathProperty(propertyPath, propertyValue));
         }
 
-        return new ExtractionResult(properties);
+        return PathPropertiesTree.buildTreeFromPaths(properties);
     }
 
     public static String transformPropertyName(String encoded) {
-        return Pattern.compile("\\[([^\\]]+)\\]\\s*(.+)")
-            .matcher(encoded)
-            .replaceAll(m -> m.group(1).replace('-', '/') + "/" + m.group(2));
+        return LINE_PATTERN.matcher(encoded).replaceAll(
+            match ->
+                Arrays.asList(match.group(1).split("-"))
+                    .stream()
+                    .map(part ->
+                        ARRAY_PATTERN.matcher(part).replaceAll(
+                            m -> m.group(1) + (Objects.nonNull(m.group(2)) ? ("[" + m.group(2) + "]") : "")
+                        )
+                    )
+                    .collect(Collectors.joining("/")) +
+                "/" +
+                match.group(2)
+        );
     }
 }
