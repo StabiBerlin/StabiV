@@ -288,6 +288,8 @@
             </includes>
             <jackson/>
           </yaml>
+          <!-- global options-->
+          <lineEndings>UNIX</lineEndings>
         </configuration>
         <executions>
           <execution>
