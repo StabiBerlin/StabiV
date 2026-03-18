@@ -193,15 +193,18 @@ public class RepInfoParser {
      * @return the flat map of properties and values
      */
     public static Map<String, Object> repInfoToPropertyTree(RepInfo info) {
+        boolean successfulParsing = Objects.nonNull(info.getModule());
+
         Map<String, Object> propertyMap = parseProperties(info.getProperty());
         propertyMap.put("mimetype", info.getMimeType());
         propertyMap.put("format", info.getFormat());
         propertyMap.put("version", info.getVersion());
         propertyMap.put("size", info.getSize());
         propertyMap.put("profile", info.getProfile());
-        propertyMap.put("valid", ternaryValueToString(info.getValid()));
-        propertyMap.put("wellformed", ternaryValueToString(info.getWellFormed()));
         propertyMap.put("module", Objects.nonNull(info.getModule()) ? info.getModule().getName() : "none");
+        propertyMap.put("wellformed", successfulParsing ? ternaryValueToString(info.getWellFormed()) : "false");
+        propertyMap.put("valid", successfulParsing ? ternaryValueToString(info.getValid()) : "false");
+
         return propertyMap;
     }
 }

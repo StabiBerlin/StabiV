@@ -12,7 +12,10 @@ import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
+import de.spkberlin.imagevalidation.common.rules.Rule;
+import de.spkberlin.imagevalidation.common.rules.RuleEvaluator;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
+import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -121,10 +124,10 @@ public class ValidateCommand implements Callable<Integer> {
 
         logger.info("run validate command");
 
+        YamlConfiguration yamlConfig = null;
         if (Objects.nonNull(configOptions.configFile)) {
             logger.info("load configuration file '{}", configOptions.configFile);
-            YamlConfiguration config = YamlParser.parseConfigurationFile(configOptions.configFile);
-            logger.trace("read yaml configuration:\n\n{}", YamlWriter.writeConfigurationFile(config));
+            yamlConfig = YamlParser.parseConfigurationFile(configOptions.configFile);
         }
 
         logger.debug(
@@ -141,7 +144,12 @@ public class ValidateCommand implements Callable<Integer> {
         }
 
         Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
-        // Map<Path, ExtractionResult> extractionResultsByFile = new HashMap<>();
+        Map<ExtractorType, Extractor> extractors = Map.of(
+            ExtractorType.exiftool,
+            new ExiftoolExtractor(),
+            ExtractorType.jhove,
+            new JHoveExtractor()
+        );
 
         for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
             Path directory = entry.getKey();
@@ -150,21 +158,20 @@ public class ValidateCommand implements Callable<Integer> {
                 Path filepath = directory.resolve(filename);
                 logger.info("process file '{}'", filepath);
 
+                Map<String, Object> propertyTree = new HashMap<>();
                 for (ExtractorType extratorType : configOptions.extractors) {
                     logger.debug("apply extractor {}", extratorType);
-
-                    if (extratorType.equals(ExtractorType.exiftool)) {
-                        Extractor extractor = new ExiftoolExtractor();
-                        // ExtractionResult extractionResult = extractor.extractProperties(filepath);
-                        // extractionResultsByFile.put(filepath, extractionResult);
-
-                        // logger.info("extraction result: {}", extractionResult);
-                    }
+                    propertyTree.put(extratorType.name(), extractors.get(extratorType).extractProperties(filepath));
                 }
 
-                logger.info("validation of file '{}' was successful", filepath);
-                if (loggingOptions.jsonLogging) {
-                    JsonLogWriter.writeFileValidationLog(filepath, true);
+                if (Objects.nonNull(yamlConfig)) {
+                    List<Rule> rules = yamlConfig.getValidation().getImageRules();
+                    List<String> errors = RuleEvaluator.evaluateRules(rules, propertyTree);
+                    logger.info("validation of file '{}' {}", filepath, errors.isEmpty() ? "was successfull" : "failed");
+
+                    if (loggingOptions.jsonLogging) {
+                        JsonLogWriter.writeFileValidationLog(filepath, errors.isEmpty());
+                    }
                 }
             }
 
