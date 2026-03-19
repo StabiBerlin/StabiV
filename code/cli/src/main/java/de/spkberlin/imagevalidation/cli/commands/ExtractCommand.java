@@ -46,7 +46,7 @@ public class ExtractCommand implements Callable<Integer> {
     @Mixin
     private CommonOptions commonOptions;
 
-    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 3, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 3, exclusive = false, multiplicity = "1")
     private LoggingOptions loggingOptions = new LoggingOptions();
 
     static class LoggingOptions {
@@ -89,13 +89,18 @@ public class ExtractCommand implements Callable<Integer> {
         String jsonPath;
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false, multiplicity = "1")
     public InputOptions inputOptions = new InputOptions();
 
     static class InputOptions {
 
         /** The path to the file whose properties are extracted. */
-        @Parameters(paramLabel = "PATH", index = "0", description = "filepath to individual file whose properties are extracted")
+        @Parameters(
+            paramLabel = "PATH",
+            index = "0",
+            arity = "1",
+            description = "filepath to individual file whose properties are extracted"
+        )
         Path filepath;
     }
 

@@ -124,12 +124,35 @@ public class ValidateCommand implements Callable<Integer> {
 
     static class InputOptions {
 
+        @Option(
+            names = { "--baseDirectory" },
+            paramLabel = "DIR",
+            arity = "0..1",
+            description = "the base directory that is used to resolve relative file paths%n  Default: current working directory"
+        )
+        String baseDirectory;
+
+        @Option(
+            names = { "--exclude" },
+            paramLabel = "PATHS",
+            arity = "0..*",
+            description = """
+            one ore multiple files, directories or glob patterns that are excluded from validation
+
+            Examples
+            - `**/ignore` - do not validate files or subdirectories called "ignore"
+            - `**.jpg` - do not validate jpg files
+            - `/path/to/directory` - do not validate files in this specific directory
+            """
+        )
+        String[] excludes = {};
+
         /** The list of directories and files that are being validated. */
         @Parameters(
             paramLabel = "PATHS",
             arity = "0..*",
             description = """
-            one or multiple files, directories or glob pattern that are scanned for files to validate
+            one or multiple files, directories or glob patterns that are scanned for files to validate
 
             Examples
             - `/path/to/directory` - validate all files from all subdirectories
@@ -140,29 +163,6 @@ public class ValidateCommand implements Callable<Integer> {
             """
         )
         String[] includes = {};
-
-        @Option(
-            names = { "--exclude" },
-            paramLabel = "PATHS",
-            arity = "0..*",
-            description = """
-            one ore multiple files, directories or glob pattern that are excluded from validation
-
-            Examples
-            - `**/ignore` - do not validate files or subdirectories called "ignore"
-            - `**/*.jpg` - do not validate jpg files
-            - `/path/to/directory` - do not validate files in this specific directory
-            """
-        )
-        String[] excludes = {};
-
-        @Option(
-            names = { "--baseDirectory" },
-            paramLabel = "DIR",
-            arity = "0..1",
-            description = "the base directory that is used to resolve relative file paths%n  Default: current working directory"
-        )
-        String baseDirectory;
     }
 
     /** Called when CLI arguments were successfully parsed. */

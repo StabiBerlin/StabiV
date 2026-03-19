@@ -187,8 +187,10 @@
             <configuration>
               <inlineDescriptors>
                 <inlineDescriptor>
-                  <id>linux</id>
+                  <id>linux-x64</id>
+                  <includeBaseDirectory>false</includeBaseDirectory>
                   <formats>
+                    <format>dir</format>
                     <format>tar.gz</format>
                   </formats>
                   <fileSets>
@@ -200,8 +202,15 @@
                       </includes>
                     </fileSet>
                     <fileSet>
+                      <directory>${project.basedir}/../common/src/test/resources/images</directory>
+                      <outputDirectory>examples/images</outputDirectory>
+                      <includes>
+                        <include>**</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
                       <directory>${project.build.directory}/generated-docs</directory>
-                      <outputDirectory>documentation/cli</outputDirectory>
+                      <outputDirectory>documentation</outputDirectory>
                       <includes>
                         <include>*.html</include>
                       </includes>
@@ -210,6 +219,7 @@
                   <files>
                     <file>
                       <source>${project.build.directory}/${project.build.finalName}.jar</source>
+                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
                     </file>
                   </files>
                 </inlineDescriptor>
