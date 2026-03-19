@@ -11,14 +11,12 @@ REM Collect and quote all arguments
 set ARGS=
 :loop
 if "%~1"=="" goto done
-set ARGS=!ARGS! "%~1"
+set ARGS=!ARGS! \"%~1\"
 shift
 goto loop
 :done
 
-set "ESCAPED_ARGS=%ARGS:"=\"%"
-
 REM Run Maven
-mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" -Dexec.args="%ESCAPED_ARGS%"
+mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" -Dexec.args="%ARGS%"
 
 endlocal
