@@ -7,7 +7,11 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
-@Command(name = Constants.CLI_COMMAND_NAME, subcommands = { ValidateCommand.class, ExtractCommand.class })
+@Command(
+    name = Constants.CLI_COMMAND_NAME,
+    subcommands = { ValidateCommand.class, ExtractCommand.class },
+    description = "image validation command line interface"
+)
 public class MainCommand implements Callable<Integer> {
 
     @Mixin

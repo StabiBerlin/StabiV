@@ -34,7 +34,17 @@ import picocli.CommandLine.Parameters;
 
 @Command(
     name = "validate",
-    description = "%nValidate all image files according to a specification.",
+    description = """
+    %nValidate all image files according to a specification.
+
+    @|bold Examples|@
+
+    Validate all TIF files in all subdirectories and check JHove has detected them as wellformed:%n
+      ${COMMAND-FULL-NAME} --rule="$.jhove.wellformed|equal|true" /path/to/images/**/*.tif
+
+    Use a config file to define all validation options:%n
+      ${COMMAND-FULL-NAME} --config /path/to/config.yaml
+    """,
     showAtFileInUsageHelp = true, // allow to provide list of directories and files as a file instead of as cli arguments
     optionListHeading = "%n@|bold General Options|@%n%n",
     exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
