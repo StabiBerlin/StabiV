@@ -46,7 +46,7 @@ public class ExtractCommand implements Callable<Integer> {
     @Mixin
     private CommonOptions commonOptions;
 
-    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 3, exclusive = false, multiplicity = "1")
+    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 3, exclusive = false)
     private LoggingOptions loggingOptions = new LoggingOptions();
 
     static class LoggingOptions {
