@@ -16,9 +16,9 @@ shift
 goto loop
 :done
 
+set "ESCAPED_ARGS=%ARGS:"=\"%"
+
 REM Run Maven
-mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java ^
-  -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" ^
-  -Dexec.args=!ARGS!
+mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" -Dexec.args="%ESCAPED_ARGS%"
 
 endlocal

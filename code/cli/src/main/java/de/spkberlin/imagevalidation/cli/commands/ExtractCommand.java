@@ -66,7 +66,7 @@ public class ExtractCommand implements Callable<Integer> {
         Map<String, Object> propertyTree = new HashMap<>();
         for (ExtractorType extratorType : extractors) {
             logger.debug("apply extractor {}", extratorType);
-            propertyTree.put(ExtractorType.exiftool.name(), extractorsMap.get(extratorType).extractProperties(filepath));
+            propertyTree.put(extratorType.name(), extractorsMap.get(extratorType).extractProperties(filepath));
         }
 
         System.out.println(PropertiesSerializer.serializeProperties(propertyTree));
