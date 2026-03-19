@@ -31,7 +31,7 @@ public class CsvWriter {
                 printer.printRecord(directory.toString());
 
                 for (Path filename : entry.getValue()) {
-                    Path filepath = directory.resolve(filename);
+                    // Path filepath = directory.resolve(filename);
                     // ExtractionResult extractionResult = extractionResultsByFile.get(filepath);
                     printer.printRecord(
                         null,

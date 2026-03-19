@@ -7,7 +7,9 @@ public class Rule {
     private RuleSeverityType severity;
     private String message;
 
-    public Rule() {}
+    public Rule() {
+        //
+    }
 
     public String getContext() {
         return this.context;

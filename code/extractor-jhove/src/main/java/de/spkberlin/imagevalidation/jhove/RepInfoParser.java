@@ -44,6 +44,36 @@ public class RepInfoParser {
         return nonNumberProperties.size() == numberValue && nonNumberKeys.size() == 1;
     }
 
+    private static Object parsePropertyOfTypeAllPropertyList(List<Property> propertyList) {
+        if (isUniformPropertyArray(propertyList)) {
+            List<Property> nonNumberProperties = propertyList
+                .stream()
+                .filter(p -> !p.getName().equals(NUMBER_PROPERTY_KEY))
+                .collect(Collectors.toList());
+
+            return Map.of(
+                nonNumberProperties.get(0).getName(),
+                nonNumberProperties
+                    .stream()
+                    .map(p -> parseProperty(p))
+                    .toList()
+            );
+        }
+
+        return propertyList
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    p -> p.getName(),
+                    p -> parseProperty(p),
+                    (pL, pR) -> {
+                        logger.warn("JHove RepInfo contains property with duplicate key '{}'", pL);
+                        return pL;
+                    }
+                )
+            );
+    }
+
     /**
      * Parse a property claiming to be a list.
      *
@@ -53,38 +83,12 @@ public class RepInfoParser {
     private static Object parsePropertyOfTypeList(Object value) {
         if (value instanceof List<?>) {
             List<?> valueList = (List<?>) value;
-            boolean allItemsAreProperties = valueList.stream().allMatch(o -> o instanceof Property);
-            if (allItemsAreProperties) {
+
+            if (valueList.stream().allMatch(o -> o instanceof Property)) {
                 // list may be a key-value map or a list of properties
                 @SuppressWarnings("unchecked")
                 List<Property> propertyList = (List<Property>) valueList;
-                if (isUniformPropertyArray(propertyList)) {
-                    List<Property> nonNumberProperties = propertyList
-                        .stream()
-                        .filter(p -> !p.getName().equals(NUMBER_PROPERTY_KEY))
-                        .collect(Collectors.toList());
-
-                    return Map.of(
-                        nonNumberProperties.get(0).getName(),
-                        nonNumberProperties
-                            .stream()
-                            .map(p -> parseProperty(p))
-                            .toList()
-                    );
-                }
-
-                return propertyList
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            p -> p.getName(),
-                            p -> parseProperty(p),
-                            (p1, p2) -> {
-                                logger.warn("JHove RepInfo contains property with duplicate key '{}'", p1);
-                                return p1;
-                            }
-                        )
-                    );
+                return parsePropertyOfTypeAllPropertyList(propertyList);
             }
 
             return valueList

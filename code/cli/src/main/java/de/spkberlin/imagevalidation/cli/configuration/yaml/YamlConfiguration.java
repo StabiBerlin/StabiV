@@ -7,6 +7,9 @@ public class YamlConfiguration {
     private YamlValidationSection validation;
     private YamlOutputSection output;
 
+    /**
+     * Initialize YamlConfiguration.
+     */
     public YamlConfiguration() {
         input = new YamlInputSection();
         extraction = new YamlExtractionSection();

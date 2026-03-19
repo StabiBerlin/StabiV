@@ -135,7 +135,7 @@ public class GlobResolver {
      * @param includeMatcher a include matcher
      * @param excludeMatcher a list of exclude matcher
      * @return the list of matching paths
-     * @throws IOException
+     * @throws IOException in case filepath is not available
      */
     public static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<PathMatcher> excludeMatcher)
         throws IOException {
@@ -182,7 +182,6 @@ public class GlobResolver {
      * In case a path pattern is relative, resolve it to an absolute path pattern.
      *
      * @param pattern the path pattern (either relative or absolute)
-     * @param cwd the current working directory
      * @return absolute path pattern
      */
     public static String makePatternAbsolute(String pattern) {

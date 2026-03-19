@@ -4,7 +4,9 @@ public class YamlCsvSection {
 
     private String path;
 
-    public YamlCsvSection() {}
+    public YamlCsvSection() {
+        //
+    }
 
     public String getPath() {
         return this.path;

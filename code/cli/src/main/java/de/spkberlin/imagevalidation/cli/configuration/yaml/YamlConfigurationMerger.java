@@ -7,6 +7,16 @@ import java.util.Objects;
 
 public class YamlConfigurationMerger {
 
+    /**
+     * Merge input section of yaml configuration with CLI options.
+     *
+     * @param config the yaml configuration
+     * @param cwd the current working directory
+     * @param configPath the path to the configuration file
+     * @param baseDirectory the base directory specified with CLI option
+     * @param includes the list of includes filepaths specified with CLI option
+     * @param excludes the list of exclided filepaths specified with CLI option
+     */
     public static void mergeInput(
         YamlConfiguration config,
         Path cwd,
@@ -36,12 +46,26 @@ public class YamlConfigurationMerger {
         }
     }
 
+    /**
+     * Merge extraction section of yaml configuration with CLI options.
+     *
+     * @param config the yaml configuration
+     * @param modules the list of extraction modules specified with CLI option
+     */
     public static void mergeExtraction(YamlConfiguration config, List<ExtractorType> modules) {
         if (Objects.nonNull(modules) && !modules.isEmpty()) {
             config.getExtraction().setModules(modules);
         }
     }
 
+    /**
+     * Merge output section of yaml configuration with CLI options.
+     *
+     * @param config the yaml configuration
+     * @param csvPath the csv output path specified with CLI option
+     * @param json whether json output should be generated specified with CLI option
+     * @param verbosity logging verbositry specified with CLI option
+     */
     public static void mergeOutput(YamlConfiguration config, String csvPath, Boolean json, YamlLoggingVerbosityType verbosity) {
         if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
             config.getOutput().getCsv().setPath(csvPath);

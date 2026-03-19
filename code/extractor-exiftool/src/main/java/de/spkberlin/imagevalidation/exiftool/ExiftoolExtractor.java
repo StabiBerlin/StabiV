@@ -95,19 +95,18 @@ public class ExiftoolExtractor implements Extractor {
         return PathPropertiesTree.buildTreeFromPaths(properties);
     }
 
+    public static String transformArrayProperty(String part) {
+        return ARRAY_PATTERN.matcher(part).replaceAll(m -> m.group(1) + (Objects.nonNull(m.group(2)) ? ("[" + m.group(2) + "]") : ""));
+    }
+
     public static String transformPropertyName(String encoded) {
-        return LINE_PATTERN.matcher(encoded).replaceAll(
-            match ->
-                Arrays.asList(match.group(1).split("-"))
-                    .stream()
-                    .map(part ->
-                        ARRAY_PATTERN.matcher(part).replaceAll(
-                            m -> m.group(1) + (Objects.nonNull(m.group(2)) ? ("[" + m.group(2) + "]") : "")
-                        )
-                    )
-                    .collect(Collectors.joining("/")) +
-                "/" +
-                match.group(2)
-        );
+        return LINE_PATTERN.matcher(encoded).replaceAll(match -> {
+            String propertyPath = Arrays.asList(match.group(1).split("-"))
+                .stream()
+                .map(part -> transformArrayProperty(part))
+                .collect(Collectors.joining("/"));
+            String propertyName = match.group(2);
+            return String.format("%s/%s", propertyPath, propertyName);
+        });
     }
 }

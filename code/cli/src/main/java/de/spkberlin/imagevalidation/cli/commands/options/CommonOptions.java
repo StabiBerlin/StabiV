@@ -14,4 +14,6 @@ import picocli.CommandLine.Command;
         "OS: ${os.name} ${os.version} ${os.arch}",
     }
 )
-public class CommonOptions {}
+public class CommonOptions {
+    //
+}

@@ -82,7 +82,7 @@ public class ValidateCommand implements Callable<Integer> {
         @Option(names = { "--config" }, description = "Configuration file containing additional options")
         String configFilepath;
 
-        /** Which extraction modules to apply */
+        /** The extraction modules that will be applied. */
         @Option(
             names = { "--extractors" },
             split = ",",
@@ -125,14 +125,34 @@ public class ValidateCommand implements Callable<Integer> {
     static class InputOptions {
 
         /** The list of directories and files that are being validated. */
-        @Parameters(paramLabel = "PATHS", arity = "0..*", description = "directories or individual files to validate as glob pattern")
+        @Parameters(
+            paramLabel = "PATHS",
+            arity = "0..*",
+            description = """
+            one or multiple files, directories or glob pattern that are scanned for files to validate
+
+            Examples
+            - `/path/to/directory` - validate all files from all subdirectories
+            - `/path/to/directory/*.tif` - validate tif files in this directory not considering subdirectories
+            - `/path/to/directory/**/*.tif` - validate tif files in all subdirectories
+            - `/path/to/directory/**/*.{tif,jpg}` - validate tif and jpg files in all subdirectories
+            - `../relative/path/to/directory` - relative path with respect to current working directory
+            """
+        )
         String[] includes = {};
 
         @Option(
             names = { "--exclude" },
             paramLabel = "PATHS",
             arity = "0..*",
-            description = "directories or individual files to exclude from validation"
+            description = """
+            one ore multiple files, directories or glob pattern that are excluded from validation
+
+            Examples
+            - `**/ignore` - do not validate files or subdirectories called "ignore"
+            - `**/*.jpg` - do not validate jpg files
+            - `/path/to/directory` - do not validate files in this specific directory
+            """
         )
         String[] excludes = {};
 
@@ -140,7 +160,7 @@ public class ValidateCommand implements Callable<Integer> {
             names = { "--baseDirectory" },
             paramLabel = "DIR",
             arity = "0..1",
-            description = "the base directory that is used to resolve relative file paths"
+            description = "the base directory that is used to resolve relative file paths%n  Default: current working directory"
         )
         String baseDirectory;
     }
@@ -155,6 +175,12 @@ public class ValidateCommand implements Callable<Integer> {
         return doValidation(loadConfiguration());
     }
 
+    /**
+     * Load the main Yaml configuration (or generate a default configuration).
+     *
+     * @return the yaml configuration
+     * @throws IOException in case filepaths cannot be evaluated
+     */
     public YamlConfiguration loadConfiguration() throws IOException {
         YamlConfiguration config = new YamlConfiguration();
 
@@ -198,10 +224,14 @@ public class ValidateCommand implements Callable<Integer> {
         return config;
     }
 
-    public static Integer doValidation(YamlConfiguration config) throws IOException {
-        Logging.setLogMode(config.getOutput().getLogging().getJson());
-        Logging.setLogLevel(VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
-
+    /**
+     * Find all files and directories that need to be validated.
+     *
+     * @param config the main yaml configuration
+     * @return all directories and their files that need to be validated
+     * @throws IOException in case filepaths cannot be evaluated
+     */
+    public static Map<Path, List<Path>> resolveFiles(YamlConfiguration config) throws IOException {
         logger.info("resolve files and directories");
         List<Path> resolvedFiles = GlobResolver.resolveMany(
             config.getInput().getIncludes(),
@@ -214,6 +244,23 @@ public class ValidateCommand implements Callable<Integer> {
         }
 
         Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
+
+        return filesByDirectory;
+    }
+
+    /**
+     * Do actual validation of files.
+     *
+     * @param config the main yaml configuration
+     * @return exit status
+     * @throws IOException in case filepaths cannot be evaluated
+     */
+    public static Integer doValidation(YamlConfiguration config) throws IOException {
+        Logging.setLogMode(config.getOutput().getLogging().getJson());
+        Logging.setLogLevel(VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
+
+        Map<Path, List<Path>> filesByDirectory = resolveFiles(config);
+
         Map<ExtractorType, Extractor> extractors = Map.of(
             ExtractorType.exiftool,
             new ExiftoolExtractor(),

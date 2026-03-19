@@ -5,5 +5,6 @@
   "[java]": {
     "editor.defaultFormatter": "RudraPatel.prettier-plugin-java-vscode"
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "java.checkstyle.configuration": "${workspaceFolder}/code/parent/src/main/resources/checkstyle.xml"
 }

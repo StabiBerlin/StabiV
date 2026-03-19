@@ -17,6 +17,12 @@ public class Logging {
 
     private static final Level[] VERBOSITY_LEVELS = { Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE };
 
+    /**
+     * Return logging configuration.
+     *
+     * @param json whether json-based configuration should be loaded
+     * @return the logging configuration
+     */
     public static Configuration getLoggingConfiguration(boolean json) {
         ConfigurationFactory configFactory = ConfigurationFactory.getInstance();
         AbstractConfiguration commonConfig = (AbstractConfiguration) configFactory.getConfiguration(
@@ -32,11 +38,21 @@ public class Logging {
         return new CompositeConfiguration(Arrays.asList(commonConfig, consoleConfig));
     }
 
+    /**
+     * Set logging mode depending on whether json-output should be generated.
+     *
+     * @param json whether json-based configuration should be loaded
+     */
     public static void setLogMode(boolean json) {
         logger.debug("set {} log mode", json ? "json" : "text");
         Configurator.reconfigure(Logging.getLoggingConfiguration(json));
     }
 
+    /**
+     * Set the main logging level.
+     *
+     * @param verbosity verbosity as integer (error=0, warning=1, ...)
+     */
     public static void setLogLevel(int verbosity) {
         int idx = Math.max(0, Math.min(VERBOSITY_LEVELS.length - 1, verbosity));
         Configurator.setLevel("de.spkberlin", VERBOSITY_LEVELS[idx]);

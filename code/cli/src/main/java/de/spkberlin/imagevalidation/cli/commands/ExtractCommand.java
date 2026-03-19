@@ -61,7 +61,7 @@ public class ExtractCommand implements Callable<Integer> {
 
     static class ExtractionOptions {
 
-        /** which extraction modules to apply */
+        /** The extraction modules that will be applied. */
         @Option(
             names = { "--extractors" },
             split = ",",
@@ -71,7 +71,7 @@ public class ExtractCommand implements Callable<Integer> {
         )
         ExtractorType[] extractors = {};
 
-        /** the property to resolve via JsonPath */
+        /** The property path to resolve via JsonPath. */
         @Option(
             names = { "-p", "--property" },
             paramLabel = "JSON_PATH",
