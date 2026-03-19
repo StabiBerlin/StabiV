@@ -4,6 +4,15 @@ setlocal
 REM Get directory of this script
 set SCRIPT_DIR=%~dp0
 
-java -jar %SCRIPT_DIR%\imagevalidation-cli-1.0.0-SNAPSHOT.jar %*
+REM java directory
+set JAVA_HOME=%SCRIPT_DIR%\tools\java
+
+REM exiftool directory
+set EXIFTOOL_HOME=%SCRIPT_DIR%\tools\exiftool
+
+REM modify path
+set PATH=%EXIFTOOL_HOME%;%PATH%
+
+%JAVA_HOME%\bin\java -jar %SCRIPT_DIR%\tools\spk-iv-cli\imagevalidation-cli-1.0.0-SNAPSHOT.jar %*
 
 endlocal
