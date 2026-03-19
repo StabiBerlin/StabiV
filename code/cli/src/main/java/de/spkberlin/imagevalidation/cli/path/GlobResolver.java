@@ -5,8 +5,13 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +19,8 @@ public class GlobResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobResolver.class);
 
-    private static String GLOB_PATTERN_CHARACTERS = "*?[{";
+    private static String DIR_SEPERATOR = FileSystems.getDefault().getSeparator();
+    private static String[] GLOB_PATTERN_CHARACTERS = { "*", "?", "[", "{" };
 
     /**
      * Resolve multiple path patterns to a deduplicated list of files assuming the current working directory as base path.
@@ -23,7 +29,7 @@ public class GlobResolver {
      * @return the list of files matching any of the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveMany(List<Path> pattern) throws IOException {
+    public static List<Path> resolveMany(List<String> pattern) throws IOException {
         return resolveMany(pattern, Path.of(System.getProperty("user.dir")));
     }
 
@@ -35,7 +41,7 @@ public class GlobResolver {
      * @return the list of files matching any of the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveMany(List<Path> pattern, Path cwd) throws IOException {
+    public static List<Path> resolveMany(List<String> pattern, Path cwd) throws IOException {
         return pattern
             .stream()
             .map(p -> {
@@ -60,7 +66,7 @@ public class GlobResolver {
      * @return the list of files matching the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveOne(Path pattern) throws IOException {
+    public static List<Path> resolveOne(String pattern) throws IOException {
         return resolveOne(pattern, Path.of(System.getProperty("user.dir")));
     }
 
@@ -72,19 +78,44 @@ public class GlobResolver {
      * @return the list of files matching the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveOne(Path pattern, Path cwd) throws IOException {
-        Path absolutePattern = makePatternAbsolute(pattern, cwd);
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern);
-        Path baseDir = findPatternBasePath(absolutePattern, cwd);
-        logger.debug("resolve path pattern '{}' for base directory '{}'", absolutePattern, baseDir);
-        return Files.walk(baseDir)
+    public static List<Path> resolveOne(String pattern, Path cwd) throws IOException {
+        List<IOException> exceptions = new ArrayList<>();
+        Pair<Path, String> splittedPattern = splitGlobPattern(pattern, cwd);
+        Path basePath = splittedPattern.getKey();
+        String globSuffix = splittedPattern.getValue();
+
+        PathMatcher includeMatcher = null;
+        if (!globSuffix.isEmpty()) {
+            String absolutePattern = joinGlobPattern(splittedPattern);
+            includeMatcher = FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern);
+            logger.debug("resolve glob '{}' for base directory '{}'", absolutePattern, basePath);
+        } else {
+            logger.debug("resolve anything for path '{}'", basePath);
+        }
+
+        List<Path> matches = walkDirectory(basePath, includeMatcher, exceptions);
+
+        if (exceptions.size() > 0) {
+            // rethrow IOException
+            throw exceptions.get(0);
+        }
+
+        return matches;
+    }
+
+    private static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<IOException> exceptions) throws IOException {
+        logger.trace("start walking directory '{}'", directory);
+        List<Path> matches = Files.walk(directory)
             .map(p -> {
-                logger.trace("match file path '{}'", p);
+                logger.trace("scan file path '{}'", p);
                 return p;
             })
-            .filter(Files::isRegularFile)
-            .filter(matcher::matches)
+            .filter(p -> Files.isRegularFile(p) || Files.isDirectory(p))
+            .filter(p -> Objects.isNull(includeMatcher) || !p.equals(directory))
+            .filter(p -> Objects.isNull(includeMatcher) || includeMatcher.matches(p))
             .toList();
+        logger.trace("matched paths are: {}", matches);
+        return matches;
     }
 
     /**
@@ -93,8 +124,8 @@ public class GlobResolver {
      * @param pattern the path pattern to check
      * @return true if the path pattern is absolute
      */
-    public static boolean isPatternAbsolute(Path pattern) {
-        return pattern.isAbsolute();
+    public static boolean isPatternAbsolute(String pattern) {
+        return splitGlobPattern(pattern, Path.of(".")).getKey().isAbsolute();
     }
 
     /**
@@ -104,46 +135,46 @@ public class GlobResolver {
      * @param cwd the current working directory
      * @return absolute path pattern
      */
-    public static Path makePatternAbsolute(Path pattern, Path cwd) {
-        if (isPatternAbsolute(pattern)) {
-            return pattern;
-        }
-
-        return cwd.resolve(pattern).normalize();
+    public static String makePatternAbsolute(String pattern, Path cwd) {
+        return joinGlobPattern(splitGlobPattern(pattern, cwd));
     }
 
     /**
-     * Returns the base path that needs to be walked recursively to find all files of a path pattern.
+     * Join a splitted glob pattern back together into a string.
      *
-     * @param pattern the path pattern
-     * @param cwd the current working directory (in case the path pattern is a relative path)
-     * @return the base path of the path pattern
+     * @param splittedPattern the splitted glob pattern
+     * @return the joined string
      */
-    public static Path findPatternBasePath(Path pattern, Path cwd) {
-        // start with root component of path (e.g. / or C://)
-        Path basePath = Objects.nonNull(pattern.getRoot()) ? pattern.getRoot() : cwd;
+    public static String joinGlobPattern(Pair<Path, String> splittedPattern) {
+        return String.format("%s%s%s", splittedPattern.getLeft(), DIR_SEPERATOR, splittedPattern.getRight());
+    }
 
-        // iterate over all path parts until a part contains glob components
-        boolean found = false;
-        for (Path part : pattern) {
-            String partString = part.toString();
-            for (char c : GLOB_PATTERN_CHARACTERS.toCharArray()) {
-                if (partString.contains(String.valueOf(c))) {
-                    // glob pattern character found in path
-                    found = true;
-                    break;
-                }
-            }
+    /**
+     * Split a glob pattern into its fixed base path and an optional glob pattern suffix.
+     *
+     * <p>If no glob pattern is found, an empty string is returned.
+     *
+     * @param pattern the glob pattern
+     * @param cwd the current working directory (in case the path pattern is a relative path)
+     * @return a pair of the absolute base path (a directory or file) and the optional remaining glob pattern
+     */
+    public static Pair<Path, String> splitGlobPattern(String pattern, Path cwd) {
+        Integer firstGlobCharIdx = Arrays.stream(GLOB_PATTERN_CHARACTERS)
+            .map(c -> pattern.indexOf(c))
+            .filter(i -> i >= 0)
+            .reduce(Integer::min)
+            .orElse(pattern.length());
 
-            if (found) {
-                break;
-            }
-
-            // add part to base path if it doesn't contain any glob characters
-            basePath = basePath.resolve(part);
+        if (firstGlobCharIdx.equals(pattern.length())) {
+            // there is no glob pattern
+            return Pair.of(cwd.resolve(Path.of(pattern)).normalize(), "");
         }
 
-        // normalize base path
-        return cwd.resolve(basePath).normalize();
+        // there is glob character somewhere
+        Integer lastSeperatorIdx = pattern.substring(0, firstGlobCharIdx).lastIndexOf(DIR_SEPERATOR);
+        String directoryPrefix = pattern.substring(0, Math.max(0, lastSeperatorIdx));
+        String globSuffix = pattern.substring(lastSeperatorIdx + 1, pattern.length());
+
+        return Pair.of(cwd.resolve(Path.of(directoryPrefix)).normalize(), globSuffix);
     }
 }

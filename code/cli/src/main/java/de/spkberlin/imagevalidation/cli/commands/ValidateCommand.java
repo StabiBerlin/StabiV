@@ -1,13 +1,10 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlParser;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlWriter;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
-import de.spkberlin.imagevalidation.cli.output.csv.CsvWriter;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
@@ -16,7 +13,6 @@ import de.spkberlin.imagevalidation.common.rules.Rule;
 import de.spkberlin.imagevalidation.common.rules.RuleEvaluator;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
 import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -113,7 +109,7 @@ public class ValidateCommand implements Callable<Integer> {
 
         /** The list of directories and files that are being validated. */
         @Parameters(paramLabel = "PATHS", arity = "0..*", description = "directories or individual files to validate as glob pattern")
-        Path[] pathArgs = {};
+        String[] pathArgs = {};
     }
 
     /** Called when CLI arguments were successfully parsed. */

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -23,14 +24,14 @@ public class GlobResolverTest {
     @EnabledOnOs({ OS.LINUX })
     public void testPatternAbsoluteLinux() {
         // absolute patterns
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("/test/test.tif")));
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("/test/*.tif")));
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("/test/**/original/*.{jpg,tif}")));
+        assertTrue(GlobResolver.isPatternAbsolute("/test/test.tif"));
+        assertTrue(GlobResolver.isPatternAbsolute("/test/*.tif"));
+        assertTrue(GlobResolver.isPatternAbsolute("/test/**/original/*.{jpg,tif}"));
 
         // relative patterns
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("test/test.tif")));
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("./test/*.tif")));
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("../test/**/original/*.{jpg,tif}")));
+        assertFalse(GlobResolver.isPatternAbsolute("test/test.tif"));
+        assertFalse(GlobResolver.isPatternAbsolute("./test/*.tif"));
+        assertFalse(GlobResolver.isPatternAbsolute("../test/**/original/*.{jpg,tif}"));
     }
 
     @Test
@@ -38,30 +39,39 @@ public class GlobResolverTest {
     @EnabledOnOs({ OS.WINDOWS })
     public void testPatternAbsoluteWindows() {
         // absolute patterns
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("C:\\test\\test.tif")));
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("C:\\test\\*.tif")));
-        assertTrue(GlobResolver.isPatternAbsolute(Path.of("C:\\test\\**\\original\\*.{jpg,tif}")));
+        assertTrue(GlobResolver.isPatternAbsolute("C:\\test\\test.tif"));
+        assertTrue(GlobResolver.isPatternAbsolute("C:\\test\\*.tif"));
+        assertTrue(GlobResolver.isPatternAbsolute("C:\\test\\**\\original\\*.{jpg,tif}"));
 
         // relative patterns
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("test/test.tif")));
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("./test/*.tif")));
-        assertFalse(GlobResolver.isPatternAbsolute(Path.of("../test/**/original/*.{jpg,tif}")));
+        assertFalse(GlobResolver.isPatternAbsolute("test\\test.tif"));
+        assertFalse(GlobResolver.isPatternAbsolute(".\\test\\*.tif"));
+        assertFalse(GlobResolver.isPatternAbsolute("..\\test\\**\\original\\*.{jpg,tif}"));
     }
 
     @Test
     @EnabledOnOs({ OS.LINUX })
     void testMakePatternAbsolute() {
         Path cwd = Path.of("/tmp");
-        assertEquals(GlobResolver.makePatternAbsolute(Path.of("./test/*.tif"), cwd), Path.of("/tmp/test/*.tif"));
+        assertEquals(GlobResolver.makePatternAbsolute("./test/*.tif", cwd), "/tmp/test/*.tif");
     }
 
     @Test
     @EnabledOnOs({ OS.LINUX })
-    public void testFindPatternBasePath() {
+    public void testPatternBaseDirectory() {
         Path cwd = Path.of("/tmp");
-        assertEquals(GlobResolver.findPatternBasePath(Path.of("./test/*.tif"), cwd), Path.of("/tmp/test"));
-        assertEquals(GlobResolver.findPatternBasePath(Path.of("/custom/test/*.tif"), cwd), Path.of("/custom/test"));
-        assertEquals(GlobResolver.findPatternBasePath(Path.of("/custom/test/123.tif"), cwd), Path.of("/custom/test/123.tif"));
+        assertEquals(GlobResolver.splitGlobPattern("./test/*.tif", cwd).getKey().toString(), "/tmp/test");
+        assertEquals(GlobResolver.splitGlobPattern("/custom/test/*.tif", cwd).getKey().toString(), "/custom/test");
+        assertEquals(GlobResolver.splitGlobPattern("/custom/test/123.tif", cwd).getKey().toString(), "/custom/test/123.tif");
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX })
+    public void testPatternGlobSuffix() {
+        Path cwd = Path.of("/tmp");
+        assertEquals(GlobResolver.splitGlobPattern("./test/*.tif", cwd).getValue(), "*.tif");
+        assertEquals(GlobResolver.splitGlobPattern("/custom/test/*.tif", cwd).getValue(), "*.tif");
+        assertEquals(GlobResolver.splitGlobPattern("/custom/test/123.tif", cwd).getValue(), "");
     }
 
     @Test
@@ -71,11 +81,12 @@ public class GlobResolverTest {
         Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
         Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(tempDir.resolve("*.tif"));
+        List<Path> matched = GlobResolver.resolveOne(GlobResolver.joinGlobPattern(Pair.of(tempDir, "*.tif")));
 
         assertTrue(matched.contains(file1));
         assertTrue(matched.contains(file2));
         assertFalse(matched.contains(file3));
+        assertFalse(matched.contains(tempDir));
     }
 
     @Test
@@ -85,10 +96,44 @@ public class GlobResolverTest {
         Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
         Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(Path.of("./*.tif"), tempDir);
+        List<Path> matched = GlobResolver.resolveOne("./*.tif", tempDir);
 
         assertTrue(matched.contains(file1));
         assertTrue(matched.contains(file2));
         assertFalse(matched.contains(file3));
+        assertFalse(matched.contains(tempDir));
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX })
+    public void testResolveDirectory() throws IOException {
+        Path file1 = Files.createFile(tempDir.resolve("file1.tif"));
+        Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
+        Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), tempDir);
+
+        assertTrue(matched.contains(file1));
+        assertTrue(matched.contains(file2));
+        assertTrue(matched.contains(file3));
+        assertTrue(matched.contains(tempDir));
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX })
+    public void testResolveSubdirectory() throws IOException {
+        Path subdirectory = tempDir.resolve("subdirectory");
+        Files.createDirectory(subdirectory);
+        Path file1 = Files.createFile(subdirectory.resolve("file1.tif"));
+        Path file2 = Files.createFile(subdirectory.resolve("file2.tif"));
+        Path file3 = Files.createFile(subdirectory.resolve("file3.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(GlobResolver.joinGlobPattern(Pair.of(tempDir, "**")), tempDir);
+
+        assertTrue(matched.contains(file1));
+        assertTrue(matched.contains(file2));
+        assertTrue(matched.contains(file3));
+        assertTrue(matched.contains(subdirectory));
+        assertFalse(matched.contains(tempDir));
     }
 }
