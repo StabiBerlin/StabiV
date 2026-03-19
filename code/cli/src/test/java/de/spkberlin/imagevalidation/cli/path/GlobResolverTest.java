@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -122,7 +123,7 @@ public class GlobResolverTest {
         Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
         Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(String.format(".%s*.tif", DIR_SEPERATOR), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(String.format(".%s*.tif", DIR_SEPERATOR), Collections.emptyList(), tempDir);
 
         assertTrue(matched.contains(file1));
         assertTrue(matched.contains(file2));
@@ -137,7 +138,7 @@ public class GlobResolverTest {
         Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
         Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), Collections.emptyList(), tempDir);
 
         assertTrue(matched.contains(file1));
         assertTrue(matched.contains(file2));
@@ -154,12 +155,31 @@ public class GlobResolverTest {
         Path file2 = Files.createFile(subdirectory.resolve("file2.tif"));
         Path file3 = Files.createFile(subdirectory.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(GlobResolver.joinGlobPattern(Pair.of(tempDir, "**")), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(
+            GlobResolver.joinGlobPattern(Pair.of(tempDir, "**")),
+            Collections.emptyList(),
+            tempDir
+        );
 
         assertTrue(matched.contains(file1));
         assertTrue(matched.contains(file2));
         assertTrue(matched.contains(file3));
         assertTrue(matched.contains(subdirectory));
         assertFalse(matched.contains(tempDir));
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX, OS.WINDOWS })
+    public void testResolveWithExclude() throws IOException {
+        Path file1 = Files.createFile(tempDir.resolve("file1.tif"));
+        Path file2 = Files.createFile(tempDir.resolve("file2.tif"));
+        Path file3 = Files.createFile(tempDir.resolve("file3.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), List.of("*.jpg"), tempDir);
+
+        assertTrue(matched.contains(file1));
+        assertTrue(matched.contains(file2));
+        assertFalse(matched.contains(file3));
+        assertTrue(matched.contains(tempDir));
     }
 }

@@ -3,10 +3,11 @@ package de.spkberlin.imagevalidation.cli.path;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,39 +18,55 @@ public class GlobResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobResolver.class);
 
+    private static Path CWD = Path.of(System.getProperty("user.dir"));
     private static String DIR_SEPERATOR = FileSystems.getDefault().getSeparator();
     private static String[] GLOB_PATTERN_CHARACTERS = { "*", "?", "[", "{" };
 
     /**
      * Resolve multiple path patterns to a deduplicated list of files assuming the current working directory as base path.
      *
-     * @param pattern the list of path patterns to resolve
+     * @param includePattern the list of path patterns to resolve
      * @return the list of files matching any of the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveMany(List<String> pattern) throws IOException {
-        return resolveMany(pattern, Path.of(System.getProperty("user.dir")));
+    public static List<Path> resolveMany(List<String> includePattern) throws IOException {
+        return resolveMany(includePattern, Collections.emptyList(), CWD);
+    }
+
+    /**
+     * Resolve multiple path patterns to a deduplicated list of files assuming the current working directory as base path.
+     *
+     * @param includePattern the list of path patterns to resolve
+     * @param excludePattern a list of path patterns that should be excluded
+     * @return the list of files matching any of the path pattern
+     * @throws IOException in case the file system cannot be accessed
+     */
+    public static List<Path> resolveMany(List<String> includePattern, List<String> excludePattern) throws IOException {
+        return resolveMany(includePattern, excludePattern, CWD);
     }
 
     /**
      * Resolve multiple path patterns to a deduplicated list of files.
      *
-     * @param pattern the list of path patterns to resolve
+     * @param includePattern the list of path patterns to resolve
+     * @param excludePattern a list of path patterns that should be excluded
      * @param cwd the working directory (in case the path pattern is relative)
      * @return the list of files matching any of the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveMany(List<String> pattern, Path cwd) throws IOException {
-        return pattern
+    public static List<Path> resolveMany(List<String> includePattern, List<String> excludePattern, Path cwd) throws IOException {
+        return includePattern
             .stream()
             .map(p -> {
                 try {
                     logger.debug("resolve path pattern '{}'", p);
-                    return resolveOne(p, cwd);
+                    return resolveOne(p, excludePattern, cwd);
+                } catch (NoSuchFileException e) {
+                    logger.error("no such file '{}'", e.getMessage());
                 } catch (IOException e) {
                     logger.error("exception resolving file pattern", e);
-                    return null;
                 }
+                return null;
             })
             .filter(Objects::nonNull)
             .flatMap(List::stream)
@@ -60,48 +77,68 @@ public class GlobResolver {
     /**
      * Resolve a path pattern to a list of matching files assuming the current working directory as base path.
      *
-     * @param pattern the path pattern to be resolved
+     * @param includePattern the path pattern to be resolved
      * @return the list of files matching the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveOne(String pattern) throws IOException {
-        return resolveOne(pattern, Path.of(System.getProperty("user.dir")));
+    public static List<Path> resolveOne(String includePattern) throws IOException {
+        return resolveOne(includePattern, Collections.emptyList(), CWD);
+    }
+
+    /**
+     * Resolve a path pattern to a list of matching files assuming the current working directory as base path.
+     *
+     * @param includePattern the path pattern to be resolved
+     * @param excludePattern a list of path patterns that should be excluded
+     * @return the list of files matching the path pattern
+     * @throws IOException in case the file system cannot be accessed
+     */
+    public static List<Path> resolveOne(String includePattern, List<String> excludePattern) throws IOException {
+        return resolveOne(includePattern, excludePattern, CWD);
     }
 
     /**
      * Resolve a path pattern to a list of matching files.
      *
-     * @param pattern the path pattern to be resolved
+     * @param includePattern the path pattern to be resolved
+     * @param excludePattern a list of path patterns that should be excluded
      * @param cwd the working directory (in case the path pattern is relative)
      * @return the list of files matching the path pattern
      * @throws IOException in case the file system cannot be accessed
      */
-    public static List<Path> resolveOne(String pattern, Path cwd) throws IOException {
-        List<IOException> exceptions = new ArrayList<>();
-        Pair<Path, String> splittedPattern = splitGlobPattern(pattern, cwd);
+    public static List<Path> resolveOne(String includePattern, List<String> excludePattern, Path cwd) throws IOException {
+        Pair<Path, String> splittedPattern = splitGlobPattern(includePattern, cwd);
         Path basePath = splittedPattern.getKey();
         String globSuffix = splittedPattern.getValue();
 
         PathMatcher includeMatcher = null;
         if (!globSuffix.isEmpty()) {
             String absolutePattern = joinGlobPattern(splittedPattern);
-            includeMatcher = FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern.replace("\\", "\\\\"));
-            logger.debug("resolve glob '{}' for base directory '{}'", absolutePattern, basePath);
+            includeMatcher = getPathMatcherFromPattern(includePattern, cwd);
+            logger.debug("resolve include glob '{}' for base directory '{}'", absolutePattern, basePath);
         } else {
             logger.debug("resolve anything for path '{}'", basePath);
         }
 
-        List<Path> matches = walkDirectory(basePath, includeMatcher, exceptions);
+        List<PathMatcher> excludeMatcher = excludePattern
+            .stream()
+            .map(p -> getPathMatcherFromPattern(p, cwd))
+            .toList();
 
-        if (exceptions.size() > 0) {
-            // rethrow IOException
-            throw exceptions.get(0);
-        }
-
-        return matches;
+        return walkDirectory(basePath, includeMatcher, excludeMatcher);
     }
 
-    private static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<IOException> exceptions) throws IOException {
+    /**
+     * Walk a directory and match files based on include and exclude path matchers.
+     *
+     * @param directory the directory
+     * @param includeMatcher a include matcher
+     * @param excludeMatcher a list of exclude matcher
+     * @return the list of matching paths
+     * @throws IOException
+     */
+    public static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<PathMatcher> excludeMatcher)
+        throws IOException {
         logger.trace("start walking directory '{}'", directory);
         List<Path> matches = Files.walk(directory)
             .map(p -> {
@@ -111,9 +148,24 @@ public class GlobResolver {
             .filter(p -> Files.isRegularFile(p) || Files.isDirectory(p))
             .filter(p -> Objects.isNull(includeMatcher) || !p.equals(directory))
             .filter(p -> Objects.isNull(includeMatcher) || includeMatcher.matches(p))
+            .filter(p -> !excludeMatcher.stream().anyMatch(m -> m.matches(p)))
             .toList();
         logger.trace("matched paths are: {}", matches);
         return matches;
+    }
+
+    /**
+     * Return a path matcher for a path pattern.
+     *
+     * @param pattern the path pattern
+     * @param cwd the current working directory
+     * @return the patch matcher
+     */
+    public static PathMatcher getPathMatcherFromPattern(String pattern, Path cwd) {
+        Pair<Path, String> splittedPattern = splitGlobPattern(pattern, cwd);
+        String absolutePattern = joinGlobPattern(splittedPattern);
+        logger.trace("build path matcher based on absolute pattern '{}'", absolutePattern);
+        return FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern.replace("\\", "\\\\"));
     }
 
     /**
@@ -124,6 +176,17 @@ public class GlobResolver {
      */
     public static boolean isPatternAbsolute(String pattern) {
         return splitGlobPattern(pattern, Path.of(".")).getKey().isAbsolute();
+    }
+
+    /**
+     * In case a path pattern is relative, resolve it to an absolute path pattern.
+     *
+     * @param pattern the path pattern (either relative or absolute)
+     * @param cwd the current working directory
+     * @return absolute path pattern
+     */
+    public static String makePatternAbsolute(String pattern) {
+        return joinGlobPattern(splitGlobPattern(pattern, CWD));
     }
 
     /**
@@ -144,6 +207,9 @@ public class GlobResolver {
      * @return the joined string
      */
     public static String joinGlobPattern(Pair<Path, String> splittedPattern) {
+        if (splittedPattern.getRight().isEmpty()) {
+            return splittedPattern.getKey().toString();
+        }
         return String.format("%s%s%s", splittedPattern.getLeft(), DIR_SEPERATOR, splittedPattern.getRight());
     }
 

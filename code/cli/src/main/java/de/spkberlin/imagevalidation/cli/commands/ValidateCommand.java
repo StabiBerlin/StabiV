@@ -3,7 +3,9 @@ package de.spkberlin.imagevalidation.cli.commands;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlParser;
+import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationMerger;
+import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationParser;
+import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationWriter;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
@@ -13,6 +15,7 @@ import de.spkberlin.imagevalidation.common.rules.Rule;
 import de.spkberlin.imagevalidation.common.rules.RuleEvaluator;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
 import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
@@ -47,6 +49,8 @@ public class ValidateCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateCommand.class);
 
+    private static final String CWD = System.getProperty("user.dir");
+
     @Mixin
     private CommonOptions commonOptions;
 
@@ -71,7 +75,7 @@ public class ValidateCommand implements Callable<Integer> {
 
         /** The filepath to the configuration file. */
         @Option(names = { "--config" }, description = "Configuration file containing additional options")
-        Path configFile;
+        String configFilepath;
 
         /** Which extraction modules to apply */
         @Option(
@@ -99,7 +103,7 @@ public class ValidateCommand implements Callable<Integer> {
 
         /** The filepath to the generated CSV file. */
         @Option(names = { "--csv" }, description = "CSV output file")
-        Path csvOutputPath;
+        String csvOutputFilepath;
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
@@ -109,7 +113,23 @@ public class ValidateCommand implements Callable<Integer> {
 
         /** The list of directories and files that are being validated. */
         @Parameters(paramLabel = "PATHS", arity = "0..*", description = "directories or individual files to validate as glob pattern")
-        String[] pathArgs = {};
+        String[] includes = {};
+
+        @Option(
+            names = { "--exclude" },
+            paramLabel = "PATHS",
+            arity = "0..*",
+            description = "directories or individual files to exclude from validation"
+        )
+        String[] excludes = {};
+
+        @Option(
+            names = { "--baseDirectory" },
+            paramLabel = "DIR",
+            arity = "0..1",
+            description = "the base directory that is used to resolve relative file paths"
+        )
+        String baseDirectory;
     }
 
     /** Called when CLI arguments were successfully parsed. */
@@ -119,21 +139,54 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(Objects.isNull(loggingOptions.verbosity) ? 0 : loggingOptions.verbosity.length);
 
         logger.info("run validate command");
+        return doValidation(loadConfiguration());
+    }
 
-        YamlConfiguration yamlConfig = null;
-        if (Objects.nonNull(configOptions.configFile)) {
-            logger.info("load configuration file '{}", configOptions.configFile);
-            yamlConfig = YamlParser.parseConfigurationFile(configOptions.configFile);
+    public YamlConfiguration loadConfiguration() throws IOException {
+        YamlConfiguration config = new YamlConfiguration();
+
+        Path baseDirectory = Objects.nonNull(inputOptions.baseDirectory)
+            ? Path.of(inputOptions.baseDirectory).normalize().toAbsolutePath()
+            : null;
+        Path cwd = Objects.nonNull(baseDirectory) ? baseDirectory : Path.of(CWD).normalize().toAbsolutePath();
+        Path configPath = null;
+
+        if (Objects.nonNull(configOptions.configFilepath)) {
+            logger.info("load configuration file '{}", configOptions.configFilepath);
+            configPath = Path.of(configOptions.configFilepath).normalize().toAbsolutePath();
+            config = YamlConfigurationParser.parseConfigurationFile(configPath);
         }
 
-        logger.debug(
-            "filepath pattern arguments are: {}",
-            Arrays.stream(inputOptions.pathArgs)
-                .map(p -> p.toString())
-                .collect(Collectors.joining(", "))
+        List<String> absoluteIncludes = Arrays.asList(inputOptions.includes)
+            .stream()
+            .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
+            .toList();
+
+        List<String> absoluteExcludes = Arrays.asList(inputOptions.excludes)
+            .stream()
+            .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
+            .toList();
+
+        logger.debug("merge configuration with command line options");
+        YamlConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
+        YamlConfigurationMerger.mergeExtraction(config, Arrays.asList(configOptions.extractors));
+        YamlConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath);
+
+        logger.trace(
+            "yaml configuration after merging with command line options:\n\n{}",
+            YamlConfigurationWriter.writeConfigurationFile(config)
         );
 
-        List<Path> resolvedFiles = GlobResolver.resolveMany(Arrays.asList(inputOptions.pathArgs));
+        return config;
+    }
+
+    public static Integer doValidation(YamlConfiguration config) throws IOException {
+        logger.info("resolve files and directories");
+        List<Path> resolvedFiles = GlobResolver.resolveMany(
+            config.getInput().getIncludes(),
+            config.getInput().getExcludes(),
+            config.getInput().getBaseDirectory()
+        );
 
         if (resolvedFiles.isEmpty()) {
             logger.warn("no files to validate");
@@ -155,32 +208,30 @@ public class ValidateCommand implements Callable<Integer> {
                 logger.info("process file '{}'", filepath);
 
                 Map<String, Object> propertyTree = new HashMap<>();
-                for (ExtractorType extratorType : configOptions.extractors) {
+                for (ExtractorType extratorType : config.getExtraction().getModules()) {
                     logger.debug("apply extractor {}", extratorType);
                     propertyTree.put(extratorType.name(), extractors.get(extratorType).extractProperties(filepath));
                 }
 
-                if (Objects.nonNull(yamlConfig)) {
-                    List<Rule> rules = yamlConfig.getValidation().getImageRules();
-                    List<String> errors = RuleEvaluator.evaluateRules(rules, propertyTree);
-                    logger.info("validation of file '{}' {}", filepath, errors.isEmpty() ? "was successfull" : "failed");
+                List<Rule> rules = config.getValidation().getImageRules();
+                List<String> errors = RuleEvaluator.evaluateRules(rules, propertyTree);
+                logger.info("validation of file '{}' {}", filepath, errors.isEmpty() ? "was successfull" : "failed");
 
-                    if (loggingOptions.jsonLogging) {
-                        JsonLogWriter.writeFileValidationLog(filepath, errors.isEmpty());
-                    }
+                if (config.getOutput().getLogging().getJson()) {
+                    JsonLogWriter.writeFileValidationLog(filepath, errors.isEmpty());
                 }
             }
 
             logger.info("validation of directory '{}' was successful", directory);
-            if (loggingOptions.jsonLogging) {
+            if (config.getOutput().getLogging().getJson()) {
                 JsonLogWriter.writeDirectoryValidationLog(directory, true);
             }
         }
 
         logger.info("done validating all files");
 
-        if (Objects.nonNull(outputOptions.csvOutputPath)) {
-            logger.info("write csv output file '{}'", outputOptions.csvOutputPath);
+        if (Objects.nonNull(config.getOutput().getCsv().getPath())) {
+            logger.info("write csv output file '{}'", config.getOutput().getCsv().getPath());
             // CsvWriter.writeReport(filesByDirectory, extractionResultsByFile, outputOptions.csvOutputPath);
         }
 

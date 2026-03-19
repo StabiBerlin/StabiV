@@ -7,9 +7,9 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YamlWriter {
+public class YamlConfigurationWriter {
 
-    private static final Logger logger = LoggerFactory.getLogger(YamlWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(YamlConfigurationWriter.class);
 
     public static String writeConfigurationFile(YamlConfiguration config) throws IOException {
         logger.debug("serialize yaml configuration");

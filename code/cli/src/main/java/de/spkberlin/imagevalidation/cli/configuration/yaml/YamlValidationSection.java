@@ -1,13 +1,16 @@
 package de.spkberlin.imagevalidation.cli.configuration.yaml;
 
 import de.spkberlin.imagevalidation.common.rules.Rule;
+import java.util.ArrayList;
 import java.util.List;
 
 public class YamlValidationSection {
 
     private List<Rule> imageRules;
 
-    public YamlValidationSection() {}
+    public YamlValidationSection() {
+        imageRules = new ArrayList<>();
+    }
 
     public List<Rule> getImageRules() {
         return imageRules;
