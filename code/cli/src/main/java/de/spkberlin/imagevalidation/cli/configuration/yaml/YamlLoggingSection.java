@@ -14,7 +14,7 @@ public class YamlLoggingSection {
         return this.json;
     }
 
-    public void setIncludes(Boolean json) {
+    public void setJson(Boolean json) {
         this.json = json;
     }
 

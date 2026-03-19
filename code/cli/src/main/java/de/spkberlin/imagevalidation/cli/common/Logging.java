@@ -8,17 +8,21 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.composite.CompositeConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Logging {
 
-    private static final Level[] VERBOSITY_LEVELS = { Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE };
+    private static final Logger logger = LoggerFactory.getLogger(Logging.class);
+
+    private static final Level[] VERBOSITY_LEVELS = { Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE };
 
     public static Configuration getLoggingConfiguration(boolean json) {
         ConfigurationFactory configFactory = ConfigurationFactory.getInstance();
         AbstractConfiguration commonConfig = (AbstractConfiguration) configFactory.getConfiguration(
             null,
             null,
-            URI.create("classpath:log4j2.common.xml")
+            URI.create("classpath:log4j2.xml")
         );
         AbstractConfiguration consoleConfig = (AbstractConfiguration) configFactory.getConfiguration(
             null,
@@ -29,6 +33,7 @@ public class Logging {
     }
 
     public static void setLogMode(boolean json) {
+        logger.debug("set {} log mode", json ? "json" : "text");
         Configurator.reconfigure(Logging.getLoggingConfiguration(json));
     }
 

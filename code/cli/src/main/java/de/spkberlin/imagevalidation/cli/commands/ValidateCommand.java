@@ -6,6 +6,7 @@ import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationMerger;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationParser;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationWriter;
+import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
@@ -61,22 +62,16 @@ public class ValidateCommand implements Callable<Integer> {
 
     private static final String CWD = System.getProperty("user.dir");
 
+    private static List<YamlLoggingVerbosityType> VERBOSITY_LEVELS = List.of(
+        YamlLoggingVerbosityType.error,
+        YamlLoggingVerbosityType.warning,
+        YamlLoggingVerbosityType.info,
+        YamlLoggingVerbosityType.debug,
+        YamlLoggingVerbosityType.trace
+    );
+
     @Mixin
     private CommonOptions commonOptions;
-
-    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 4, exclusive = false)
-    private LoggingOptions loggingOptions = new LoggingOptions();
-
-    static class LoggingOptions {
-
-        /** Wether to use json based log output. */
-        @Option(names = { "--json" }, description = "print validation results in JSON format to stdout (and other log messages to stderr)")
-        boolean jsonLogging;
-
-        /** Wether to show additional log messages. */
-        @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
-        boolean[] verbosity;
-    }
 
     @ArgGroup(validate = true, heading = "%n@|bold Configuration Options|@%n%n", order = 2, exclusive = false)
     public ConfigOptions configOptions = new ConfigOptions();
@@ -114,6 +109,14 @@ public class ValidateCommand implements Callable<Integer> {
         /** The filepath to the generated CSV file. */
         @Option(names = { "--csv" }, description = "CSV output file")
         String csvOutputFilepath;
+
+        /** Wether to use json based log output. */
+        @Option(names = { "--json" }, description = "print validation results in JSON format to stdout (and other log messages to stderr)")
+        boolean jsonLogging;
+
+        /** Wether to show additional log messages. */
+        @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
+        boolean[] verbosity = {};
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false)
@@ -145,8 +148,8 @@ public class ValidateCommand implements Callable<Integer> {
     /** Called when CLI arguments were successfully parsed. */
     @Override
     public Integer call() throws Exception {
-        Logging.setLogMode(loggingOptions.jsonLogging);
-        Logging.setLogLevel(Objects.isNull(loggingOptions.verbosity) ? 0 : loggingOptions.verbosity.length);
+        Logging.setLogMode(outputOptions.jsonLogging);
+        Logging.setLogLevel(outputOptions.verbosity.length + 1);
 
         logger.info("run validate command");
         return doValidation(loadConfiguration());
@@ -180,7 +183,12 @@ public class ValidateCommand implements Callable<Integer> {
         logger.debug("merge configuration with command line options");
         YamlConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
         YamlConfigurationMerger.mergeExtraction(config, Arrays.asList(configOptions.extractors));
-        YamlConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath);
+        YamlConfigurationMerger.mergeOutput(
+            config,
+            outputOptions.csvOutputFilepath,
+            outputOptions.jsonLogging,
+            VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1)
+        );
 
         logger.trace(
             "yaml configuration after merging with command line options:\n\n{}",
@@ -191,6 +199,9 @@ public class ValidateCommand implements Callable<Integer> {
     }
 
     public static Integer doValidation(YamlConfiguration config) throws IOException {
+        Logging.setLogMode(config.getOutput().getLogging().getJson());
+        Logging.setLogLevel(VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
+
         logger.info("resolve files and directories");
         List<Path> resolvedFiles = GlobResolver.resolveMany(
             config.getInput().getIncludes(),

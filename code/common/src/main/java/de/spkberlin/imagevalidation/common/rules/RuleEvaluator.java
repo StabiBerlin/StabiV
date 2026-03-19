@@ -22,18 +22,18 @@ public class RuleEvaluator {
         List<String> warnings = new ArrayList<>();
 
         for (Rule rule : rules) {
-            logger.trace("evalute rule '{}'", Objects.nonNull(rule.getError()) ? rule.getError() : rule.getWarning());
+            logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
             String context = Objects.nonNull(rule.getContext()) ? rule.getContext() : DEFAULT_CONTEXT;
             List<Object> contextObjects = resolveContext(context, properties);
             for (Object contextObject : contextObjects) {
                 String conditionError = evaluateCondition(rule.getCondition(), contextObject);
                 if (Objects.nonNull(conditionError)) {
-                    if (Objects.nonNull(rule.getError())) {
-                        logger.error("validation error: {} ({})", rule.getError(), conditionError);
-                        errors.add(String.format("%s (%s)", rule.getError(), conditionError));
-                    } else if (Objects.nonNull(rule.getWarning())) {
-                        logger.warn("validation warning: {} ({})", rule.getWarning(), conditionError);
-                        warnings.add(String.format("%s (%s)", rule.getWarning(), conditionError));
+                    if (RuleSeverityType.error.equals(rule.getSeverity())) {
+                        logger.info("validation error: {} ({})", rule.getMessage(), conditionError);
+                        errors.add(String.format("%s (%s)", rule.getMessage(), conditionError));
+                    } else if (RuleSeverityType.error.equals(rule.getSeverity())) {
+                        logger.info("validation warning: {} ({})", rule.getMessage(), conditionError);
+                        warnings.add(String.format("%s (%s)", rule.getMessage(), conditionError));
                     }
                 }
             }

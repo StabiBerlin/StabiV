@@ -4,8 +4,8 @@ public class Rule {
 
     private String context;
     private RuleCondition condition;
-    private String warning;
-    private String error;
+    private RuleSeverityType severity;
+    private String message;
 
     public Rule() {}
 
@@ -25,19 +25,19 @@ public class Rule {
         this.condition = condition;
     }
 
-    public String getError() {
-        return this.error;
+    public String getMessage() {
+        return this.message;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getWarning() {
-        return this.warning;
+    public RuleSeverityType getSeverity() {
+        return this.severity;
     }
 
-    public void setWarning(String warning) {
-        this.warning = warning;
+    public void setSeverity(RuleSeverityType severity) {
+        this.severity = severity;
     }
 }

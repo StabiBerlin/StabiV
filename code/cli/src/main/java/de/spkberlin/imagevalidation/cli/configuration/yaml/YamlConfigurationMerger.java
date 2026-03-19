@@ -42,9 +42,15 @@ public class YamlConfigurationMerger {
         }
     }
 
-    public static void mergeOutput(YamlConfiguration config, String csvPath) {
+    public static void mergeOutput(YamlConfiguration config, String csvPath, Boolean json, YamlLoggingVerbosityType verbosity) {
         if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
             config.getOutput().getCsv().setPath(csvPath);
+        }
+        if (Objects.nonNull(json)) {
+            config.getOutput().getLogging().setJson(json);
+        }
+        if (Objects.nonNull(verbosity)) {
+            config.getOutput().getLogging().setVerbosity(verbosity);
         }
     }
 }
