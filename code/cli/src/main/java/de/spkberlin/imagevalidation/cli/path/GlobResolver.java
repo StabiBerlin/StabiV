@@ -7,10 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +85,7 @@ public class GlobResolver {
         PathMatcher includeMatcher = null;
         if (!globSuffix.isEmpty()) {
             String absolutePattern = joinGlobPattern(splittedPattern);
-            includeMatcher = FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern);
+            includeMatcher = FileSystems.getDefault().getPathMatcher("glob:" + absolutePattern.replace("\\", "\\\\"));
             logger.debug("resolve glob '{}' for base directory '{}'", absolutePattern, basePath);
         } else {
             logger.debug("resolve anything for path '{}'", basePath);
