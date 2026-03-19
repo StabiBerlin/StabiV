@@ -17,6 +17,6 @@ goto loop
 :done
 
 REM Run Maven
-mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" -Dexec.args="%ARGS%"
+mvn -f "%PARENT_POM%" -pl ../cli -am compile exec:java -P !checkstyle,!spotless -Dexec.mainClass="de.spkberlin.imagevalidation.cli.entrypoint.Main" -Dexec.args="%ARGS%"
 
 endlocal

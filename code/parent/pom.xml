@@ -23,6 +23,7 @@
     <maven.compiler.target>21</maven.compiler.target>
 
     <!--dependency versions -->
+    <asciidoctor-maven-plugin.version>3.1.1</asciidoctor-maven-plugin.version>
     <commons-csv.version>1.14.1</commons-csv.version>
     <commons-lang3.version>3.18.0</commons-lang3.version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
@@ -40,6 +41,7 @@
     <json-path.version>3.0.0</json-path.version>
     <junit-bom.version>6.0.3</junit-bom.version>
     <log4j.version>2.25.3</log4j.version>
+    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
@@ -176,6 +178,15 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctor-maven-plugin</artifactId>
+          <version>${asciidoctor-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven-assembly-plugin.version}</version>
+        </plugin>
+        <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>${maven-clean-plugin.version}</version>
         </plugin>
@@ -229,78 +240,100 @@
         </plugin>
       </plugins>
     </pluginManagement>
-
-    <!-- plugin configuration -->
-    <plugins>
-      <!-- checkstyle -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <configLocation>src/main/resources/checkstyle.xml</configLocation>
-          <encoding>UTF-8</encoding>
-          <consoleOutput>true</consoleOutput>
-          <linkXRef>false</linkXRef>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>validate</phase>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- spotless -->
-      <plugin>
-        <groupId>com.diffplug.spotless</groupId>
-        <artifactId>spotless-maven-plugin</artifactId>
-        <configuration>
-          <!-- java auto format -->
-          <java>
-            <includes>
-              <include>src/**/*.java</include>
-              <include>test/**/*.java</include>
-            </includes>
-            <prettier>
-              <devDependencies>
-                <prettier>3.8.1</prettier>
-                <prettier-plugin-java>2.8.1</prettier-plugin-java>
-              </devDependencies>
-              <config>
-                <tabWidth>4</tabWidth>
-                <printWidth>140</printWidth>
-                <parser>java</parser>
-                <plugins>prettier-plugin-java</plugins>
-              </config>
-            </prettier>
-          </java>
-          <!-- pom auto format -->
-          <pom>
-            <sortPom/>
-          </pom>
-          <!-- yaml auto format -->
-          <yaml>
-            <includes>
-              <include>src/**/*.yaml</include>
-              <include>test/**/*.yaml</include>
-            </includes>
-            <jackson/>
-          </yaml>
-          <!-- global options-->
-          <lineEndings>UNIX</lineEndings>
-        </configuration>
-        <executions>
-          <execution>
-            <id>spotless-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>validate</phase>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
+
+  <!-- profiles -->
+  <profiles>
+
+    <!-- checkstyle -->
+    <profile>
+      <id>checkstyle</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <configuration>
+              <configLocation>src/main/resources/checkstyle.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <linkXRef>false</linkXRef>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <phase>validate</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- spotless -->
+    <profile>
+      <id>spotless</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <configuration>
+              <!-- java auto format -->
+              <java>
+                <includes>
+                  <include>src/**/*.java</include>
+                  <include>test/**/*.java</include>
+                </includes>
+                <prettier>
+                  <devDependencies>
+                    <prettier>3.8.1</prettier>
+                    <prettier-plugin-java>2.8.1</prettier-plugin-java>
+                  </devDependencies>
+                  <config>
+                    <tabWidth>4</tabWidth>
+                    <printWidth>140</printWidth>
+                    <parser>java</parser>
+                    <plugins>prettier-plugin-java</plugins>
+                  </config>
+                </prettier>
+              </java>
+              <!-- pom auto format -->
+              <pom>
+                <sortPom/>
+              </pom>
+              <!-- yaml auto format -->
+              <yaml>
+                <includes>
+                  <include>src/**/*.yaml</include>
+                  <include>test/**/*.yaml</include>
+                </includes>
+                <jackson/>
+              </yaml>
+              <!-- global options-->
+              <lineEndings>UNIX</lineEndings>
+            </configuration>
+            <executions>
+              <execution>
+                <id>spotless-check</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <phase>validate</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>

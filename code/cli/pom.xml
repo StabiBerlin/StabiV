@@ -97,6 +97,56 @@
           <mainClass>${main.class}</mainClass>
           <skip>false</skip>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli-codegen</artifactId>
+            <version>${picocli.version}</version>
+            <type>jar</type>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>generateManPages</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <includeProjectDependencies>true</includeProjectDependencies>
+              <includePluginDependencies>true</includePluginDependencies>
+              <mainClass>picocli.codegen.docgen.manpage.ManPageGenerator</mainClass>
+              <arguments>
+                <argument>--outdir=${project.build.directory}/generated-picocli-docs</argument>
+                <argument>de.spkberlin.imagevalidation.cli.commands.MainCommand</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <configuration>
+          <sourceDirectory>${project.build.directory}/generated-picocli-docs</sourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>output-html</id>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <sourceHighlighter>coderay</sourceHighlighter>
+              <backend>html5</backend>
+              <attributes>
+                <linkcss>false</linkcss>
+                <source-highlighter>coderay</source-highlighter>
+              </attributes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -122,28 +172,110 @@
   </build>
 
   <profiles>
-    <!-- Linux build -->
+    <!-- Linux tar -->
     <profile>
-      <id>linux</id>
+      <id>assembly-linux</id>
+      <activation>
+        <os>
+          <name>Linux</name>
+        </os>
+      </activation>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.panteleyev</groupId>
-            <artifactId>jpackage-maven-plugin</artifactId>
+            <artifactId>maven-assembly-plugin</artifactId>
             <configuration>
-              <name>spk-iv-cli</name>
-              <mainJar>${project.build.finalName}.jar</mainJar>
-              <mainClass>${main.class}</mainClass>
-              <input>${project.build.directory}</input>
-              <destination>${project.build.directory}/../dist/linux</destination>
-              <type>APP_IMAGE</type>
-              <appVersion>${project.version}</appVersion>
-              <appResources>src/main/jpackage/linux</appResources>
+              <inlineDescriptors>
+                <inlineDescriptor>
+                  <id>linux</id>
+                  <formats>
+                    <format>tar.gz</format>
+                  </formats>
+                  <fileSets>
+                    <fileSet>
+                      <directory>src/main/assembly/linux</directory>
+                      <outputDirectory>.</outputDirectory>
+                      <includes>
+                        <include>*</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.build.directory}/generated-docs</directory>
+                      <outputDirectory>documentation/cli</outputDirectory>
+                      <includes>
+                        <include>*.html</include>
+                      </includes>
+                    </fileSet>
+                  </fileSets>
+                  <files>
+                    <file>
+                      <source>${project.build.directory}/${project.build.finalName}.jar</source>
+                    </file>
+                  </files>
+                </inlineDescriptor>
+              </inlineDescriptors>
             </configuration>
             <executions>
               <execution>
+                <id>make-assembly</id>
                 <goals>
-                  <goal>jpackage</goal>
+                  <goal>single</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Windows zip -->
+    <profile>
+      <id>assembly-windows</id>
+      <activation>
+        <os>
+          <name>Windows</name>
+        </os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <inlineDescriptors>
+                <inlineDescriptor>
+                  <id>windows</id>
+                  <formats>
+                    <format>zip</format>
+                  </formats>
+                  <fileSets>
+                    <fileSet>
+                      <directory>src/main/assembly/windows</directory>
+                      <outputDirectory>.</outputDirectory>
+                      <includes>
+                        <include>*</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.build.directory}/generated-docs</directory>
+                      <outputDirectory>documentation/cli</outputDirectory>
+                      <includes>
+                        <include>*.html</include>
+                      </includes>
+                    </fileSet>
+                  </fileSets>
+                  <files>
+                    <file>
+                      <source>${project.build.directory}/${project.build.finalName}.jar</source>
+                    </file>
+                  </files>
+                </inlineDescriptor>
+              </inlineDescriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <goals>
+                  <goal>single</goal>
                 </goals>
                 <phase>package</phase>
               </execution>
