@@ -243,8 +243,10 @@
             <configuration>
               <inlineDescriptors>
                 <inlineDescriptor>
-                  <id>windows</id>
+                  <id>windows-x64</id>
+                  <includeBaseDirectory>false</includeBaseDirectory>
                   <formats>
+                    <format>dir</format>
                     <format>zip</format>
                   </formats>
                   <fileSets>
