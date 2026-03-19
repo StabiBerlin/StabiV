@@ -1,11 +1,9 @@
 {
-    "editor.rulers": [
-        140
-    ],
-    "java.configuration.updateBuildConfiguration": "automatic", 
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[java]": {
-        "editor.defaultFormatter": "RudraPatel.prettier-plugin-java-vscode"
-     },
-     "editor.formatOnSave": true,
+  "editor.rulers": [140],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[java]": {
+    "editor.defaultFormatter": "RudraPatel.prettier-plugin-java-vscode"
+  },
+  "editor.formatOnSave": true
 }
