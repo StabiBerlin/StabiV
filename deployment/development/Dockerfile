@@ -20,12 +20,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# install jpackage build dependencies
-RUN apt-get update && \
-    apt-get install -y binutils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 # install image validation dependencies
 RUN apt-get update && \
     apt-get install -y exiftool && \
