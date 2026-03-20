@@ -7,7 +7,9 @@ public class RuleCompositeCondition extends RuleCondition {
     private RuleCompositeType composite;
     private List<RuleCondition> conditions;
 
-    public RuleCompositeCondition() {}
+    public RuleCompositeCondition() {
+        // empty
+    }
 
     public RuleCompositeType getComposite() {
         return this.composite;

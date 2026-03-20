@@ -1,12 +1,21 @@
 package de.spkberlin.imagevalidation.common.rules;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
 public class RuleSimpleCondition extends RuleCondition {
 
     private String property;
-    private String operator;
-    private String value;
+    private RuleSimpleConditionOperator operator;
 
-    public RuleSimpleCondition() {}
+    @JsonProperty("value")
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> values;
+
+    public RuleSimpleCondition() {
+        // empty
+    }
 
     public String getProperty() {
         return property;
@@ -16,19 +25,19 @@ public class RuleSimpleCondition extends RuleCondition {
         this.property = property;
     }
 
-    public String getOperator() {
+    public RuleSimpleConditionOperator getOperator() {
         return operator;
     }
 
-    public void setOperator(String operator) {
+    public void setOperator(RuleSimpleConditionOperator operator) {
         this.operator = operator;
     }
 
-    public String getValue() {
-        return value;
+    public List<String> getValues() {
+        return values;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setValues(List<String> values) {
+        this.values = values;
     }
 }
