@@ -136,18 +136,18 @@ public class RuleEvaluator {
 
     public static String evaluateSimpleCondition(RuleSimpleCondition condition, Object extractedValue) {
         switch (condition.getOperator()) {
-            case RuleSimpleConditionOperator.equal:
+            case RuleSimpleConditionOperatorType.equal:
                 return evaluateEqualCondition(condition, extractedValue);
-            case RuleSimpleConditionOperator.lowerThan:
-            case RuleSimpleConditionOperator.lowerThanOrEqual:
-            case RuleSimpleConditionOperator.greaterThan:
-            case RuleSimpleConditionOperator.greaterThanOrEqual:
+            case RuleSimpleConditionOperatorType.lowerThan:
+            case RuleSimpleConditionOperatorType.lowerThanOrEqual:
+            case RuleSimpleConditionOperatorType.greaterThan:
+            case RuleSimpleConditionOperatorType.greaterThanOrEqual:
                 return evaluateNumberCondition(condition, extractedValue);
-            case RuleSimpleConditionOperator.isInteger:
+            case RuleSimpleConditionOperatorType.isInteger:
                 return evaluateIsIntegerCondition(condition, extractedValue);
-            case RuleSimpleConditionOperator.occurrences:
+            case RuleSimpleConditionOperatorType.occurrences:
                 return evaluateOccurrencesCondition(condition, extractedValue);
-            case RuleSimpleConditionOperator.oneOf:
+            case RuleSimpleConditionOperatorType.oneOf:
                 return evaluateOneOfCondition(condition, extractedValue);
             default:
                 return String.format("failed validation with unknown operator '%s'", condition.getOperator());
@@ -247,22 +247,22 @@ public class RuleEvaluator {
         }
 
         switch (condition.getOperator()) {
-            case RuleSimpleConditionOperator.lowerThan:
+            case RuleSimpleConditionOperatorType.lowerThan:
                 if (!(extractedFloat < comparisonFloat)) {
                     return String.format("value %f not lower than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case RuleSimpleConditionOperator.lowerThanOrEqual:
+            case RuleSimpleConditionOperatorType.lowerThanOrEqual:
                 if (!(extractedFloat <= comparisonFloat)) {
                     return String.format("value %f not lower or equal than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case RuleSimpleConditionOperator.greaterThan:
+            case RuleSimpleConditionOperatorType.greaterThan:
                 if (!(extractedFloat > comparisonFloat)) {
                     return String.format("value %f not greater than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case RuleSimpleConditionOperator.greaterThanOrEqual:
+            case RuleSimpleConditionOperatorType.greaterThanOrEqual:
                 if (!(extractedFloat >= comparisonFloat)) {
                     return String.format("value %f not greater or equal than %f", extractedFloat, comparisonFloat);
                 }
