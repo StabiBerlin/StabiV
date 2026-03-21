@@ -12,8 +12,8 @@ import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
-import de.spkberlin.imagevalidation.common.rules.Rule;
-import de.spkberlin.imagevalidation.common.rules.RuleEvaluator;
+import de.spkberlin.imagevalidation.common.rules.files.FileRuleEvaluator;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
 import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
 import java.io.IOException;
@@ -281,8 +281,8 @@ public class ValidateCommand implements Callable<Integer> {
                     propertyTree.put(extratorType.name(), extractors.get(extratorType).extractProperties(filepath));
                 }
 
-                List<Rule> rules = config.getValidation().getImageRules();
-                List<String> errors = RuleEvaluator.evaluateRules(rules, propertyTree);
+                List<FileRule> rules = config.getValidation().getImageRules();
+                List<String> errors = FileRuleEvaluator.evaluateRules(rules, propertyTree);
                 logger.info("validation of file '{}' {}", filepath, errors.isEmpty() ? "was successfull" : "failed");
 
                 if (config.getOutput().getLogging().getJson()) {

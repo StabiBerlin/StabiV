@@ -18,7 +18,7 @@ public class PathPropertiesTree {
         Map<String, Object> tree = new HashMap<>();
 
         for (PathProperty property : properties) {
-            insertProperty(tree, Arrays.asList(property.path().split("/")), property.value());
+            insertProperty(tree, Arrays.asList(property.getPath().split("/")), property.getValue());
         }
 
         return tree;

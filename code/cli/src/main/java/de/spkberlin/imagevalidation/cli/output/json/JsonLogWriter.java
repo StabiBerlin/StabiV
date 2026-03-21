@@ -14,7 +14,7 @@ public class JsonLogWriter {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @JsonPropertyOrder({ "time", "type", "path", "validation" })
-    static record LogEntry(String time, String type, String path, String validation, String error) {}
+    private static record LogEntry(String time, String type, String path, String validation, String error) {}
 
     public static void writeFileValidationLog(Path filepath, boolean validationSuccess) throws IOException {
         String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());

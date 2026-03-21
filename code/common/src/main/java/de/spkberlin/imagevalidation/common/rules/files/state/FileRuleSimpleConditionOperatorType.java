@@ -1,6 +1,6 @@
-package de.spkberlin.imagevalidation.common.rules;
+package de.spkberlin.imagevalidation.common.rules.files.state;
 
-public enum RuleSimpleConditionOperatorType {
+public enum FileRuleSimpleConditionOperatorType {
     equal,
     occurrences,
     lowerThan,

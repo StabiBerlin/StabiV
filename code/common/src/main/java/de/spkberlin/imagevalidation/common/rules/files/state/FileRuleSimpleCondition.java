@@ -1,20 +1,19 @@
-package de.spkberlin.imagevalidation.common.rules;
+package de.spkberlin.imagevalidation.common.rules.files.state;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-public class RuleSimpleCondition extends RuleCondition {
+public class FileRuleSimpleCondition extends FileRuleCondition {
 
     private String property;
-    private RuleSimpleConditionOperatorType operator;
+    private FileRuleSimpleConditionOperatorType operator;
 
     @JsonProperty("value")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     private List<String> values;
 
-    public RuleSimpleCondition() {
+    public FileRuleSimpleCondition() {
         // empty
     }
 
@@ -27,12 +26,12 @@ public class RuleSimpleCondition extends RuleCondition {
     }
 
     @JsonProperty("assert")
-    public RuleSimpleConditionOperatorType getOperator() {
+    public FileRuleSimpleConditionOperatorType getOperator() {
         return operator;
     }
 
     @JsonProperty("assert")
-    public void setOperator(RuleSimpleConditionOperatorType operator) {
+    public void setOperator(FileRuleSimpleConditionOperatorType operator) {
         this.operator = operator;
     }
 
