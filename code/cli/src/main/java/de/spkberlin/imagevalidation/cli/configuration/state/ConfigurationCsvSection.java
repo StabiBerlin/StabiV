@@ -1,10 +1,10 @@
-package de.spkberlin.imagevalidation.cli.configuration.yaml;
+package de.spkberlin.imagevalidation.cli.configuration.state;
 
-public class YamlCsvSection {
+public class ConfigurationCsvSection {
 
     private String path;
 
-    public YamlCsvSection() {
+    public ConfigurationCsvSection() {
         //
     }
 

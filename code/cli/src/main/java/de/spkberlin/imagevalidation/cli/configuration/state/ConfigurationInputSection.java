@@ -1,16 +1,16 @@
-package de.spkberlin.imagevalidation.cli.configuration.yaml;
+package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class YamlInputSection {
+public class ConfigurationInputSection {
 
     private Path baseDirectory;
     private List<String> includes;
     private List<String> excludes;
 
-    public YamlInputSection() {
+    public ConfigurationInputSection() {
         includes = new ArrayList<>();
         excludes = new ArrayList<>();
     }

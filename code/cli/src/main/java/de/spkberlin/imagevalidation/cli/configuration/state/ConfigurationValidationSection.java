@@ -1,14 +1,14 @@
-package de.spkberlin.imagevalidation.cli.configuration.yaml;
+package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
 import java.util.ArrayList;
 import java.util.List;
 
-public class YamlValidationSection {
+public class ConfigurationValidationSection {
 
     private List<FileRule> imageRules;
 
-    public YamlValidationSection() {
+    public ConfigurationValidationSection() {
         imageRules = new ArrayList<>();
     }
 

@@ -2,12 +2,12 @@ package de.spkberlin.imagevalidation.cli.commands;
 
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationMerger;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationParser;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationWriter;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingSection;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.ConfigurationMerger;
+import de.spkberlin.imagevalidation.cli.configuration.ConfigurationParser;
+import de.spkberlin.imagevalidation.cli.configuration.ConfigurationWriter;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.FileValidation;
@@ -202,8 +202,8 @@ public class ValidateCommand implements Callable<Integer> {
      * @return the yaml configuration
      * @throws IOException in case filepaths cannot be evaluated
      */
-    public YamlConfiguration loadConfiguration() throws IOException {
-        YamlConfiguration config = new YamlConfiguration();
+    public ConfigurationRoot loadConfiguration() throws IOException {
+        ConfigurationRoot config = new ConfigurationRoot();
 
         Path baseDirectory = Objects.nonNull(inputOptions.baseDirectory)
             ? Path.of(inputOptions.baseDirectory).normalize().toAbsolutePath()
@@ -214,7 +214,7 @@ public class ValidateCommand implements Callable<Integer> {
         if (Objects.nonNull(configOptions.configFilepath)) {
             logger.info("load configuration file '{}", configOptions.configFilepath);
             configPath = Path.of(configOptions.configFilepath).normalize().toAbsolutePath();
-            config = YamlConfigurationParser.parseConfigurationFile(configPath);
+            config = ConfigurationParser.parseConfigurationFile(configPath);
         }
 
         List<String> absoluteIncludes = inputOptions.includes
@@ -228,15 +228,15 @@ public class ValidateCommand implements Callable<Integer> {
             .toList();
 
         logger.debug("merge configuration with command line options");
-        YamlLoggingVerbosityType verbosity = YamlLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
-        YamlConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
-        YamlConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
-        YamlConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
-        YamlConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath, outputOptions.jsonLogging, verbosity);
+        ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
+        ConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
+        ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
+        ConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
+        ConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath, outputOptions.jsonLogging, verbosity);
 
         logger.debug(
             "yaml configuration after merging with command line options:\n\n{}",
-            YamlConfigurationWriter.writeConfigurationFile(config)
+            ConfigurationWriter.writeConfigurationFile(config)
         );
 
         return config;

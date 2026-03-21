@@ -2,8 +2,8 @@ package de.spkberlin.imagevalidation.cli.validation;
 
 import de.spkberlin.imagevalidation.cli.commands.ValidateCommand;
 import de.spkberlin.imagevalidation.cli.common.Logging;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
-import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
@@ -34,7 +34,7 @@ public class FileValidation {
      * @return all directories and their files that need to be validated
      * @throws IOException in case filepaths cannot be evaluated
      */
-    public static Map<Path, List<Path>> resolveFiles(YamlConfiguration config) throws IOException {
+    public static Map<Path, List<Path>> resolveFiles(ConfigurationRoot config) throws IOException {
         logger.info("resolve files and directories");
         List<Path> resolvedFiles = GlobResolver.resolveMany(
             config.getInput().getIncludes(),
@@ -58,9 +58,9 @@ public class FileValidation {
      * @return exit status
      * @throws IOException in case filepaths cannot be evaluated
      */
-    public static Integer doValidation(YamlConfiguration config) throws IOException {
+    public static Integer doValidation(ConfigurationRoot config) throws IOException {
         Logging.setLogMode(config.getOutput().getLogging().getJson());
-        Logging.setLogLevel(YamlLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
+        Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
 
         Map<Path, List<Path>> filesByDirectory = resolveFiles(config);
 

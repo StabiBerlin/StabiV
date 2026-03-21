@@ -1,5 +1,11 @@
-package de.spkberlin.imagevalidation.cli.configuration.yaml;
+package de.spkberlin.imagevalidation.cli.configuration;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExtractionSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSeverityType;
@@ -11,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class YamlConfigurationMerger {
+public class ConfigurationMerger {
 
     /**
      * Merge input section of yaml configuration with CLI options.
@@ -24,7 +30,7 @@ public class YamlConfigurationMerger {
      * @param excludes the list of exclided filepaths specified with CLI option
      */
     public static void mergeInput(
-        YamlConfiguration config,
+        ConfigurationRoot config,
         Path cwd,
         Path configPath,
         Path baseDirectory,
@@ -33,7 +39,7 @@ public class YamlConfigurationMerger {
     ) {
         // make sure input section exists
         if (Objects.isNull(config.getInput())) {
-            config.setInput(new YamlInputSection());
+            config.setInput(new ConfigurationInputSection());
         }
         // merge base directory
         if (Objects.nonNull(baseDirectory)) {
@@ -71,10 +77,10 @@ public class YamlConfigurationMerger {
      * @param config the yaml configuration
      * @param modules the list of extraction modules specified with CLI option
      */
-    public static void mergeExtraction(YamlConfiguration config, List<ExtractorType> modules) {
+    public static void mergeExtraction(ConfigurationRoot config, List<ExtractorType> modules) {
         // make sure extraction section exists
         if (Objects.isNull(config.getExtraction())) {
-            config.setExtraction(new YamlExtractionSection());
+            config.setExtraction(new ConfigurationExtractionSection());
         }
         // merge modules
         if (Objects.nonNull(modules) && !modules.isEmpty()) {
@@ -82,10 +88,10 @@ public class YamlConfigurationMerger {
         }
     }
 
-    public static void mergeValidation(YamlConfiguration config, List<String> imageRules) {
+    public static void mergeValidation(ConfigurationRoot config, List<String> imageRules) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {
-            config.setValidation(new YamlValidationSection());
+            config.setValidation(new ConfigurationValidationSection());
         }
         if (Objects.isNull(config.getValidation().getImageRules())) {
             config.getValidation().setImageRules(new ArrayList<>());
@@ -126,10 +132,10 @@ public class YamlConfigurationMerger {
      * @param json whether json output should be generated specified with CLI option
      * @param verbosity logging verbositry specified with CLI option
      */
-    public static void mergeOutput(YamlConfiguration config, String csvPath, Boolean json, YamlLoggingVerbosityType verbosity) {
+    public static void mergeOutput(ConfigurationRoot config, String csvPath, Boolean json, ConfigurationLoggingVerbosityType verbosity) {
         // make sure extraction section exists
         if (Objects.isNull(config.getOutput())) {
-            config.setOutput(new YamlOutputSection());
+            config.setOutput(new ConfigurationOutputSection());
         }
         if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
             config.getOutput().getCsv().setPath(csvPath);
