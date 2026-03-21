@@ -2,7 +2,6 @@ package de.spkberlin.imagevalidation.cli.configuration.yaml;
 
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCondition;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSeverityType;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleCondition;
 import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleConditionOperatorType;
@@ -100,7 +99,7 @@ public class YamlConfigurationMerger {
     }
 
     public static FileRule getImageRuleFromCommandLineOption(String imageRuleText) {
-        String[] ruleTextSplit = imageRuleText.split("|", 3);
+        String[] ruleTextSplit = imageRuleText.split("\\|", 3);
         if (ruleTextSplit.length != 3) {
             throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by `|`", imageRuleText));
         }
@@ -111,8 +110,8 @@ public class YamlConfigurationMerger {
         condition.setValues(Arrays.asList(ruleTextSplit[2].split(",")));
 
         FileRule rule = new FileRule();
-        rule.setContext("$.");
-        rule.setMessage("command line rule '%s' must be fulfilled");
+        rule.setContext("$");
+        rule.setMessage(String.format("command line rule '%s' must be fulfilled", imageRuleText));
         rule.setSeverity(FileRuleSeverityType.error);
         rule.setCondition(condition);
 

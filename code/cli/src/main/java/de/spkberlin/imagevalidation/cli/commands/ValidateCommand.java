@@ -13,7 +13,7 @@ import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.FileValidation;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -67,23 +67,27 @@ public class ValidateCommand implements Callable<Integer> {
         String configFilepath;
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Extraction Options|@%n%n", order = 2, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Extraction Options|@%n%n", order = 3, exclusive = false)
     public ExtractionOptions extractionOptions = new ExtractionOptions();
 
     static class ExtractionOptions {
 
         /** The extraction modules that will be applied. */
         @Option(
-            names = { "--extractors" },
-            split = ",",
-            defaultValue = "exiftool,jhove",
+            names = { "--extractor" },
             paramLabel = "module",
-            description = "Extraction modules that are applied to each image file"
+            description = """
+            Extraction module that is applied to each image file.
+
+            Possible values:
+              - `jhove` - extract image properties via JHove, see https://jhove.openpreservation.org/
+              - `exiftool` - extract image properties via Exiftool, see https://exiftool.org/
+            """
         )
-        ExtractorType[] modules = {};
+        List<ExtractorType> modules = List.of(ExtractorType.exiftool, ExtractorType.jhove);
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 2, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 4, exclusive = false)
     public ValidationOptions validationOptions = new ValidationOptions();
 
     static class ValidationOptions {
@@ -91,7 +95,7 @@ public class ValidateCommand implements Callable<Integer> {
         @Option(
             names = { "--imageRule" },
             paramLabel = "RULE",
-            arity = "0..*",
+            arity = "1",
             description = """
             Add a validation rule that is checked against extracted image properties
 
@@ -103,7 +107,7 @@ public class ValidateCommand implements Callable<Integer> {
               - `"$.exiftool.TIFF.IFD|occurrences|1"` - tif image must contain exactly one IFD
               - `"$.exiftool.TIFF.IFD[0].SubfileType|equal|Full-resolution image"` - first sub-image must be a full-resolution image
 
-            Properties are selected by specifying a JsonPath, see `extract` subcommand.
+            Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
 
             The assert option defines how properties are checked against the expected value:
               - `equal` - checks that values are exactly the same
@@ -115,10 +119,10 @@ public class ValidateCommand implements Callable<Integer> {
             The expected value can be either a simple value, or a list of values separated by comma.
             """
         )
-        String[] imageRules = {};
+        List<String> imageRules = Collections.emptyList();
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 5, exclusive = false)
     public OutputOptions outputOptions = new OutputOptions();
 
     static class OutputOptions {
@@ -152,7 +156,7 @@ public class ValidateCommand implements Callable<Integer> {
         @Option(
             names = { "--exclude" },
             paramLabel = "PATHS",
-            arity = "0..*",
+            arity = "1",
             description = """
             one ore multiple files, directories or glob patterns that are excluded from validation
 
@@ -162,7 +166,7 @@ public class ValidateCommand implements Callable<Integer> {
             - `/path/to/directory` - do not validate files in this specific directory
             """
         )
-        String[] excludes = {};
+        List<String> excludes = Collections.emptyList();
 
         /** The list of directories and files that are being validated. */
         @Parameters(
@@ -179,7 +183,7 @@ public class ValidateCommand implements Callable<Integer> {
             - `../relative/path/to/directory` - relative path with respect to current working directory
             """
         )
-        String[] includes = {};
+        List<String> includes = Collections.emptyList();
     }
 
     /** Called when CLI arguments were successfully parsed. */
@@ -213,12 +217,12 @@ public class ValidateCommand implements Callable<Integer> {
             config = YamlConfigurationParser.parseConfigurationFile(configPath);
         }
 
-        List<String> absoluteIncludes = Arrays.asList(inputOptions.includes)
+        List<String> absoluteIncludes = inputOptions.includes
             .stream()
             .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
             .toList();
 
-        List<String> absoluteExcludes = Arrays.asList(inputOptions.excludes)
+        List<String> absoluteExcludes = inputOptions.excludes
             .stream()
             .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
             .toList();
@@ -226,10 +230,11 @@ public class ValidateCommand implements Callable<Integer> {
         logger.debug("merge configuration with command line options");
         YamlLoggingVerbosityType verbosity = YamlLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         YamlConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
-        YamlConfigurationMerger.mergeExtraction(config, Arrays.asList(extractionOptions.modules));
+        YamlConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
+        YamlConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
         YamlConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath, outputOptions.jsonLogging, verbosity);
 
-        logger.trace(
+        logger.debug(
             "yaml configuration after merging with command line options:\n\n{}",
             YamlConfigurationWriter.writeConfigurationFile(config)
         );

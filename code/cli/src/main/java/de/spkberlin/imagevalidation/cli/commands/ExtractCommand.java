@@ -10,6 +10,7 @@ import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
 import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -63,13 +64,17 @@ public class ExtractCommand implements Callable<Integer> {
 
         /** The extraction modules that will be applied. */
         @Option(
-            names = { "--extractors" },
-            split = ",",
-            defaultValue = "exiftool,jhove",
+            names = { "--extractor" },
             paramLabel = "module",
-            description = "Extraction modules that are applied to each image file"
+            description = """
+            Extraction module that is applied to each image file.
+
+            Possible values:
+              - `jhove` - extract image properties via JHove, see https://jhove.openpreservation.org/
+              - `exiftool` - extract image properties via Exiftool, see https://exiftool.org/
+            """
         )
-        ExtractorType[] extractors = {};
+        List<ExtractorType> extractors = List.of(ExtractorType.exiftool, ExtractorType.jhove);
 
         /** The property path to resolve via JsonPath. */
         @Option(

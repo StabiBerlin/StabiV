@@ -26,7 +26,7 @@ public class FileRuleEvaluator {
 
     private static final Logger logger = LoggerFactory.getLogger(FileRuleEvaluator.class);
 
-    private static final String DEFAULT_CONTEXT = "$.";
+    private static final String DEFAULT_CONTEXT = "$";
 
     public static List<String> evaluateRules(List<FileRule> rules, Object properties) throws IOException {
         logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeProperties(properties));
