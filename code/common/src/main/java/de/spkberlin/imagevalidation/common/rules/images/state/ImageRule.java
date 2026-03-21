@@ -1,13 +1,13 @@
-package de.spkberlin.imagevalidation.common.rules.files.state;
+package de.spkberlin.imagevalidation.common.rules.images.state;
 
-public class FileRule {
+public class ImageRule {
 
     private String context;
-    private FileRuleCondition condition;
-    private FileRuleSeverityType severity;
+    private ImageRuleCondition condition;
+    private ImageRuleSeverityType severity;
     private String message;
 
-    public FileRule() {
+    public ImageRule() {
         //
     }
 
@@ -19,11 +19,11 @@ public class FileRule {
         this.context = context;
     }
 
-    public FileRuleCondition getCondition() {
+    public ImageRuleCondition getCondition() {
         return this.condition;
     }
 
-    public void setCondition(FileRuleCondition condition) {
+    public void setCondition(ImageRuleCondition condition) {
         this.condition = condition;
     }
 
@@ -35,11 +35,11 @@ public class FileRule {
         this.message = message;
     }
 
-    public FileRuleSeverityType getSeverity() {
+    public ImageRuleSeverityType getSeverity() {
         return this.severity;
     }
 
-    public void setSeverity(FileRuleSeverityType severity) {
+    public void setSeverity(ImageRuleSeverityType severity) {
         this.severity = severity;
     }
 }

@@ -1,18 +1,18 @@
-package de.spkberlin.imagevalidation.common.rules.files;
+package de.spkberlin.imagevalidation.common.rules.images;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCompositeAndCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCompositeCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCompositeNotCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCompositeOrCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSeverityType;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeAndCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeNotCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeOrCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleConditionOperatorType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,25 +22,25 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileRuleEvaluator {
+public class ImageRuleEvaluator {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileRuleEvaluator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ImageRuleEvaluator.class);
 
     private static final String DEFAULT_CONTEXT = "$";
 
-    public static List<String> evaluateRules(List<FileRule> rules, Object properties) throws IOException {
+    public static List<String> evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
         logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeProperties(properties));
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        for (FileRule rule : rules) {
+        for (ImageRule rule : rules) {
             errors.addAll(evaluateRule(rule, properties));
         }
 
         return errors;
     }
 
-    public static List<String> evaluateRule(FileRule rule, Object properties) {
+    public static List<String> evaluateRule(ImageRule rule, Object properties) {
         logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -49,11 +49,11 @@ public class FileRuleEvaluator {
         for (Object contextObject : contextObjects) {
             String conditionError = evaluateCondition(rule.getCondition(), contextObject);
             if (Objects.nonNull(conditionError)) {
-                if (FileRuleSeverityType.error.equals(rule.getSeverity())) {
+                if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
                     logger.error("validation error '{}'", rule.getMessage());
                     logger.debug("validation error details: {}", conditionError);
                     errors.add(String.format("%s (%s)", rule.getMessage(), conditionError));
-                } else if (FileRuleSeverityType.error.equals(rule.getSeverity())) {
+                } else if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
                     logger.warn("validation warning: '{}'", rule.getMessage());
                     logger.debug("validation warning details: {}", conditionError);
                     warnings.add(String.format("%s (%s)", rule.getMessage(), conditionError));
@@ -63,9 +63,9 @@ public class FileRuleEvaluator {
         return errors;
     }
 
-    public static String evaluateCondition(FileRuleCondition condition, Object properties) {
-        if (condition instanceof FileRuleSimpleCondition) {
-            FileRuleSimpleCondition simpleCondition = (FileRuleSimpleCondition) condition;
+    public static String evaluateCondition(ImageRuleCondition condition, Object properties) {
+        if (condition instanceof ImageRuleSimpleCondition) {
+            ImageRuleSimpleCondition simpleCondition = (ImageRuleSimpleCondition) condition;
             Object propertyObject;
             try {
                 propertyObject = JsonPath.read(properties, simpleCondition.getProperty());
@@ -78,26 +78,26 @@ public class FileRuleEvaluator {
                 return e.getMessage();
             }
         }
-        if (condition instanceof FileRuleCompositeCondition) {
-            FileRuleCompositeCondition compositeCondition = (FileRuleCompositeCondition) condition;
+        if (condition instanceof ImageRuleCompositeCondition) {
+            ImageRuleCompositeCondition compositeCondition = (ImageRuleCompositeCondition) condition;
             return evaluateCompositeCondition(compositeCondition, properties);
         }
 
         return String.format("rule condition '%s' not yet implemented", condition.getClass().getName());
     }
 
-    public static String evaluateCompositeCondition(FileRuleCompositeCondition condition, Object properties) {
-        if (condition instanceof FileRuleCompositeAndCondition) {
-            return evaluateCompositeAndCondition((FileRuleCompositeAndCondition) condition, properties);
-        } else if (condition instanceof FileRuleCompositeOrCondition) {
-            return evaluateCompositeOrCondition((FileRuleCompositeOrCondition) condition, properties);
-        } else if (condition instanceof FileRuleCompositeNotCondition) {
-            return evaluateCompositeNotCondition((FileRuleCompositeNotCondition) condition, properties);
+    public static String evaluateCompositeCondition(ImageRuleCompositeCondition condition, Object properties) {
+        if (condition instanceof ImageRuleCompositeAndCondition) {
+            return evaluateCompositeAndCondition((ImageRuleCompositeAndCondition) condition, properties);
+        } else if (condition instanceof ImageRuleCompositeOrCondition) {
+            return evaluateCompositeOrCondition((ImageRuleCompositeOrCondition) condition, properties);
+        } else if (condition instanceof ImageRuleCompositeNotCondition) {
+            return evaluateCompositeNotCondition((ImageRuleCompositeNotCondition) condition, properties);
         }
         return String.format("composite condition '%s' of unknown type", condition.getClass().getName());
     }
 
-    public static String evaluateCompositeAndCondition(FileRuleCompositeAndCondition condition, Object properties) {
+    public static String evaluateCompositeAndCondition(ImageRuleCompositeAndCondition condition, Object properties) {
         // evaluate all sub conditions
         List<String> results = condition
             .getAnd()
@@ -117,7 +117,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateCompositeOrCondition(FileRuleCompositeOrCondition condition, Object properties) {
+    public static String evaluateCompositeOrCondition(ImageRuleCompositeOrCondition condition, Object properties) {
         // evaluate all sub conditions
         List<String> results = condition
             .getOr()
@@ -132,7 +132,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateCompositeNotCondition(FileRuleCompositeNotCondition condition, Object properties) {
+    public static String evaluateCompositeNotCondition(ImageRuleCompositeNotCondition condition, Object properties) {
         // evaluate all sub conditions
         String result = evaluateCondition(condition.getNot(), properties);
 
@@ -143,27 +143,27 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateSimpleCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateSimpleCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         switch (condition.getOperator()) {
-            case FileRuleSimpleConditionOperatorType.equal:
+            case ImageRuleSimpleConditionOperatorType.equal:
                 return evaluateEqualCondition(condition, extractedValue);
-            case FileRuleSimpleConditionOperatorType.lowerThan:
-            case FileRuleSimpleConditionOperatorType.lowerThanOrEqual:
-            case FileRuleSimpleConditionOperatorType.greaterThan:
-            case FileRuleSimpleConditionOperatorType.greaterThanOrEqual:
+            case ImageRuleSimpleConditionOperatorType.lowerThan:
+            case ImageRuleSimpleConditionOperatorType.lowerThanOrEqual:
+            case ImageRuleSimpleConditionOperatorType.greaterThan:
+            case ImageRuleSimpleConditionOperatorType.greaterThanOrEqual:
                 return evaluateNumberCondition(condition, extractedValue);
-            case FileRuleSimpleConditionOperatorType.isInteger:
+            case ImageRuleSimpleConditionOperatorType.isInteger:
                 return evaluateIsIntegerCondition(condition, extractedValue);
-            case FileRuleSimpleConditionOperatorType.occurrences:
+            case ImageRuleSimpleConditionOperatorType.occurrences:
                 return evaluateOccurrencesCondition(condition, extractedValue);
-            case FileRuleSimpleConditionOperatorType.oneOf:
+            case ImageRuleSimpleConditionOperatorType.oneOf:
                 return evaluateOneOfCondition(condition, extractedValue);
             default:
                 return String.format("failed validation with unknown operator '%s'", condition.getOperator());
         }
     }
 
-    public static String evaluateOneOfCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateOneOfCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.isNull(condition.getValues())) {
             return String.format("oneOf operator requires at least one comparison value");
         }
@@ -182,7 +182,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateIsIntegerCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateIsIntegerCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
             logger.warn("ignoring values of 'isInteger' condition");
         }
@@ -194,7 +194,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateOccurrencesCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateOccurrencesCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (!(extractedValue instanceof List)) {
             return String.format(
                 "cannot determine number of occurrences of extracted value '%s'",
@@ -210,7 +210,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateEqualCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateEqualCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.isNull(condition.getValues()) || condition.getValues().size() == 0) {
             return String.format("equal operator requires comparison values");
         }
@@ -240,7 +240,7 @@ public class FileRuleEvaluator {
         return null;
     }
 
-    public static String evaluateNumberCondition(FileRuleSimpleCondition condition, Object extractedValue) {
+    public static String evaluateNumberCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (condition.getValues().size() == 0) {
             return String.format("comparison value is required for condition operator '%s'", condition.getOperator());
         }
@@ -256,22 +256,22 @@ public class FileRuleEvaluator {
         }
 
         switch (condition.getOperator()) {
-            case FileRuleSimpleConditionOperatorType.lowerThan:
+            case ImageRuleSimpleConditionOperatorType.lowerThan:
                 if (!(extractedFloat < comparisonFloat)) {
                     return String.format("value %f not lower than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case FileRuleSimpleConditionOperatorType.lowerThanOrEqual:
+            case ImageRuleSimpleConditionOperatorType.lowerThanOrEqual:
                 if (!(extractedFloat <= comparisonFloat)) {
                     return String.format("value %f not lower or equal than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case FileRuleSimpleConditionOperatorType.greaterThan:
+            case ImageRuleSimpleConditionOperatorType.greaterThan:
                 if (!(extractedFloat > comparisonFloat)) {
                     return String.format("value %f not greater than %f", extractedFloat, comparisonFloat);
                 }
                 break;
-            case FileRuleSimpleConditionOperatorType.greaterThanOrEqual:
+            case ImageRuleSimpleConditionOperatorType.greaterThanOrEqual:
                 if (!(extractedFloat >= comparisonFloat)) {
                     return String.format("value %f not greater or equal than %f", extractedFloat, comparisonFloat);
                 }

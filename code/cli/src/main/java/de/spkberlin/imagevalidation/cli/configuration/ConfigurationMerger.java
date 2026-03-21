@@ -7,10 +7,10 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputS
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSeverityType;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleConditionOperatorType;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,28 +97,28 @@ public class ConfigurationMerger {
             config.getValidation().setImageRules(new ArrayList<>());
         }
         // add rules provided via command line options
-        List<FileRule> additionalImageRules = imageRules
+        List<ImageRule> additionalImageRules = imageRules
             .stream()
             .map(r -> getImageRuleFromCommandLineOption(r))
             .toList();
         config.getValidation().getImageRules().addAll(additionalImageRules);
     }
 
-    public static FileRule getImageRuleFromCommandLineOption(String imageRuleText) {
+    public static ImageRule getImageRuleFromCommandLineOption(String imageRuleText) {
         String[] ruleTextSplit = imageRuleText.split("\\|", 3);
         if (ruleTextSplit.length != 3) {
             throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by `|`", imageRuleText));
         }
 
-        FileRuleSimpleCondition condition = new FileRuleSimpleCondition();
+        ImageRuleSimpleCondition condition = new ImageRuleSimpleCondition();
         condition.setProperty(ruleTextSplit[0]);
-        condition.setOperator(FileRuleSimpleConditionOperatorType.valueOf(ruleTextSplit[1]));
+        condition.setOperator(ImageRuleSimpleConditionOperatorType.valueOf(ruleTextSplit[1]));
         condition.setValues(Arrays.asList(ruleTextSplit[2].split(",")));
 
-        FileRule rule = new FileRule();
+        ImageRule rule = new ImageRule();
         rule.setContext("$");
         rule.setMessage(String.format("command line rule '%s' must be fulfilled", imageRuleText));
-        rule.setSeverity(FileRuleSeverityType.error);
+        rule.setSeverity(ImageRuleSeverityType.error);
         rule.setCondition(condition);
 
         return rule;

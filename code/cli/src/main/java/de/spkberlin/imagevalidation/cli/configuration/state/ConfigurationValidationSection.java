@@ -1,22 +1,22 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
+import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationValidationSection {
 
-    private List<FileRule> imageRules;
+    private List<ImageRule> imageRules;
 
     public ConfigurationValidationSection() {
         imageRules = new ArrayList<>();
     }
 
-    public List<FileRule> getImageRules() {
+    public List<ImageRule> getImageRules() {
         return imageRules;
     }
 
-    public void setImageRules(List<FileRule> rules) {
+    public void setImageRules(List<ImageRule> rules) {
         this.imageRules = rules;
     }
 }
