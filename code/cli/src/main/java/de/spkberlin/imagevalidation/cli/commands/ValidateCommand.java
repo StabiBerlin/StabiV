@@ -75,7 +75,7 @@ public class ValidateCommand implements Callable<Integer> {
         /** The extraction modules that will be applied. */
         @Option(
             names = { "--extractor" },
-            paramLabel = "module",
+            paramLabel = "MODULE",
             description = """
             Extraction module that is applied to each image file.
 
@@ -131,6 +131,26 @@ public class ValidateCommand implements Callable<Integer> {
         @Option(names = { "--csv" }, description = "CSV output file")
         String csvOutputFilepath;
 
+        @Option(
+            names = { "--csvColumn" },
+            arity = "1",
+            paramLabel = "COLUMN",
+            description = """
+            Include an image property as column in the csv output file.
+
+            Columns need to be specified in the format `"LABEL|PROPERTY"`.
+
+            Examples:
+              - `"JHove Wellformed|$.jhove.wellformed"`
+              - `"Color Format|$.exiftool..PhotometricInterpretation"`
+
+            Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
+
+            A label can be any text.
+            """
+        )
+        List<String> csvColumns = Collections.emptyList();
+
         /** Wether to use json based log output. */
         @Option(names = { "--json" }, description = "print validation results in JSON format to stdout (and other log messages to stderr)")
         boolean jsonLogging;
@@ -147,15 +167,15 @@ public class ValidateCommand implements Callable<Integer> {
 
         @Option(
             names = { "--baseDirectory" },
-            paramLabel = "DIR",
-            arity = "0..1",
+            paramLabel = "PATH",
+            arity = "1",
             description = "the base directory that is used to resolve relative file paths%n  Default: current working directory"
         )
         String baseDirectory;
 
         @Option(
             names = { "--exclude" },
-            paramLabel = "PATHS",
+            paramLabel = "PATH",
             arity = "1",
             description = """
             one ore multiple files, directories or glob patterns that are excluded from validation
@@ -232,7 +252,13 @@ public class ValidateCommand implements Callable<Integer> {
         ConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
         ConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
-        ConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath, outputOptions.jsonLogging, verbosity);
+        ConfigurationMerger.mergeOutput(
+            config,
+            outputOptions.csvOutputFilepath,
+            outputOptions.csvColumns,
+            outputOptions.jsonLogging,
+            verbosity
+        );
 
         logger.debug(
             "yaml configuration after merging with command line options:\n\n{}",

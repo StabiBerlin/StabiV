@@ -1,12 +1,15 @@
 package de.spkberlin.imagevalidation.cli.configuration;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExtractionSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleCondition;
@@ -132,19 +135,53 @@ public class ConfigurationMerger {
      * @param json whether json output should be generated specified with CLI option
      * @param verbosity logging verbositry specified with CLI option
      */
-    public static void mergeOutput(ConfigurationRoot config, String csvPath, Boolean json, ConfigurationLoggingVerbosityType verbosity) {
+    public static void mergeOutput(
+        ConfigurationRoot config,
+        String csvPath,
+        List<String> csvColumns,
+        Boolean json,
+        ConfigurationLoggingVerbosityType verbosity
+    ) {
         // make sure extraction section exists
         if (Objects.isNull(config.getOutput())) {
             config.setOutput(new ConfigurationOutputSection());
         }
+        // make sure csv section exists
+        if (Objects.isNull(config.getOutput().getCsv())) {
+            config.getOutput().setCsv(new ConfigurationCsvSection());
+        }
+        // overwrite csv path
         if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
             config.getOutput().getCsv().setPath(csvPath);
+        }
+        // add csv columns
+        if (Objects.isNull(config.getOutput().getCsv().getColumns())) {
+            config.getOutput().getCsv().setColumns(new ArrayList<>());
+        }
+        List<CsvPropertyColumn> additionalColumns = csvColumns
+            .stream()
+            .map(c -> getCsvPropertyColumnFromCommandLineOption(c))
+            .toList();
+        config.getOutput().getCsv().getColumns().addAll(additionalColumns);
+        // overwrite json output
+        if (Objects.isNull(config.getOutput().getLogging())) {
+            config.getOutput().setLogging(new ConfigurationLoggingSection());
         }
         if (Objects.nonNull(json)) {
             config.getOutput().getLogging().setJson(json);
         }
+        // overwrite verbosity
         if (Objects.nonNull(verbosity)) {
             config.getOutput().getLogging().setVerbosity(verbosity);
         }
+    }
+
+    public static CsvPropertyColumn getCsvPropertyColumnFromCommandLineOption(String columnText) {
+        String[] columnTextSplit = columnText.split("\\|", 2);
+        if (columnTextSplit.length != 2) {
+            throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by `|`", columnText));
+        }
+
+        return new CsvPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
     }
 }

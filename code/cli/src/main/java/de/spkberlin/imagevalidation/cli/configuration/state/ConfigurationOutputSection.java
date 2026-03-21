@@ -14,7 +14,7 @@ public class ConfigurationOutputSection {
         return this.csv;
     }
 
-    public void setIncludes(ConfigurationCsvSection csv) {
+    public void setCsv(ConfigurationCsvSection csv) {
         this.csv = csv;
     }
 

@@ -36,8 +36,8 @@ import picocli.CommandLine.Parameters;
     Extract a specific property for a file:%n
       ${COMMAND-FULL-NAME} --property="$..PhotometricInterpretation" /path/to/example.tif
 
-    Extract a subsection of properties for a file:%n
-      ${COMMAND-FULL-NAME} --extractors=jhove --property="$..NisoImageMetadata" /path/to/example.tif
+    Extract a subsection of properties for a file using the JHove module:%n
+      ${COMMAND-FULL-NAME} --extractor=jhove --property="$..NisoImageMetadata" /path/to/example.tif
     """
 )
 public class ExtractCommand implements Callable<Integer> {
@@ -47,10 +47,10 @@ public class ExtractCommand implements Callable<Integer> {
     @Mixin
     private CommonOptions commonOptions;
 
-    @ArgGroup(validate = true, heading = "%n@|bold Logging Options|@%n%n", order = 3, exclusive = false)
-    private LoggingOptions loggingOptions = new LoggingOptions();
+    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
+    private OutputOptions outputOptions = new OutputOptions();
 
-    static class LoggingOptions {
+    static class OutputOptions {
 
         /** wether to show additional log messages. */
         @Option(names = { "-v", "--verbose" }, description = "print more logging (use `-vv` for debug logging or `-vvv` for trace logging)")
@@ -65,7 +65,7 @@ public class ExtractCommand implements Callable<Integer> {
         /** The extraction modules that will be applied. */
         @Option(
             names = { "--extractor" },
-            paramLabel = "module",
+            paramLabel = "MODULE",
             description = """
             Extraction module that is applied to each image file.
 
@@ -79,7 +79,7 @@ public class ExtractCommand implements Callable<Integer> {
         /** The property path to resolve via JsonPath. */
         @Option(
             names = { "-p", "--property" },
-            paramLabel = "JSON_PATH",
+            paramLabel = "PROPERTY",
             description = """
             An optional property selector (JsonPath) to limit what property or properties are printed
 
@@ -113,7 +113,7 @@ public class ExtractCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         Logging.setLogMode(false);
-        Logging.setLogLevel(Objects.isNull(loggingOptions.verbosity) ? 0 : loggingOptions.verbosity.length);
+        Logging.setLogLevel(Objects.isNull(outputOptions.verbosity) ? 0 : outputOptions.verbosity.length);
 
         logger.info("run extract command");
 
