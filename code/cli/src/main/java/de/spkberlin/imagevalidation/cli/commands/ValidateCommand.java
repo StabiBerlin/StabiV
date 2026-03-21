@@ -6,23 +6,15 @@ import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfiguration;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationMerger;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationParser;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlConfigurationWriter;
+import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.yaml.YamlLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
-import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
-import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
-import de.spkberlin.imagevalidation.common.extract.Extractor;
-import de.spkberlin.imagevalidation.common.rules.files.FileRuleEvaluator;
-import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
-import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
-import de.spkberlin.imagevalidation.jhove.JHoveExtractor;
+import de.spkberlin.imagevalidation.cli.validation.FileValidation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
@@ -62,25 +54,23 @@ public class ValidateCommand implements Callable<Integer> {
 
     private static final String CWD = System.getProperty("user.dir");
 
-    private static List<YamlLoggingVerbosityType> VERBOSITY_LEVELS = List.of(
-        YamlLoggingVerbosityType.error,
-        YamlLoggingVerbosityType.warning,
-        YamlLoggingVerbosityType.info,
-        YamlLoggingVerbosityType.debug,
-        YamlLoggingVerbosityType.trace
-    );
-
     @Mixin
     private CommonOptions commonOptions;
 
-    @ArgGroup(validate = true, heading = "%n@|bold Configuration Options|@%n%n", order = 2, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Configuration File Options|@%n%n", order = 2, exclusive = false)
     public ConfigOptions configOptions = new ConfigOptions();
 
     static class ConfigOptions {
 
         /** The filepath to the configuration file. */
-        @Option(names = { "--config" }, description = "Configuration file containing additional options")
+        @Option(names = { "--config" }, description = "Load and use a configuration file")
         String configFilepath;
+    }
+
+    @ArgGroup(validate = true, heading = "%n@|bold Extraction Options|@%n%n", order = 2, exclusive = false)
+    public ExtractionOptions extractionOptions = new ExtractionOptions();
+
+    static class ExtractionOptions {
 
         /** The extraction modules that will be applied. */
         @Option(
@@ -90,15 +80,42 @@ public class ValidateCommand implements Callable<Integer> {
             paramLabel = "module",
             description = "Extraction modules that are applied to each image file"
         )
-        ExtractorType[] extractors = {};
+        ExtractorType[] modules = {};
+    }
+
+    @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 2, exclusive = false)
+    public ValidationOptions validationOptions = new ValidationOptions();
+
+    static class ValidationOptions {
 
         @Option(
-            names = { "--rule" },
-            paramLabel = "rule",
+            names = { "--imageRule" },
+            paramLabel = "RULE",
             arity = "0..*",
-            description = "Validation rules that are checked against extracted image properties"
+            description = """
+            Add a validation rule that is checked against extracted image properties
+
+            Image validation rules need to be specified in the format `"PROPERTY|ASSERT|VALUE"`.
+
+            Examples
+              - `"$.jhove.wellformed|equal|true"` - check that JHove detects file as wellformed
+              - `"$.exiftool..PhotometricInterpretation|oneOf|RGB,BlackIsZero"` - image must be either RGB or grayscale
+              - `"$.exiftool.TIFF.IFD|occurrences|1"` - tif image must contain exactly one IFD
+              - `"$.exiftool.TIFF.IFD[0].SubfileType|equal|Full-resolution image"` - first sub-image must be a full-resolution image
+
+            Properties are selected by specifying a JsonPath, see `extract` subcommand.
+
+            The assert option defines how properties are checked against the expected value:
+              - `equal` - checks that values are exactly the same
+              - `oneOf` - checks that the extracted value matches one of the provided alternatives
+              - `occurrences` - checks the number of times a certain property occurres in the image
+              - `lowerThan`, `lowerThanOrEqual`, `greaterThan`, `greaterThanOrEqual` - compares the property to a number
+              - `isInteger` - checks that the property is an integer
+
+            The expected value can be either a simple value, or a list of values separated by comma.
+            """
         )
-        String[] rules = {};
+        String[] imageRules = {};
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 3, exclusive = false)
@@ -140,8 +157,8 @@ public class ValidateCommand implements Callable<Integer> {
             one ore multiple files, directories or glob patterns that are excluded from validation
 
             Examples
-            - `**/ignore` - do not validate files or subdirectories called "ignore"
-            - `**.jpg` - do not validate jpg files
+            - `&ast;&ast;/ignore` - do not validate files or subdirectories called "ignore"
+            - `&ast;&ast;.jpg` - do not validate jpg files
             - `/path/to/directory` - do not validate files in this specific directory
             """
         )
@@ -156,9 +173,9 @@ public class ValidateCommand implements Callable<Integer> {
 
             Examples
             - `/path/to/directory` - validate all files from all subdirectories
-            - `/path/to/directory/*.tif` - validate tif files in this directory not considering subdirectories
-            - `/path/to/directory/**/*.tif` - validate tif files in all subdirectories
-            - `/path/to/directory/**/*.{tif,jpg}` - validate tif and jpg files in all subdirectories
+            - `/path/to/directory/&ast;.tif` - validate tif files in this directory not considering subdirectories
+            - `/path/to/directory/&ast;&ast;/&ast;.tif` - validate tif files in all subdirectories
+            - `/path/to/directory/&ast;&ast;/&ast;.{tif,jpg}` - validate tif and jpg files in all subdirectories
             - `../relative/path/to/directory` - relative path with respect to current working directory
             """
         )
@@ -172,7 +189,7 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(outputOptions.verbosity.length + 1);
 
         logger.info("run validate command");
-        return doValidation(loadConfiguration());
+        return FileValidation.doValidation(loadConfiguration());
     }
 
     /**
@@ -207,14 +224,10 @@ public class ValidateCommand implements Callable<Integer> {
             .toList();
 
         logger.debug("merge configuration with command line options");
+        YamlLoggingVerbosityType verbosity = YamlLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         YamlConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
-        YamlConfigurationMerger.mergeExtraction(config, Arrays.asList(configOptions.extractors));
-        YamlConfigurationMerger.mergeOutput(
-            config,
-            outputOptions.csvOutputFilepath,
-            outputOptions.jsonLogging,
-            VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1)
-        );
+        YamlConfigurationMerger.mergeExtraction(config, Arrays.asList(extractionOptions.modules));
+        YamlConfigurationMerger.mergeOutput(config, outputOptions.csvOutputFilepath, outputOptions.jsonLogging, verbosity);
 
         logger.trace(
             "yaml configuration after merging with command line options:\n\n{}",
@@ -222,87 +235,5 @@ public class ValidateCommand implements Callable<Integer> {
         );
 
         return config;
-    }
-
-    /**
-     * Find all files and directories that need to be validated.
-     *
-     * @param config the main yaml configuration
-     * @return all directories and their files that need to be validated
-     * @throws IOException in case filepaths cannot be evaluated
-     */
-    public static Map<Path, List<Path>> resolveFiles(YamlConfiguration config) throws IOException {
-        logger.info("resolve files and directories");
-        List<Path> resolvedFiles = GlobResolver.resolveMany(
-            config.getInput().getIncludes(),
-            config.getInput().getExcludes(),
-            config.getInput().getBaseDirectory()
-        );
-
-        if (resolvedFiles.isEmpty()) {
-            logger.warn("no files to validate");
-        }
-
-        Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
-
-        return filesByDirectory;
-    }
-
-    /**
-     * Do actual validation of files.
-     *
-     * @param config the main yaml configuration
-     * @return exit status
-     * @throws IOException in case filepaths cannot be evaluated
-     */
-    public static Integer doValidation(YamlConfiguration config) throws IOException {
-        Logging.setLogMode(config.getOutput().getLogging().getJson());
-        Logging.setLogLevel(VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
-
-        Map<Path, List<Path>> filesByDirectory = resolveFiles(config);
-
-        Map<ExtractorType, Extractor> extractors = Map.of(
-            ExtractorType.exiftool,
-            new ExiftoolExtractor(),
-            ExtractorType.jhove,
-            new JHoveExtractor()
-        );
-
-        for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
-            Path directory = entry.getKey();
-            logger.info("process directory '{}'", directory);
-            for (Path filename : entry.getValue()) {
-                Path filepath = directory.resolve(filename);
-                logger.info("process file '{}'", filepath);
-
-                Map<String, Object> propertyTree = new HashMap<>();
-                for (ExtractorType extratorType : config.getExtraction().getModules()) {
-                    logger.debug("apply extractor {}", extratorType);
-                    propertyTree.put(extratorType.name(), extractors.get(extratorType).extractProperties(filepath));
-                }
-
-                List<FileRule> rules = config.getValidation().getImageRules();
-                List<String> errors = FileRuleEvaluator.evaluateRules(rules, propertyTree);
-                logger.info("validation of file '{}' {}", filepath, errors.isEmpty() ? "was successfull" : "failed");
-
-                if (config.getOutput().getLogging().getJson()) {
-                    JsonLogWriter.writeFileValidationLog(filepath, errors.isEmpty());
-                }
-            }
-
-            logger.info("validation of directory '{}' was successful", directory);
-            if (config.getOutput().getLogging().getJson()) {
-                JsonLogWriter.writeDirectoryValidationLog(directory, true);
-            }
-        }
-
-        logger.info("done validating all files");
-
-        if (Objects.nonNull(config.getOutput().getCsv().getPath())) {
-            logger.info("write csv output file '{}'", config.getOutput().getCsv().getPath());
-            // CsvWriter.writeReport(filesByDirectory, extractionResultsByFile, outputOptions.csvOutputPath);
-        }
-
-        return 0;
     }
 }

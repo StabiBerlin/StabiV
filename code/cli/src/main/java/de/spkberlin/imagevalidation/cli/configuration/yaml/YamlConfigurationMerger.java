@@ -1,7 +1,14 @@
 package de.spkberlin.imagevalidation.cli.configuration.yaml;
 
 import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRule;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleCondition;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSeverityType;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.rules.files.state.FileRuleSimpleConditionOperatorType;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +32,11 @@ public class YamlConfigurationMerger {
         List<String> includes,
         List<String> excludes
     ) {
+        // make sure input section exists
+        if (Objects.isNull(config.getInput())) {
+            config.setInput(new YamlInputSection());
+        }
+        // merge base directory
         if (Objects.nonNull(baseDirectory)) {
             // cli option overwrites everything
             config.getInput().setBaseDirectory(baseDirectory);
@@ -38,8 +50,16 @@ public class YamlConfigurationMerger {
                 config.getInput().setBaseDirectory(cwd);
             }
         }
+        // merge includes
+        if (Objects.isNull(config.getInput().getIncludes())) {
+            config.getInput().setIncludes(new ArrayList<>());
+        }
         if (Objects.nonNull(includes)) {
             config.getInput().getIncludes().addAll(includes);
+        }
+        // merge excludes
+        if (Objects.isNull(config.getInput().getExcludes())) {
+            config.getInput().setExcludes(new ArrayList<>());
         }
         if (Objects.nonNull(excludes)) {
             config.getInput().getExcludes().addAll(excludes);
@@ -53,9 +73,50 @@ public class YamlConfigurationMerger {
      * @param modules the list of extraction modules specified with CLI option
      */
     public static void mergeExtraction(YamlConfiguration config, List<ExtractorType> modules) {
+        // make sure extraction section exists
+        if (Objects.isNull(config.getExtraction())) {
+            config.setExtraction(new YamlExtractionSection());
+        }
+        // merge modules
         if (Objects.nonNull(modules) && !modules.isEmpty()) {
             config.getExtraction().setModules(modules);
         }
+    }
+
+    public static void mergeValidation(YamlConfiguration config, List<String> imageRules) {
+        // make sure validation section exists
+        if (Objects.isNull(config.getValidation())) {
+            config.setValidation(new YamlValidationSection());
+        }
+        if (Objects.isNull(config.getValidation().getImageRules())) {
+            config.getValidation().setImageRules(new ArrayList<>());
+        }
+        // add rules provided via command line options
+        List<FileRule> additionalImageRules = imageRules
+            .stream()
+            .map(r -> getImageRuleFromCommandLineOption(r))
+            .toList();
+        config.getValidation().getImageRules().addAll(additionalImageRules);
+    }
+
+    public static FileRule getImageRuleFromCommandLineOption(String imageRuleText) {
+        String[] ruleTextSplit = imageRuleText.split("|", 3);
+        if (ruleTextSplit.length != 3) {
+            throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by `|`", imageRuleText));
+        }
+
+        FileRuleSimpleCondition condition = new FileRuleSimpleCondition();
+        condition.setProperty(ruleTextSplit[0]);
+        condition.setOperator(FileRuleSimpleConditionOperatorType.valueOf(ruleTextSplit[1]));
+        condition.setValues(Arrays.asList(ruleTextSplit[2].split(",")));
+
+        FileRule rule = new FileRule();
+        rule.setContext("$.");
+        rule.setMessage("command line rule '%s' must be fulfilled");
+        rule.setSeverity(FileRuleSeverityType.error);
+        rule.setCondition(condition);
+
+        return rule;
     }
 
     /**
@@ -67,6 +128,10 @@ public class YamlConfigurationMerger {
      * @param verbosity logging verbositry specified with CLI option
      */
     public static void mergeOutput(YamlConfiguration config, String csvPath, Boolean json, YamlLoggingVerbosityType verbosity) {
+        // make sure extraction section exists
+        if (Objects.isNull(config.getOutput())) {
+            config.setOutput(new YamlOutputSection());
+        }
         if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
             config.getOutput().getCsv().setPath(csvPath);
         }

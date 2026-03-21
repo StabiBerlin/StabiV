@@ -1,6 +1,16 @@
 package de.spkberlin.imagevalidation.cli.configuration.yaml;
 
+import java.util.List;
+
 public class YamlLoggingSection {
+
+    public static List<YamlLoggingVerbosityType> VERBOSITY_LEVELS = List.of(
+        YamlLoggingVerbosityType.error,
+        YamlLoggingVerbosityType.warning,
+        YamlLoggingVerbosityType.info,
+        YamlLoggingVerbosityType.debug,
+        YamlLoggingVerbosityType.trace
+    );
 
     private Boolean json;
     private YamlLoggingVerbosityType verbosity;
