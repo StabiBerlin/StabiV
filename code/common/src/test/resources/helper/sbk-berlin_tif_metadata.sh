@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# see https://exiftool.org/TagNames/EXIF.html
+
 # set metadata values according to sbk-berlin specification
 
 tiffset -s Make "scanner manufacturer" $1

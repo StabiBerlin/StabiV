@@ -25,25 +25,32 @@ public class RuleEvaluator {
         List<String> warnings = new ArrayList<>();
 
         for (Rule rule : rules) {
-            logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
-            String context = Objects.nonNull(rule.getContext()) ? rule.getContext() : DEFAULT_CONTEXT;
-            List<Object> contextObjects = resolveContext(context, properties);
-            for (Object contextObject : contextObjects) {
-                String conditionError = evaluateCondition(rule.getCondition(), contextObject);
-                if (Objects.nonNull(conditionError)) {
-                    if (RuleSeverityType.error.equals(rule.getSeverity())) {
-                        logger.error("validation error '{}'", rule.getMessage());
-                        logger.debug("validation error details: {}", conditionError);
-                        errors.add(String.format("%s (%s)", rule.getMessage(), conditionError));
-                    } else if (RuleSeverityType.error.equals(rule.getSeverity())) {
-                        logger.warn("validation warning: '{}'", rule.getMessage());
-                        logger.debug("validation warning details: {}", conditionError);
-                        warnings.add(String.format("%s (%s)", rule.getMessage(), conditionError));
-                    }
+            errors.addAll(evaluateRule(rule, properties));
+        }
+
+        return errors;
+    }
+
+    public static List<String> evaluateRule(Rule rule, Object properties) {
+        logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        String context = Objects.nonNull(rule.getContext()) ? rule.getContext() : DEFAULT_CONTEXT;
+        List<Object> contextObjects = resolveContext(context, properties);
+        for (Object contextObject : contextObjects) {
+            String conditionError = evaluateCondition(rule.getCondition(), contextObject);
+            if (Objects.nonNull(conditionError)) {
+                if (RuleSeverityType.error.equals(rule.getSeverity())) {
+                    logger.error("validation error '{}'", rule.getMessage());
+                    logger.debug("validation error details: {}", conditionError);
+                    errors.add(String.format("%s (%s)", rule.getMessage(), conditionError));
+                } else if (RuleSeverityType.error.equals(rule.getSeverity())) {
+                    logger.warn("validation warning: '{}'", rule.getMessage());
+                    logger.debug("validation warning details: {}", conditionError);
+                    warnings.add(String.format("%s (%s)", rule.getMessage(), conditionError));
                 }
             }
         }
-
         return errors;
     }
 
@@ -71,47 +78,60 @@ public class RuleEvaluator {
     }
 
     public static String evaluateCompositeCondition(RuleCompositeCondition condition, Object properties) {
+        if (condition instanceof RuleCompositeAndCondition) {
+            return evaluateCompositeAndCondition((RuleCompositeAndCondition) condition, properties);
+        } else if (condition instanceof RuleCompositeOrCondition) {
+            return evaluateCompositeOrCondition((RuleCompositeOrCondition) condition, properties);
+        } else if (condition instanceof RuleCompositeNotCondition) {
+            return evaluateCompositeNotCondition((RuleCompositeNotCondition) condition, properties);
+        }
+        return String.format("composite condition '%s' of unknown type", condition.getClass().getName());
+    }
+
+    public static String evaluateCompositeAndCondition(RuleCompositeAndCondition condition, Object properties) {
         // evaluate all sub conditions
         List<String> results = condition
-            .getConditions()
+            .getAnd()
             .stream()
             .map(c -> evaluateCondition(c, properties))
             .toList();
 
-        if (condition.getComposite().equals(RuleCompositeType.and)) {
-            List<String> failed = results
-                .stream()
-                .filter(r -> Objects.nonNull(r))
-                .toList();
+        List<String> failed = results
+            .stream()
+            .filter(r -> Objects.nonNull(r))
+            .toList();
 
-            if (failed.size() > 0) {
-                return String.format("and condition failed with: %s", failed.stream().collect(Collectors.joining("; ")));
-            }
-
-            return null;
+        if (failed.size() > 0) {
+            return String.format("and condition failed with: %s", failed.stream().collect(Collectors.joining("; ")));
         }
 
-        if (condition.getComposite().equals(RuleCompositeType.or)) {
-            if (!results.stream().anyMatch(r -> Objects.isNull(r))) {
-                return String.format("no or alternative matched: " + results.getFirst());
-            }
+        return null;
+    }
 
-            return null;
+    public static String evaluateCompositeOrCondition(RuleCompositeOrCondition condition, Object properties) {
+        // evaluate all sub conditions
+        List<String> results = condition
+            .getOr()
+            .stream()
+            .map(c -> evaluateCondition(c, properties))
+            .toList();
+
+        if (!results.stream().anyMatch(r -> Objects.isNull(r))) {
+            return String.format("no or alternative matched: " + results.getFirst());
         }
 
-        if (condition.getComposite().equals(RuleCompositeType.or)) {
-            if (results.size() != 1) {
-                return String.format("can only negate one condition");
-            }
+        return null;
+    }
 
-            if (Objects.nonNull(results.get(0))) {
-                return String.format("'not' condition expected to fail");
-            }
+    public static String evaluateCompositeNotCondition(RuleCompositeNotCondition condition, Object properties) {
+        // evaluate all sub conditions
+        String result = evaluateCondition(condition.getNot(), properties);
 
-            return null;
+        if (Objects.isNull(result)) {
+            return String.format("'not' condition expected to fail");
         }
 
-        return String.format("composite '%s' not implemented", condition.getComposite());
+        return null;
     }
 
     public static String evaluateSimpleCondition(RuleSimpleCondition condition, Object extractedValue) {
