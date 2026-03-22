@@ -2,6 +2,7 @@ package de.spkberlin.imagevalidation.cli.output.json;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.spkberlin.imagevalidation.cli.validation.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -51,7 +52,7 @@ public class JsonLogWriter {
         }
     }
 
-    public static void writeDirectoryValidationLog(Path directory, boolean validationSuccess) {
+    public static void writeDirectoryValidationLog(Path directory, DirectoryValidationResult result) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
 
@@ -60,7 +61,7 @@ public class JsonLogWriter {
                 "directory",
                 directory.toString(),
                 null,
-                validationSuccess ? "success" : "failed",
+                result.getPassed() ? "success" : "failed",
                 null,
                 null
             );

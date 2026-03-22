@@ -25,12 +25,14 @@ public class ValidateAll {
 
         try {
             Map<Path, List<Path>> filesByDirectory = FileUtils.resolveFiles(config.getInput());
-            Map<Path, ImageValidationResult> imageValidationResults = new HashMap<>();
+            Map<Path, ImageValidationResult> allImageValidationResults = new HashMap<>();
+            Map<Path, DirectoryValidationResult> directoryValidationResults = new HashMap<>();
 
             for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
                 Path directory = entry.getKey();
                 logger.info("process directory '{}'", directory);
 
+                Map<Path, ImageValidationResult> imageValidationResultsByDirectory = new HashMap<>();
                 List<Future<ImageValidationResult>> resultFutures = pool.invokeAll(createImageValidationTasks(entry.getValue(), config));
 
                 for (Future<ImageValidationResult> resultFuture : resultFutures) {
@@ -41,18 +43,21 @@ public class ValidateAll {
                         JsonLogWriter.writeFileValidationLog(filepath, result);
                     }
 
-                    imageValidationResults.put(filepath, result);
+                    imageValidationResultsByDirectory.put(filepath, result);
                 }
 
-                logger.info("validation of directory '{}' was ?????", directory);
+                DirectoryValidationResult directoryResult = DirectoryValidation.validate(directory, imageValidationResultsByDirectory);
+                directoryValidationResults.put(directory, directoryResult);
+                allImageValidationResults.putAll(imageValidationResultsByDirectory);
+
                 if (config.getOutput().getLogging().getJson()) {
-                    JsonLogWriter.writeDirectoryValidationLog(directory, true);
+                    JsonLogWriter.writeDirectoryValidationLog(directory, directoryResult);
                 }
             }
 
             logger.info("done validating all files");
 
-            return new ValidateAllResult(filesByDirectory, imageValidationResults);
+            return new ValidateAllResult(filesByDirectory, allImageValidationResults);
         } catch (IOException e) {
             logger.error("failed to resolve files due to:", e);
             throw new RuntimeException(e);
