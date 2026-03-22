@@ -130,7 +130,7 @@ public class ExtractCommand implements Callable<Integer> {
         Map<String, Object> properties = new HashMap<>();
         for (ExtractorType extratorType : extractionOptions.extractors) {
             logger.debug("apply extractor {}", extratorType);
-            properties.put(extratorType.name(), extractorsMap.get(extratorType).extractProperties(inputOptions.filepath));
+            properties.put(extratorType.name(), extractorsMap.get(extratorType).extractProperties(inputOptions.filepath).getProperties());
         }
 
         Object outputProperties = properties;
@@ -139,7 +139,7 @@ public class ExtractCommand implements Callable<Integer> {
             try {
                 outputProperties = JsonPath.read(properties, extractionOptions.jsonPath);
             } catch (PathNotFoundException e) {
-                logger.error("path '%extractionOptions.jsonPath' not found in extracted properties");
+                logger.error("path '{}' not found in extracted properties", extractionOptions.jsonPath);
                 outputProperties = null;
             }
         }

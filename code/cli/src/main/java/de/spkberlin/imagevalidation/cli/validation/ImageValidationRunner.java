@@ -66,7 +66,9 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
             filepath,
             result.getErrors().isEmpty() ? "was successfull" : "failed",
             result.getErrors().size() > 0 ? String.format("with error '%s'", result.getErrors().get(0)) : "",
-            result.getWarnings().size() > 0 ? String.format("with warning '%s'", result.getWarnings().get(0)) : ""
+            result.getErrors().isEmpty() && result.getWarnings().size() > 0
+                ? String.format("with warning '%s'", result.getWarnings().get(0))
+                : ""
         );
 
         return result;
