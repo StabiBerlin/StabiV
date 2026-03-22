@@ -202,11 +202,14 @@
                       </includes>
                     </fileSet>
                     <fileSet>
-                      <directory>${project.basedir}/../common/src/test/resources/images</directory>
-                      <outputDirectory>examples/images</outputDirectory>
+                      <directory>${project.basedir}/../common/src/test/resources/examples</directory>
+                      <outputDirectory>examples</outputDirectory>
                       <includes>
                         <include>**</include>
                       </includes>
+                      <excludes>
+                        <exclude>**/output.csv</exclude>
+                      </excludes>
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/generated-docs</directory>
@@ -268,11 +271,14 @@
                       </includes>
                     </fileSet>
                     <fileSet>
-                      <directory>${project.basedir}/../common/src/test/resources/images</directory>
-                      <outputDirectory>examples/images</outputDirectory>
+                      <directory>${project.basedir}/../common/src/test/resources/examples</directory>
+                      <outputDirectory>examples</outputDirectory>
                       <includes>
                         <include>**</include>
                       </includes>
+                      <excludes>
+                        <exclude>**/output.csv</exclude>
+                      </excludes>
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/generated-docs</directory>

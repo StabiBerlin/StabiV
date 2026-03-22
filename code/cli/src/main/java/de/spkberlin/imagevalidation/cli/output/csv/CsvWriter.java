@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.cli.output.csv;
 
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
@@ -79,7 +80,11 @@ public class CsvWriter {
     }
 
     public static String extractPropertyOrNull(String propertyPath, Map<String, Object> properties) {
-        Object property = JsonPath.read(properties, propertyPath);
-        return PropertiesSerializer.toPrettyString(property);
+        try {
+            Object property = JsonPath.read(properties, propertyPath);
+            return PropertiesSerializer.toPrettyString(property);
+        } catch (PathNotFoundException e) {
+            return "";
+        }
     }
 }

@@ -9,4 +9,7 @@ public enum ImageRuleSimpleConditionOperatorType {
     greaterThanOrEqual,
     isInteger,
     oneOf,
+    isEmpty,
+    exists,
+    matches,
 }

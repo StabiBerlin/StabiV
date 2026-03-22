@@ -1,0 +1,33 @@
+input:
+  includes:
+    - broken
+    - wellformed
+
+validation:
+  imageRules:
+    # wellformed
+    - message: JHove must detect file as wellformed
+      severity: error
+      context: $.jhove
+      condition:
+        property: $.wellformed
+        assert: equal
+        value: true
+
+    # PhotometricInterpretation
+    - message: PhotometricInterpretation should be RGB or BlackIsZero
+      severity: warning
+      context: $.exiftool
+      condition:
+        property: $..PhotometricInterpretation
+        assert: oneOf
+        value:
+          - RGB
+          - BlackIsZero
+
+output:
+  csv:
+    path: output.csv
+    columns:
+      - label: JHove wellformed
+        property: $.jhove.wellformed

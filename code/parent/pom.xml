@@ -316,7 +316,15 @@
                   <include>src/**/*.yaml</include>
                   <include>test/**/*.yaml</include>
                 </includes>
-                <jackson/>
+                <prettier>
+                  <devDependencies>
+                    <prettier>3.8.1</prettier>
+                  </devDependencies>
+                  <config>
+                    <tabWidth>2</tabWidth>
+                    <printWidth>140</printWidth>
+                  </config>
+                </prettier>
               </yaml>
               <!-- global options-->
               <lineEndings>UNIX</lineEndings>

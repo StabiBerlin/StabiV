@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
@@ -135,7 +136,12 @@ public class ExtractCommand implements Callable<Integer> {
         Object outputProperties = properties;
         if (Objects.nonNull(extractionOptions.jsonPath) && !extractionOptions.jsonPath.isEmpty()) {
             logger.debug("resolve json path '{}'", extractionOptions.jsonPath);
-            outputProperties = JsonPath.read(properties, extractionOptions.jsonPath);
+            try {
+                outputProperties = JsonPath.read(properties, extractionOptions.jsonPath);
+            } catch (PathNotFoundException e) {
+                logger.error("path '%extractionOptions.jsonPath' not found in extracted properties");
+                outputProperties = null;
+            }
         }
 
         System.out.println(PropertiesSerializer.serializeAsPrettyJson(outputProperties));

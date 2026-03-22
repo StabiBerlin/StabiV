@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.common.rules.images;
 
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeAndCondition;
@@ -32,13 +33,15 @@ public class ImageRuleEvaluator {
         List<String> warnings = new ArrayList<>();
 
         for (ImageRule rule : rules) {
-            errors.addAll(evaluateRule(rule, properties));
+            ImageRuleEvaluationResult result = evaluateRule(rule, properties);
+            errors.addAll(result.getErrors());
+            warnings.addAll(result.getWarnings());
         }
 
         return new ImageRuleEvaluationResult(errors, warnings);
     }
 
-    public static List<String> evaluateRule(ImageRule rule, Object properties) {
+    public static ImageRuleEvaluationResult evaluateRule(ImageRule rule, Object properties) {
         logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -51,14 +54,14 @@ public class ImageRuleEvaluator {
                     logger.debug("validation error '{}'", rule.getMessage());
                     logger.trace("validation error details: {}", conditionError);
                     errors.add(rule.getMessage());
-                } else if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
+                } else if (ImageRuleSeverityType.warning.equals(rule.getSeverity())) {
                     logger.debug("validation warning: '{}'", rule.getMessage());
                     logger.trace("validation warning details: {}", conditionError);
                     warnings.add(rule.getMessage());
                 }
             }
         }
-        return errors;
+        return new ImageRuleEvaluationResult(errors, warnings);
     }
 
     public static String evaluateCondition(ImageRuleCondition condition, Object properties) {
@@ -67,14 +70,10 @@ public class ImageRuleEvaluator {
             Object propertyObject;
             try {
                 propertyObject = JsonPath.read(properties, simpleCondition.getProperty());
-            } catch (Exception e) {
+            } catch (PathNotFoundException e) {
                 return String.format("cannot extract value for path '%s', failed with '%s'", simpleCondition.getProperty(), e.getMessage());
             }
-            try {
-                return evaluateSimpleCondition(simpleCondition, propertyObject);
-            } catch (Exception e) {
-                return e.getMessage();
-            }
+            return evaluateSimpleCondition(simpleCondition, propertyObject);
         }
         if (condition instanceof ImageRuleCompositeCondition) {
             ImageRuleCompositeCondition compositeCondition = (ImageRuleCompositeCondition) condition;
@@ -156,9 +155,100 @@ public class ImageRuleEvaluator {
                 return evaluateOccurrencesCondition(condition, extractedValue);
             case ImageRuleSimpleConditionOperatorType.oneOf:
                 return evaluateOneOfCondition(condition, extractedValue);
+            case ImageRuleSimpleConditionOperatorType.isEmpty:
+                return evaluateIsEmptyCondition(condition, extractedValue);
+            case ImageRuleSimpleConditionOperatorType.exists:
+                return evaluateExistsCondition(condition, extractedValue);
+            case ImageRuleSimpleConditionOperatorType.matches:
+                return evaluateMatchesCondition(condition, extractedValue);
             default:
                 return String.format("failed validation with unknown operator '%s'", condition.getOperator());
         }
+    }
+
+    public static String evaluateMatchesCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
+        if (Objects.isNull(condition.getValues()) || condition.getValues().size() == 0) {
+            return String.format("matches operator requires comparison values as regular expressions");
+        }
+
+        String extractedString = extractedValue.toString();
+
+        if (extractedValue instanceof List) {
+            List<?> extractedList = (List<?>) extractedValue;
+            if (extractedList.size() == 1) {
+                extractedString = extractedList.get(0).toString();
+            }
+        }
+
+        for (String comparisonString : condition.getValues()) {
+            if (extractedString.matches(comparisonString)) {
+                return null;
+            }
+        }
+
+        return String.format(
+            "extracted value '%s' doesn't match regular expression %s",
+            PropertiesSerializer.toPrettyString(extractedValue),
+            condition
+                .getValues()
+                .stream()
+                .map(s -> String.format("'%s'", s))
+                .collect(Collectors.joining(", "))
+        );
+    }
+
+    public static String evaluateExistsCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
+        if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
+            logger.warn("ignoring values of 'doesNotExist' condition");
+        }
+
+        if (extractedValue instanceof List) {
+            List<?> extractedList = (List<?>) extractedValue;
+            if (extractedList.size() == 0) {
+                return String.format("extracted value '%s' does not exist", PropertiesSerializer.toPrettyString(extractedValue));
+            }
+            return null;
+        }
+
+        if (Objects.isNull(extractedValue)) {
+            return String.format("extracted value '%s' does not exist", PropertiesSerializer.toPrettyString(extractedValue));
+        }
+
+        return null;
+    }
+
+    public static String evaluateIsEmptyCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
+        if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
+            logger.warn("ignoring values of 'isEmpty' condition");
+        }
+
+        if (extractedValue instanceof List) {
+            List<?> extractedList = (List<?>) extractedValue;
+            if (extractedList.size() == 0) {
+                // element does not exist
+                return null;
+            } else if (extractedList.size() == 1 && extractedList.get(0) instanceof String) {
+                String extractedString = (String) extractedList.get(0);
+                if (!extractedString.isEmpty()) {
+                    return String.format("extracted value '%s' is not empty", PropertiesSerializer.toPrettyString(extractedValue));
+                }
+                // unpack success
+                return null;
+            }
+        }
+
+        if (extractedValue instanceof String) {
+            if (!((String) extractedValue).isEmpty()) {
+                return String.format("extracted value '%s' is not empty", PropertiesSerializer.toPrettyString(extractedValue));
+            }
+            return null;
+        }
+
+        if (Objects.nonNull(extractedValue)) {
+            return String.format("extracted value '%s' is not empty", PropertiesSerializer.toPrettyString(extractedValue));
+        }
+
+        return null;
     }
 
     public static String evaluateOneOfCondition(ImageRuleSimpleCondition condition, Object extractedValue) {

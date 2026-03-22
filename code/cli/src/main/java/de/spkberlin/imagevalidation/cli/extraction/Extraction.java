@@ -8,18 +8,18 @@ import java.util.Map;
 
 public class Extraction {
 
-    private static final Map<ExtractorType, Extractor> EXTRACTOR_IMPLEMENTATIONS = new HashMap<>();
+    private static final Map<ExtractorType, ThreadLocal<Extractor>> EXTRACTOR_IMPLEMENTATIONS = new HashMap<>();
 
     public static Extractor getImplementation(ExtractorType extratorType) {
         if (!EXTRACTOR_IMPLEMENTATIONS.containsKey(extratorType)) {
             if (extratorType.equals(ExtractorType.jhove)) {
-                EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.jhove, new JHoveExtractor());
+                EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.jhove, ThreadLocal.withInitial(() -> new JHoveExtractor()));
             }
             if (extratorType.equals(ExtractorType.exiftool)) {
-                EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.exiftool, new ExiftoolExtractor());
+                EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.exiftool, ThreadLocal.withInitial(() -> new ExiftoolExtractor()));
             }
         }
 
-        return EXTRACTOR_IMPLEMENTATIONS.get(extratorType);
+        return EXTRACTOR_IMPLEMENTATIONS.get(extratorType).get();
     }
 }
