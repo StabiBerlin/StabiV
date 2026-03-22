@@ -1,41 +1,40 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationInputSection {
 
-    private Path baseDirectory;
-    private List<String> includes;
-    private List<String> excludes;
+    private List<ConfigurationPath> includes;
+    private List<ConfigurationPath> excludes;
+    private ConfigurationPath path;
 
     public ConfigurationInputSection() {
         includes = new ArrayList<>();
         excludes = new ArrayList<>();
     }
 
-    public Path getBaseDirectory() {
-        return baseDirectory;
-    }
-
-    public void setBaseDirectory(Path baseDirectory) {
-        this.baseDirectory = baseDirectory;
-    }
-
-    public List<String> getIncludes() {
+    public List<ConfigurationPath> getIncludes() {
         return this.includes;
     }
 
-    public void setIncludes(List<String> includes) {
+    public void setIncludes(List<ConfigurationPath> includes) {
         this.includes = includes;
     }
 
-    public List<String> getExcludes() {
+    public List<ConfigurationPath> getExcludes() {
         return this.excludes;
     }
 
-    public void setExcludes(List<String> excludes) {
+    public void setExcludes(List<ConfigurationPath> excludes) {
         this.excludes = excludes;
+    }
+
+    public ConfigurationPath getPath() {
+        return this.path;
+    }
+
+    public void setPath(ConfigurationPath path) {
+        this.path = path;
     }
 }

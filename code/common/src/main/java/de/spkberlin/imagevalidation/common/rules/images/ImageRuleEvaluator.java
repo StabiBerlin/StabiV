@@ -1,7 +1,5 @@
 package de.spkberlin.imagevalidation.common.rules.images;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
@@ -28,8 +26,8 @@ public class ImageRuleEvaluator {
 
     private static final String DEFAULT_CONTEXT = "$";
 
-    public static List<String> evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
-        logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeProperties(properties));
+    public static ImageRuleEvaluationResult evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
+        logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeAsPrettyJson(properties));
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
@@ -37,7 +35,7 @@ public class ImageRuleEvaluator {
             errors.addAll(evaluateRule(rule, properties));
         }
 
-        return errors;
+        return new ImageRuleEvaluationResult(errors, warnings);
     }
 
     public static List<String> evaluateRule(ImageRule rule, Object properties) {
@@ -50,13 +48,13 @@ public class ImageRuleEvaluator {
             String conditionError = evaluateCondition(rule.getCondition(), contextObject);
             if (Objects.nonNull(conditionError)) {
                 if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
-                    logger.error("validation error '{}'", rule.getMessage());
-                    logger.debug("validation error details: {}", conditionError);
-                    errors.add(String.format("%s (%s)", rule.getMessage(), conditionError));
+                    logger.debug("validation error '{}'", rule.getMessage());
+                    logger.trace("validation error details: {}", conditionError);
+                    errors.add(rule.getMessage());
                 } else if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
-                    logger.warn("validation warning: '{}'", rule.getMessage());
-                    logger.debug("validation warning details: {}", conditionError);
-                    warnings.add(String.format("%s (%s)", rule.getMessage(), conditionError));
+                    logger.debug("validation warning: '{}'", rule.getMessage());
+                    logger.trace("validation warning details: {}", conditionError);
+                    warnings.add(rule.getMessage());
                 }
             }
         }
@@ -177,7 +175,11 @@ public class ImageRuleEvaluator {
             }
         }
         if (!condition.getValues().contains(extractedValue.toString())) {
-            return String.format("extracted value '%s' not one of '%s'", prettifyExtractedValue(extractedValue), condition.getValues());
+            return String.format(
+                "extracted value '%s' not one of '%s'",
+                PropertiesSerializer.toPrettyString(extractedValue),
+                condition.getValues()
+            );
         }
         return null;
     }
@@ -189,7 +191,7 @@ public class ImageRuleEvaluator {
         try {
             extractedValueToInteger(extractedValue);
         } catch (NumberFormatException e) {
-            return String.format("could not parse extracted value '%s' as an integer", prettifyExtractedValue(extractedValue));
+            return String.format("could not parse extracted value '%s' as an integer", PropertiesSerializer.toPrettyString(extractedValue));
         }
         return null;
     }
@@ -199,7 +201,7 @@ public class ImageRuleEvaluator {
             return String.format(
                 "cannot determine number of occurrences of extracted value '%s'",
                 condition.getValues(),
-                prettifyExtractedValue(extractedValue)
+                PropertiesSerializer.toPrettyString(extractedValue)
             );
         }
         Integer extractedLength = ((List<?>) extractedValue).size();
@@ -233,7 +235,7 @@ public class ImageRuleEvaluator {
         if (!comparisonValue.equals(extractedValue.toString())) {
             return String.format(
                 "extracted value '%s' does not equal comparison value '%s'",
-                prettifyExtractedValue(extractedValue),
+                PropertiesSerializer.toPrettyString(extractedValue),
                 condition.getValues().get(0)
             );
         }
@@ -252,7 +254,7 @@ public class ImageRuleEvaluator {
         try {
             extractedFloat = extractedValueToFloat(extractedValue);
         } catch (NumberFormatException e) {
-            return String.format("could not parse extracted value '%s' as a number", prettifyExtractedValue(extractedValue));
+            return String.format("could not parse extracted value '%s' as a number", PropertiesSerializer.toPrettyString(extractedValue));
         }
 
         switch (condition.getOperator()) {
@@ -290,7 +292,10 @@ public class ImageRuleEvaluator {
             List<?> extractedList = (List<?>) extractedValue;
             if (extractedList.size() != 1) {
                 throw new NumberFormatException(
-                    String.format("cannot convert multiple extracted values '%s' to number", prettifyExtractedValue(extractedValue))
+                    String.format(
+                        "cannot convert multiple extracted values '%s' to number",
+                        PropertiesSerializer.toPrettyString(extractedValue)
+                    )
                 );
             }
             if (extractedList.get(0) instanceof String) {
@@ -298,7 +303,7 @@ public class ImageRuleEvaluator {
             }
         }
         throw new NumberFormatException(
-            String.format("cannot convert extracted value '%s' to number", prettifyExtractedValue(extractedValue))
+            String.format("cannot convert extracted value '%s' to number", PropertiesSerializer.toPrettyString(extractedValue))
         );
     }
 
@@ -309,7 +314,10 @@ public class ImageRuleEvaluator {
             List<?> extractedList = (List<?>) extractedValue;
             if (extractedList.size() != 1) {
                 throw new NumberFormatException(
-                    String.format("cannot convert multiple extracted values '%s' to number", prettifyExtractedValue(extractedValue))
+                    String.format(
+                        "cannot convert multiple extracted values '%s' to number",
+                        PropertiesSerializer.toPrettyString(extractedValue)
+                    )
                 );
             }
             if (extractedList.get(0) instanceof String) {
@@ -317,31 +325,8 @@ public class ImageRuleEvaluator {
             }
         }
         throw new NumberFormatException(
-            String.format("cannot convert extracted value '%s' to number", prettifyExtractedValue(extractedValue))
+            String.format("cannot convert extracted value '%s' to number", PropertiesSerializer.toPrettyString(extractedValue))
         );
-    }
-
-    private static String prettifyExtractedValue(Object properties) {
-        try {
-            if (properties instanceof String) {
-                return (String) properties;
-            }
-            if (properties instanceof List) {
-                List<?> propertyList = (List<?>) properties;
-                if (propertyList.size() == 0) {
-                    return "";
-                }
-
-                if (propertyList.size() == 1 && propertyList.get(0) instanceof String) {
-                    return (String) propertyList.get(0);
-                }
-
-                return new ObjectMapper().writeValueAsString(properties);
-            }
-            return new ObjectMapper().writeValueAsString(properties);
-        } catch (JsonProcessingException e) {
-            return properties.toString();
-        }
     }
 
     private static List<Object> resolveContext(String context, Object properties) {

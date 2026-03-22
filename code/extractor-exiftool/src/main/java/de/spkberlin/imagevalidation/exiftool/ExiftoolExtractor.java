@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.exiftool;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionError;
+import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
 import de.spkberlin.imagevalidation.common.properties.PathPropertiesTree;
 import de.spkberlin.imagevalidation.common.properties.PathProperty;
@@ -31,9 +32,9 @@ public class ExiftoolExtractor implements Extractor {
     private static final Pattern LINE_PATTERN = Pattern.compile("\\[([^\\]]+)\\]\\s*(.+)");
     private static final Pattern ARRAY_PATTERN = Pattern.compile("^(.*?)([0-9]+)?$");
 
-    public Map<String, Object> extractProperties(Path filename) throws ExtractionError {
+    public ExtractionResult extractProperties(Path filename) throws ExtractionError {
         String output = runExifTool(filename);
-        return parseExifToolOutput(output);
+        return new ExtractionResult(parseExifToolOutput(output));
     }
 
     public String runExifTool(Path filename) throws ExtractionError {

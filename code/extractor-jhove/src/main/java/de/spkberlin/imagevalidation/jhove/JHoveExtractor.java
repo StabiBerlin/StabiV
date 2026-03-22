@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.jhove;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionError;
+import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
 import edu.harvard.hul.ois.jhove.App;
 import edu.harvard.hul.ois.jhove.JhoveBase;
@@ -15,7 +16,6 @@ import edu.harvard.hul.ois.jhove.module.PdfModule;
 import edu.harvard.hul.ois.jhove.module.TiffModule;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class JHoveExtractor implements Extractor {
         }
     }
 
-    public Map<String, Object> extractProperties(Path filepath) throws ExtractionError {
+    public ExtractionResult extractProperties(Path filepath) throws ExtractionError {
         try {
             RepInfo info = new RepInfo(filepath.toString());
             identifier.identify(filepath.toFile(), info, null, false, true);
@@ -56,7 +56,7 @@ public class JHoveExtractor implements Extractor {
                 jhove.processFile(app, module, false, filepath.toFile(), info);
             }
 
-            return RepInfoParser.repInfoToPropertyTree(info);
+            return new ExtractionResult(RepInfoParser.repInfoToPropertyTree(info));
         } catch (Exception e) {
             logger.error("exception while validating with jhove", e);
             throw new ExtractionError("exception while validating with jhove: " + e.getMessage());

@@ -3,8 +3,11 @@ package de.spkberlin.imagevalidation.cli.output.csv;
 public class CsvPropertyColumn {
 
     private String label;
-
     private String property;
+
+    public CsvPropertyColumn() {
+        // empty
+    }
 
     public CsvPropertyColumn(String label, String path) {
         this.label = label;

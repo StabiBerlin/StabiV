@@ -7,10 +7,13 @@ import de.spkberlin.imagevalidation.cli.configuration.ConfigurationParser;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationWriter;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
-import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
+import de.spkberlin.imagevalidation.cli.output.csv.CsvWriter;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
-import de.spkberlin.imagevalidation.cli.validation.FileValidation;
+import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
+import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -166,14 +169,6 @@ public class ValidateCommand implements Callable<Integer> {
     static class InputOptions {
 
         @Option(
-            names = { "--baseDirectory" },
-            paramLabel = "PATH",
-            arity = "1",
-            description = "the base directory that is used to resolve relative file paths%n  Default: current working directory"
-        )
-        String baseDirectory;
-
-        @Option(
             names = { "--exclude" },
             paramLabel = "PATH",
             arity = "1",
@@ -213,7 +208,21 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(outputOptions.verbosity.length + 1);
 
         logger.info("run validate command");
-        return FileValidation.doValidation(loadConfiguration());
+
+        ConfigurationRoot config = loadConfiguration();
+
+        Logging.setLogMode(config.getOutput().getLogging().getJson());
+        Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
+
+        ValidateAllResult result = ValidateAll.validateAll(config);
+
+        ConfigurationPath csvPath = config.getOutput().getCsv().getPath();
+        if (Objects.nonNull(csvPath)) {
+            Path resolvedCsvPath = csvPath.getBaseDirectory().resolve(csvPath.getPath()).normalize();
+            CsvWriter.writeReport(resolvedCsvPath, result, config.getOutput().getCsv().getColumns());
+        }
+
+        return 0;
     }
 
     /**
@@ -225,14 +234,11 @@ public class ValidateCommand implements Callable<Integer> {
     public ConfigurationRoot loadConfiguration() throws IOException {
         ConfigurationRoot config = new ConfigurationRoot();
 
-        Path baseDirectory = Objects.nonNull(inputOptions.baseDirectory)
-            ? Path.of(inputOptions.baseDirectory).normalize().toAbsolutePath()
-            : null;
-        Path cwd = Objects.nonNull(baseDirectory) ? baseDirectory : Path.of(CWD).normalize().toAbsolutePath();
+        Path cwd = Path.of(CWD).normalize().toAbsolutePath();
         Path configPath = null;
 
         if (Objects.nonNull(configOptions.configFilepath)) {
-            logger.info("load configuration file '{}", configOptions.configFilepath);
+            logger.info("load configuration file '{}'", configOptions.configFilepath);
             configPath = Path.of(configOptions.configFilepath).normalize().toAbsolutePath();
             config = ConfigurationParser.parseConfigurationFile(configPath);
         }
@@ -249,11 +255,13 @@ public class ValidateCommand implements Callable<Integer> {
 
         logger.debug("merge configuration with command line options");
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
-        ConfigurationMerger.mergeInput(config, cwd, configPath, baseDirectory, absoluteIncludes, absoluteExcludes);
+        ConfigurationMerger.mergeInput(config, cwd, configPath, absoluteIncludes, absoluteExcludes);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
         ConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
         ConfigurationMerger.mergeOutput(
             config,
+            configPath,
+            cwd,
             outputOptions.csvOutputFilepath,
             outputOptions.csvColumns,
             outputOptions.jsonLogging,

@@ -1,7 +1,6 @@
 package de.spkberlin.imagevalidation.common.extract;
 
 import java.nio.file.Path;
-import java.util.Map;
 
 public interface Extractor {
     /**
@@ -10,8 +9,8 @@ public interface Extractor {
      * <p>Values are encoded a string. The object tree should correspond to a parsed JSON document that can be navigated via JsonPath.</p>
      *
      * @param filepath the filepath of the image file that should be parsed
-     * @return the property tree
-     * @throws ExtractionError
+     * @return the extracted property tree
+     * @throws ExtractionError in case extraction fails
      */
-    public Map<String, Object> extractProperties(Path filepath) throws ExtractionError;
+    public ExtractionResult extractProperties(Path filepath) throws ExtractionError;
 }

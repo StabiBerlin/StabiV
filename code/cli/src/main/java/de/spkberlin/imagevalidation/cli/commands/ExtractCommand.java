@@ -3,7 +3,7 @@ package de.spkberlin.imagevalidation.cli.commands;
 import com.jayway.jsonpath.JsonPath;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
-import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.common.extract.Extractor;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import de.spkberlin.imagevalidation.exiftool.ExiftoolExtractor;
@@ -138,7 +138,7 @@ public class ExtractCommand implements Callable<Integer> {
             outputProperties = JsonPath.read(properties, extractionOptions.jsonPath);
         }
 
-        System.out.println(PropertiesSerializer.serializeProperties(outputProperties));
+        System.out.println(PropertiesSerializer.serializeAsPrettyJson(outputProperties));
 
         logger.info("done extracting properties");
 

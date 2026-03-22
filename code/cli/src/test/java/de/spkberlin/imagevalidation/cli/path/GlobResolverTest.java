@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -108,7 +107,7 @@ public class GlobResolverTest {
         Path fileB = Files.createFile(tempDir.resolve("fileB.tif"));
         Path fileC = Files.createFile(tempDir.resolve("fileC.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(GlobResolver.joinGlobPattern(Pair.of(tempDir, "*.tif")));
+        List<Path> matched = GlobResolver.resolveOne(new GlobPattern("*.tif", tempDir));
 
         assertTrue(matched.contains(fileA));
         assertTrue(matched.contains(fileB));
@@ -123,7 +122,7 @@ public class GlobResolverTest {
         Path fileB = Files.createFile(tempDir.resolve("fileB.tif"));
         Path fileC = Files.createFile(tempDir.resolve("fileC.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(String.format(".%s*.tif", DIR_SEPERATOR), Collections.emptyList(), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(new GlobPattern(String.format(".%s*.tif", DIR_SEPERATOR), tempDir));
 
         assertTrue(matched.contains(fileA));
         assertTrue(matched.contains(fileB));
@@ -138,7 +137,7 @@ public class GlobResolverTest {
         Path fileB = Files.createFile(tempDir.resolve("fileB.tif"));
         Path fileC = Files.createFile(tempDir.resolve("fileC.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), Collections.emptyList(), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(new GlobPattern(tempDir.toString(), tempDir));
 
         assertTrue(matched.contains(fileA));
         assertTrue(matched.contains(fileB));
@@ -155,11 +154,7 @@ public class GlobResolverTest {
         Path fileB = Files.createFile(subdirectory.resolve("fileB.tif"));
         Path fileC = Files.createFile(subdirectory.resolve("fileC.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(
-            GlobResolver.joinGlobPattern(Pair.of(tempDir, "**")),
-            Collections.emptyList(),
-            tempDir
-        );
+        List<Path> matched = GlobResolver.resolveOne(new GlobPattern(GlobResolver.joinGlobPattern(Pair.of(tempDir, "**")), tempDir));
 
         assertTrue(matched.contains(fileA));
         assertTrue(matched.contains(fileB));
@@ -175,7 +170,10 @@ public class GlobResolverTest {
         Path fileB = Files.createFile(tempDir.resolve("file2.tif"));
         Path fileC = Files.createFile(tempDir.resolve("file3.jpg"));
 
-        List<Path> matched = GlobResolver.resolveOne(tempDir.toString(), List.of("*.jpg"), tempDir);
+        List<Path> matched = GlobResolver.resolveOne(
+            new GlobPattern(tempDir.toString(), tempDir),
+            List.of(new GlobPattern("*.jpg", tempDir))
+        );
 
         assertTrue(matched.contains(fileA));
         assertTrue(matched.contains(fileB));

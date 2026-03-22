@@ -1,6 +1,6 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
-import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import java.util.List;
 
 public class ConfigurationExtractionSection {

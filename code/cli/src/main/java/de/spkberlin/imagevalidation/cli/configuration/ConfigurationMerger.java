@@ -6,9 +6,10 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSe
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
-import de.spkberlin.imagevalidation.cli.extractors.ExtractorType;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
 import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
@@ -27,51 +28,27 @@ public class ConfigurationMerger {
      *
      * @param config the yaml configuration
      * @param cwd the current working directory
-     * @param configPath the path to the configuration file
-     * @param baseDirectory the base directory specified with CLI option
+     * @param configFilePath the path to the configuration file
      * @param includes the list of includes filepaths specified with CLI option
      * @param excludes the list of exclided filepaths specified with CLI option
      */
-    public static void mergeInput(
-        ConfigurationRoot config,
-        Path cwd,
-        Path configPath,
-        Path baseDirectory,
-        List<String> includes,
-        List<String> excludes
-    ) {
+    public static void mergeInput(ConfigurationRoot config, Path cwd, Path configFilePath, List<String> includes, List<String> excludes) {
         // make sure input section exists
         if (Objects.isNull(config.getInput())) {
             config.setInput(new ConfigurationInputSection());
         }
-        // merge base directory
-        if (Objects.nonNull(baseDirectory)) {
-            // cli option overwrites everything
-            config.getInput().setBaseDirectory(baseDirectory);
-        } else if (Objects.isNull(config.getInput().getBaseDirectory())) {
-            // default value for base directory
-            if (Objects.nonNull(configPath)) {
-                // use parent of config filepath
-                config.getInput().setBaseDirectory(configPath.getParent());
-            } else {
-                // fallback to current working directory
-                config.getInput().setBaseDirectory(cwd);
-            }
-        }
-        // merge includes
+
+        // make sure includes are defined
         if (Objects.isNull(config.getInput().getIncludes())) {
             config.getInput().setIncludes(new ArrayList<>());
         }
-        if (Objects.nonNull(includes)) {
-            config.getInput().getIncludes().addAll(includes);
-        }
+        mergeConfigurationPaths(config.getInput().getIncludes(), configFilePath, cwd, includes);
+
         // merge excludes
         if (Objects.isNull(config.getInput().getExcludes())) {
             config.getInput().setExcludes(new ArrayList<>());
         }
-        if (Objects.nonNull(excludes)) {
-            config.getInput().getExcludes().addAll(excludes);
-        }
+        mergeConfigurationPaths(config.getInput().getExcludes(), configFilePath, cwd, excludes);
     }
 
     /**
@@ -107,7 +84,7 @@ public class ConfigurationMerger {
         config.getValidation().getImageRules().addAll(additionalImageRules);
     }
 
-    public static ImageRule getImageRuleFromCommandLineOption(String imageRuleText) {
+    private static ImageRule getImageRuleFromCommandLineOption(String imageRuleText) {
         String[] ruleTextSplit = imageRuleText.split("\\|", 3);
         if (ruleTextSplit.length != 3) {
             throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by `|`", imageRuleText));
@@ -131,12 +108,16 @@ public class ConfigurationMerger {
      * Merge output section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
+     * @param configFilePath the path to the configuration file
+     * @param cwd the current working directory
      * @param csvPath the csv output path specified with CLI option
      * @param json whether json output should be generated specified with CLI option
      * @param verbosity logging verbositry specified with CLI option
      */
     public static void mergeOutput(
         ConfigurationRoot config,
+        Path configFilePath,
+        Path cwd,
         String csvPath,
         List<String> csvColumns,
         Boolean json,
@@ -146,14 +127,19 @@ public class ConfigurationMerger {
         if (Objects.isNull(config.getOutput())) {
             config.setOutput(new ConfigurationOutputSection());
         }
+
         // make sure csv section exists
         if (Objects.isNull(config.getOutput().getCsv())) {
             config.getOutput().setCsv(new ConfigurationCsvSection());
         }
-        // overwrite csv path
-        if (Objects.nonNull(csvPath) && !csvPath.isEmpty()) {
-            config.getOutput().getCsv().setPath(csvPath);
+
+        // overwrite csv path from cli
+        if (Objects.nonNull(csvPath)) {
+            config.getOutput().getCsv().setPath(new ConfigurationPath(csvPath, cwd));
+        } else if (Objects.nonNull(config.getOutput().getCsv().getPath())) {
+            mergeConfigurationPath(config.getOutput().getCsv().getPath(), configFilePath, cwd);
         }
+
         // add csv columns
         if (Objects.isNull(config.getOutput().getCsv().getColumns())) {
             config.getOutput().getCsv().setColumns(new ArrayList<>());
@@ -163,6 +149,7 @@ public class ConfigurationMerger {
             .map(c -> getCsvPropertyColumnFromCommandLineOption(c))
             .toList();
         config.getOutput().getCsv().getColumns().addAll(additionalColumns);
+
         // overwrite json output
         if (Objects.isNull(config.getOutput().getLogging())) {
             config.getOutput().setLogging(new ConfigurationLoggingSection());
@@ -170,18 +157,45 @@ public class ConfigurationMerger {
         if (Objects.nonNull(json)) {
             config.getOutput().getLogging().setJson(json);
         }
+
         // overwrite verbosity
         if (Objects.nonNull(verbosity)) {
             config.getOutput().getLogging().setVerbosity(verbosity);
         }
     }
 
-    public static CsvPropertyColumn getCsvPropertyColumnFromCommandLineOption(String columnText) {
+    private static CsvPropertyColumn getCsvPropertyColumnFromCommandLineOption(String columnText) {
         String[] columnTextSplit = columnText.split("\\|", 2);
         if (columnTextSplit.length != 2) {
             throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by `|`", columnText));
         }
 
         return new CsvPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
+    }
+
+    private static void mergeConfigurationPaths(
+        List<ConfigurationPath> configPathList,
+        Path configFilePath,
+        Path cwd,
+        List<String> cliPaths
+    ) {
+        // make sure config include paths have base directory of config file
+        for (ConfigurationPath path : configPathList) {
+            mergeConfigurationPath(path, configFilePath, cwd);
+        }
+        // add cli includes
+        if (Objects.nonNull(cliPaths)) {
+            List<ConfigurationPath> additional = cliPaths
+                .stream()
+                .map(p -> new ConfigurationPath(p, cwd))
+                .toList();
+            configPathList.addAll(additional);
+        }
+    }
+
+    private static void mergeConfigurationPath(ConfigurationPath configPath, Path configFilePath, Path fallbackBaseDirectory) {
+        if (Objects.isNull(configPath.getBaseDirectory())) {
+            configPath.setBaseDirectory(Objects.nonNull(configFilePath) ? configFilePath.getParent() : fallbackBaseDirectory);
+        }
     }
 }

@@ -6,18 +6,18 @@ import java.util.List;
 
 public class ConfigurationCsvSection {
 
-    private String path;
+    private ConfigurationPath path;
     private List<CsvPropertyColumn> columns;
 
     public ConfigurationCsvSection() {
         this.columns = new ArrayList<>();
     }
 
-    public String getPath() {
+    public ConfigurationPath getPath() {
         return this.path;
     }
 
-    public void setPath(String path) {
+    public void setPath(ConfigurationPath path) {
         this.path = path;
     }
 
