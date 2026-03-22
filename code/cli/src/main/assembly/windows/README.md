@@ -82,13 +82,13 @@ There are many other possible path variants. A comprehensive list of examples ca
 You can test validating images from the two examples provided in the `examples` directory.
 
 ```
-run.bat validate -v --config=examples/simple/config.yaml
+run.bat validate -v --config=examples\simple\config.yaml
 ```
 
 or
 
 ```
-run.bat validate -v --config=examples/spk-berlin/config.yaml
+run.bat validate -v --config=examples\spk-berlin\config.yaml
 ```
 
 Both commands will generate an CSV file `output.csv` in their respective directories.
