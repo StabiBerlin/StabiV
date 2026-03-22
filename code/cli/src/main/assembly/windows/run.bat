@@ -13,6 +13,6 @@ set EXIFTOOL_HOME=%SCRIPT_DIR%\tools\exiftool
 REM modify path
 set PATH=%EXIFTOOL_HOME%;%PATH%
 
-%JAVA_HOME%\bin\java -jar %SCRIPT_DIR%\tools\spk-iv-cli\imagevalidation-cli-0.1.0.jar %*
+%JAVA_HOME%\bin\java -jar %SCRIPT_DIR%\tools\spk-iv-cli\imagevalidation-cli-0.2.0-SNAPSHOT.jar %*
 
 endlocal
