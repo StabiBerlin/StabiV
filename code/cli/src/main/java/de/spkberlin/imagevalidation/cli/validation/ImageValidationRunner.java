@@ -35,7 +35,7 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     public ImageValidationResult call() throws Exception {
         ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
         ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
-        String checksum = ChecksumUtil.calculate(filepath, "MD5");
+        String checksum = ChecksumUtil.calculate(filepath, "SHA-1");
         return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
     }
 
