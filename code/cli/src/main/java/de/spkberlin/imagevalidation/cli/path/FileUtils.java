@@ -1,7 +1,6 @@
 package de.spkberlin.imagevalidation.cli.path;
 
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
