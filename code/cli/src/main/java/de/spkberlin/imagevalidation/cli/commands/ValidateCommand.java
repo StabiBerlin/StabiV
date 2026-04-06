@@ -123,6 +123,16 @@ public class ValidateCommand implements Callable<Integer> {
             """
         )
         List<String> imageRules = Collections.emptyList();
+
+        @Option(
+            names = { "--threads" },
+            arity = "1",
+            paramLabel = "COUNT",
+            description = """
+            The number of execution threads that are used to validate images in parallel (default 4).
+            """
+        )
+        Integer parallelThreads;
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 5, exclusive = false)
@@ -257,7 +267,7 @@ public class ValidateCommand implements Callable<Integer> {
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         ConfigurationMerger.mergeInput(config, cwd, configPath, absoluteIncludes, absoluteExcludes);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
-        ConfigurationMerger.mergeValidation(config, validationOptions.imageRules);
+        ConfigurationMerger.mergeValidation(config, validationOptions.imageRules, validationOptions.parallelThreads);
         ConfigurationMerger.mergeOutput(
             config,
             configPath,

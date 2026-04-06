@@ -27,7 +27,8 @@ public class ValidateAll {
      * @return the validation result for all directories and images
      */
     public static ValidateAllResult validateAll(ConfigurationRoot config) {
-        ExecutorService pool = Executors.newFixedThreadPool(2);
+        logger.debug("initialize {} threads for parallel image validation", config.getValidation().getParallelThreads());
+        ExecutorService pool = Executors.newFixedThreadPool(config.getValidation().getParallelThreads());
 
         try {
             Map<Path, List<Path>> filesByDirectory = FileUtils.resolveFiles(config.getInput());
@@ -36,29 +37,9 @@ public class ValidateAll {
 
             for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
                 Path directory = entry.getKey();
-                logger.info("process directory '{}'", directory);
-
-                Map<Path, ImageValidationResult> imageValidationResultsByDirectory = new HashMap<>();
-                List<Future<ImageValidationResult>> resultFutures = pool.invokeAll(createImageValidationTasks(entry.getValue(), config));
-
-                for (Future<ImageValidationResult> resultFuture : resultFutures) {
-                    ImageValidationResult result = resultFuture.get();
-
-                    if (config.getOutput().getLogging().getJson()) {
-                        JsonLogWriter.writeFileValidationLog(result);
-                    }
-
-                    Path filepath = result.getFilePath();
-                    imageValidationResultsByDirectory.put(filepath, result);
-                }
-
-                DirectoryValidationResult directoryResult = DirectoryValidation.validate(directory, imageValidationResultsByDirectory);
+                DirectoryValidationResult directoryResult = validateDirectory(entry.getKey(), entry.getValue(), config, pool);
                 directoryValidationResults.put(directory, directoryResult);
-                allImageValidationResults.putAll(imageValidationResultsByDirectory);
-
-                if (config.getOutput().getLogging().getJson()) {
-                    JsonLogWriter.writeDirectoryValidationLog(directoryResult);
-                }
+                allImageValidationResults.putAll(directoryResult.getImageResults());
             }
 
             logger.info("done validating all files");
@@ -75,6 +56,48 @@ public class ValidateAll {
         } finally {
             pool.shutdown();
         }
+    }
+
+    /**
+     * Validate all files of a single directory given a full configuration and an already initialized thread pool.
+     *
+     * @param directory the directory to be validated
+     * @param filepaths the image files inside this directory to be validated
+     * @param config the full configuration
+     * @param pool an already initialized thread pool
+     * @return validation results for the directory and all images
+     * @throws ExecutionException in case there is an error while executing a validation task
+     * @throws InterruptedException in case execution is interrupted
+     */
+    public static DirectoryValidationResult validateDirectory(
+        Path directory,
+        List<Path> filepaths,
+        ConfigurationRoot config,
+        ExecutorService pool
+    ) throws ExecutionException, InterruptedException {
+        logger.info("process directory '{}'", directory);
+
+        Map<Path, ImageValidationResult> imageValidationResultsByDirectory = new HashMap<>();
+        List<Future<ImageValidationResult>> resultFutures = pool.invokeAll(createImageValidationTasks(filepaths, config));
+
+        for (Future<ImageValidationResult> resultFuture : resultFutures) {
+            ImageValidationResult result = resultFuture.get();
+
+            if (config.getOutput().getLogging().getJson()) {
+                JsonLogWriter.writeFileValidationLog(result);
+            }
+
+            Path filepath = result.getFilePath();
+            imageValidationResultsByDirectory.put(filepath, result);
+        }
+
+        DirectoryValidationResult directoryResult = DirectoryValidation.validate(directory, imageValidationResultsByDirectory);
+
+        if (config.getOutput().getLogging().getJson()) {
+            JsonLogWriter.writeDirectoryValidationLog(directoryResult);
+        }
+
+        return directoryResult;
     }
 
     /**

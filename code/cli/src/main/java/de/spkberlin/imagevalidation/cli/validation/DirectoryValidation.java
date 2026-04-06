@@ -24,6 +24,6 @@ public class DirectoryValidation {
 
         logger.info("validation of directory '{}' {}", directory, directoryValid ? "was successful" : "failed");
 
-        return new DirectoryValidationResult(directory, directoryValid);
+        return new DirectoryValidationResult(directory, imageValidationResults, directoryValid);
     }
 }

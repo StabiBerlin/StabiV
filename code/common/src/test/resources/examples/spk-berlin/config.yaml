@@ -4,6 +4,9 @@ input:
     - invalid
 
 validation:
+  # the number of execution threads to validate images of a directory in parallel (default 4)
+  parallelThreads: 4
+
   imageRules:
     # JHove wellformed
     - message: JHove must detect file as wellformed

@@ -8,8 +8,11 @@ public class ConfigurationValidationSection {
 
     private List<ImageRule> imageRules;
 
+    private Integer parallelThreads;
+
     public ConfigurationValidationSection() {
         imageRules = new ArrayList<>();
+        parallelThreads = 4;
     }
 
     public List<ImageRule> getImageRules() {
@@ -18,5 +21,13 @@ public class ConfigurationValidationSection {
 
     public void setImageRules(List<ImageRule> rules) {
         this.imageRules = rules;
+    }
+
+    public Integer getParallelThreads() {
+        return this.parallelThreads;
+    }
+
+    public void setParallelThreads(Integer parallelThreads) {
+        this.parallelThreads = parallelThreads;
     }
 }

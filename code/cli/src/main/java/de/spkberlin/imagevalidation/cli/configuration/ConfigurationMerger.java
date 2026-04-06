@@ -73,12 +73,18 @@ public class ConfigurationMerger {
      *
      * @param config the yaml configuration
      * @param imageRules the list of additional image validation rules provided via CLI options
+     * @param parallelThreads the number of executions threads for image validation provided via CLI option
      */
-    public static void mergeValidation(ConfigurationRoot config, List<String> imageRules) {
+    public static void mergeValidation(ConfigurationRoot config, List<String> imageRules, Integer parallelThreads) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {
             config.setValidation(new ConfigurationValidationSection());
         }
+        // set parallel threads if provided
+        if (Objects.nonNull(parallelThreads)) {
+            config.getValidation().setParallelThreads(parallelThreads);
+        }
+        // make sure image rule list exists
         if (Objects.isNull(config.getValidation().getImageRules())) {
             config.getValidation().setImageRules(new ArrayList<>());
         }
