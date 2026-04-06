@@ -8,9 +8,11 @@ import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Stream;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -49,12 +51,20 @@ public class CsvWriter {
 
     private static void writeDirectories(CSVPrinter printer, ValidateAllResult validateAllResult, List<CsvPropertyColumn> columns)
         throws IOException {
-        for (Entry<Path, List<Path>> entry : validateAllResult.getFilesByDirectory().entrySet()) {
+        Iterator<Entry<Path, List<Path>>> entryIterator = validateAllResult.getFilesByDirectory().entrySet().iterator();
+        while (entryIterator.hasNext()) {
+            Entry<Path, List<Path>> entry = entryIterator.next();
             Path directory = entry.getKey();
-            printer.printRecord(directory.toString());
+            String directoryError = validateAllResult.getDirectoryValidationResults().get(directory).getError();
+            printer.printRecord(directory.toString(), null, null, Objects.isNull(directoryError), directoryError);
 
             for (Path filepath : entry.getValue()) {
                 writeFile(printer, filepath, validateAllResult.getImageValidationResults().get(filepath), columns);
+            }
+
+            if (entryIterator.hasNext()) {
+                // one empty line between directories
+                printer.printRecord();
             }
         }
     }

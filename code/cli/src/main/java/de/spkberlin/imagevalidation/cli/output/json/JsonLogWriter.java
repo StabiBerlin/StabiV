@@ -7,6 +7,7 @@ import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +71,8 @@ public class JsonLogWriter {
                 "directory",
                 result.getDirectory().toString(),
                 null,
-                result.getPassed() ? "success" : "failed",
-                null,
+                Objects.isNull(result.getError()) ? "success" : "failed",
+                result.getError(),
                 null
             );
 

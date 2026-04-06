@@ -2,10 +2,16 @@ input:
   includes:
     - valid
     - invalid
+    - inconsistent
 
 validation:
   # the number of execution threads to validate images of a directory in parallel (default 4)
   parallelThreads: 4
+
+  directoryRules:
+    consistentProperties:
+      - $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+      - $.exiftool.TIFF.IFD[0].BitsPerSample
 
   imageRules:
     # JHove wellformed
@@ -71,20 +77,20 @@ validation:
     # PhotometricInterpretation
     - message: PhotometricInterpretation must be RGB or BlackIsZero
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..PhotometricInterpretation
+        property: $.PhotometricInterpretation
         assert: oneOf
         value:
-          - RGB
           - BlackIsZero
+          - RGB
 
     # BitsPerSample
     - message: BitsPerSample must be all 8 or all 16
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..BitsPerSample
+        property: $.BitsPerSample
         assert: oneOf
         value:
           - "8"
@@ -95,54 +101,54 @@ validation:
     # Compression
     - message: Compression must be Uncompressed
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..Compression
+        property: $.Compression
         assert: equal
         value: Uncompressed
 
     # StripOffsets
     - message: StripOffsets must be positive integer
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
-          - property: $..StripOffsets
+          - property: $.StripOffsets
             assert: greaterThan
             value: 0
-          - property: $..StripOffsets
+          - property: $.StripOffsets
             assert: isInteger
 
     # RowsPerStrip
     - message: RowsPerStrip must be positive integer
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
-          - property: $..RowsPerStrip
+          - property: $.RowsPerStrip
             assert: greaterThan
             value: 0
-          - property: $..RowsPerStrip
+          - property: $.RowsPerStrip
             assert: isInteger
 
     # StripByteCounts
     - message: StripByteCounts must be positive integer
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
-          - property: $..StripByteCounts
+          - property: $.StripByteCounts
             assert: greaterThan
             value: 0
-          - property: $..StripByteCounts
+          - property: $.StripByteCounts
             assert: isInteger
 
     # XResolution
     - message: XResolution must be either 300, 400 or 600
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..XResolution
+        property: $.XResolution
         assert: oneOf
         value:
           - 300
@@ -152,9 +158,9 @@ validation:
     # YResolution
     - message: YResolution must be either 300, 400 or 600
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..YResolution
+        property: $.YResolution
         assert: oneOf
         value:
           - 300
@@ -164,46 +170,46 @@ validation:
     # ResolutionUnit
     - message: ResolutionUnit must be inches
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..ResolutionUnit
+        property: $.ResolutionUnit
         assert: equal
         value: inches
 
     # Make
     - message: Make must not be empty
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
-          property: $..Make
+          property: $.Make
           assert: isEmpty
 
     # Model
     - message: Model must not be empty
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
-          property: $..Model
+          property: $.Model
           assert: isEmpty
 
     # Software
     - message: Software must not be empty
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
-          property: $..Software
+          property: $.Software
           assert: isEmpty
 
     # Artist
     - message: Artist must not be empty
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
-          property: $..Artist
+          property: $.Artist
           assert: isEmpty
 
     # ICC Profile
@@ -231,61 +237,61 @@ validation:
     # SubfileType
     - message: SubfileType must be 'Full-resolution image' if defined
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
           - not:
-              property: $..SubfileType
+              property: $.SubfileType
               assert: exists
-          - property: $..SubfileType
+          - property: $.SubfileType
             assert: equal
             value: Full-resolution image
 
     # FillOrder
     - message: FillOrder must be 'Normal' image if defined
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
           - not:
-              property: $..FillOrder
+              property: $.FillOrder
               assert: exists
-          - property: $..FillOrder
+          - property: $.FillOrder
             assert: equal
             value: Normal
 
     # ImageDescription
     - message: ImageDescription must not be empty if defined
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
           - not:
-              property: $..ImageDescription
+              property: $.ImageDescription
               assert: exists
           - not:
-              property: $..ImageDescription
+              property: $.ImageDescription
               assert: isEmpty
 
     # Orientation
     - message: Orientation must be 'Horizontal (normal)' if defined
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
           - not:
-              property: $..Orientation
+              property: $.Orientation
               assert: exists
-          - property: $..Orientation
+          - property: $.Orientation
             assert: equal
             value: Horizontal (normal)
 
     # SamplesPerPixel
     - message: SamplesPerPixel must be 1 or 3
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..SamplesPerPixel
+        property: $.SamplesPerPixel
         assert: oneOf
         value:
           - 1
@@ -294,13 +300,13 @@ validation:
     # PlanarConfiguration
     - message: PlanarConfiguration must be 'Chunky' if defined
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
           - not:
-              property: $..PlanarConfiguration
+              property: $.PlanarConfiguration
               assert: exists
-          - property: $..PlanarConfiguration
+          - property: $.PlanarConfiguration
             assert: equal
             value: Chunky
 
@@ -320,9 +326,9 @@ validation:
     # WhiteBalance
     - message: WhiteBalance must be Auto or Manual
       severity: error
-      context: $.exiftool
+      context: $.exiftool.TIFF.IFD[0]
       condition:
-        property: $..WhiteBalance
+        property: $.WhiteBalance
         assert: oneOf
         value:
           - Auto
@@ -435,6 +441,10 @@ output:
         property: $.jhove.wellformed
       - label: JHove valid
         property: $.jhove.valid
+      - label: Exiftool warning
+        property: $.exiftool..Warning
+      - label: Number of IFDs
+        property: $.exiftool.TIFF.IFD.length()
       - label: PhotometricInterpretation
         property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
       - label: Compression

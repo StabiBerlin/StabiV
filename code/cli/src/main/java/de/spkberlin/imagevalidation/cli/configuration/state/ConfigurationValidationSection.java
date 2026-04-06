@@ -7,12 +7,16 @@ import java.util.List;
 public class ConfigurationValidationSection {
 
     private List<ImageRule> imageRules;
-
     private Integer parallelThreads;
+    private ConfigurationValidationDirectoryRules directoryRules;
 
+    /**
+     * Initialize configuration validation section.
+     */
     public ConfigurationValidationSection() {
         imageRules = new ArrayList<>();
         parallelThreads = 4;
+        directoryRules = new ConfigurationValidationDirectoryRules();
     }
 
     public List<ImageRule> getImageRules() {
@@ -29,5 +33,13 @@ public class ConfigurationValidationSection {
 
     public void setParallelThreads(Integer parallelThreads) {
         this.parallelThreads = parallelThreads;
+    }
+
+    public ConfigurationValidationDirectoryRules getDirectoryRules() {
+        return this.directoryRules;
+    }
+
+    public void setDirectoryRules(ConfigurationValidationDirectoryRules directoryRules) {
+        this.directoryRules = directoryRules;
     }
 }

@@ -8,6 +8,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLogging
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
@@ -73,9 +74,15 @@ public class ConfigurationMerger {
      *
      * @param config the yaml configuration
      * @param imageRules the list of additional image validation rules provided via CLI options
+     * @param consistentProperties the list of additional properties to check to be consistent via CLI option
      * @param parallelThreads the number of executions threads for image validation provided via CLI option
      */
-    public static void mergeValidation(ConfigurationRoot config, List<String> imageRules, Integer parallelThreads) {
+    public static void mergeValidation(
+        ConfigurationRoot config,
+        List<String> imageRules,
+        List<String> consistentProperties,
+        Integer parallelThreads
+    ) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {
             config.setValidation(new ConfigurationValidationSection());
@@ -84,16 +91,30 @@ public class ConfigurationMerger {
         if (Objects.nonNull(parallelThreads)) {
             config.getValidation().setParallelThreads(parallelThreads);
         }
+        // make sure directory section exists
+        if (Objects.isNull(config.getValidation().getDirectoryRules())) {
+            config.getValidation().setDirectoryRules(new ConfigurationValidationDirectoryRules());
+        }
+        // make sure consistent properties exists
+        if (Objects.isNull(config.getValidation().getDirectoryRules().getConsistentProperties())) {
+            config.getValidation().getDirectoryRules().setConsistentProperties(new ArrayList<>());
+        }
+        // add additional consistent properties
+        if (Objects.nonNull(consistentProperties)) {
+            config.getValidation().getDirectoryRules().getConsistentProperties().addAll(consistentProperties);
+        }
         // make sure image rule list exists
         if (Objects.isNull(config.getValidation().getImageRules())) {
             config.getValidation().setImageRules(new ArrayList<>());
         }
         // add rules provided via command line options
-        List<ImageRule> additionalImageRules = imageRules
-            .stream()
-            .map(r -> getImageRuleFromCommandLineOption(r))
-            .toList();
-        config.getValidation().getImageRules().addAll(additionalImageRules);
+        if (Objects.nonNull(imageRules)) {
+            List<ImageRule> additionalImageRules = imageRules
+                .stream()
+                .map(r -> getImageRuleFromCommandLineOption(r))
+                .toList();
+            config.getValidation().getImageRules().addAll(additionalImageRules);
+        }
     }
 
     private static ImageRule getImageRuleFromCommandLineOption(String imageRuleText) {

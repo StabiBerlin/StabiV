@@ -6,20 +6,20 @@ import java.util.Map;
 public class DirectoryValidationResult {
 
     private Path directory;
-    private Boolean passed;
     private Map<Path, ImageValidationResult> imageResults;
+    private String error;
 
     /**
      * Initialize a directory validation result.
      *
      * @param directory the path to the directory
      * @param imageResults all image validation results of all image files inside this directory
-     * @param passed whether the directory passed validation
+     * @param error an error message if a directory is not valid
      */
-    public DirectoryValidationResult(Path directory, Map<Path, ImageValidationResult> imageResults, Boolean passed) {
+    public DirectoryValidationResult(Path directory, Map<Path, ImageValidationResult> imageResults, String error) {
         this.directory = directory;
         this.imageResults = imageResults;
-        this.passed = passed;
+        this.error = error;
     }
 
     public Path getDirectory() {
@@ -30,12 +30,12 @@ public class DirectoryValidationResult {
         this.directory = directory;
     }
 
-    public Boolean getPassed() {
-        return this.passed;
+    public String getError() {
+        return this.error;
     }
 
-    public void setPassed(Boolean passed) {
-        this.passed = passed;
+    public void setError(String error) {
+        this.error = error;
     }
 
     public Map<Path, ImageValidationResult> getImageResults() {

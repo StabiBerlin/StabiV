@@ -125,6 +125,18 @@ public class ValidateCommand implements Callable<Integer> {
         List<String> imageRules = Collections.emptyList();
 
         @Option(
+            names = { "--consistentProperty" },
+            paramLabel = "PROPERTY",
+            arity = "1",
+            description = """
+            Add a validation requirement that a certain property needs to be consistent across all images of a directory
+
+            Properties need to be specified a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
+            """
+        )
+        List<String> consistentProperties = Collections.emptyList();
+
+        @Option(
             names = { "--threads" },
             arity = "1",
             paramLabel = "COUNT",
@@ -267,7 +279,12 @@ public class ValidateCommand implements Callable<Integer> {
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         ConfigurationMerger.mergeInput(config, cwd, configPath, absoluteIncludes, absoluteExcludes);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
-        ConfigurationMerger.mergeValidation(config, validationOptions.imageRules, validationOptions.parallelThreads);
+        ConfigurationMerger.mergeValidation(
+            config,
+            validationOptions.imageRules,
+            validationOptions.consistentProperties,
+            validationOptions.parallelThreads
+        );
         ConfigurationMerger.mergeOutput(
             config,
             configPath,

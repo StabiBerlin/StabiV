@@ -43,7 +43,7 @@ public class ValidateAll {
             }
 
             logger.info("done validating all files");
-            return new ValidateAllResult(filesByDirectory, allImageValidationResults);
+            return new ValidateAllResult(filesByDirectory, allImageValidationResults, directoryValidationResults);
         } catch (IOException e) {
             logger.error("failed to resolve files due to:", e);
             throw new RuntimeException(e);
@@ -74,7 +74,7 @@ public class ValidateAll {
         List<Path> filepaths,
         ConfigurationRoot config,
         ExecutorService pool
-    ) throws ExecutionException, InterruptedException {
+    ) throws IOException, ExecutionException, InterruptedException {
         logger.info("process directory '{}'", directory);
 
         Map<Path, ImageValidationResult> imageValidationResultsByDirectory = new HashMap<>();
@@ -91,7 +91,11 @@ public class ValidateAll {
             imageValidationResultsByDirectory.put(filepath, result);
         }
 
-        DirectoryValidationResult directoryResult = DirectoryValidation.validate(directory, imageValidationResultsByDirectory);
+        DirectoryValidationResult directoryResult = DirectoryValidation.validate(
+            directory,
+            config.getValidation().getDirectoryRules().getConsistentProperties(),
+            imageValidationResultsByDirectory
+        );
 
         if (config.getOutput().getLogging().getJson()) {
             JsonLogWriter.writeDirectoryValidationLog(directoryResult);

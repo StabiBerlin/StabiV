@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - TBD
+
+New Features
+
+- Set the number of parallel validation threads via `--threads` CLI option or the corresponding yaml config
+- Check properties for consistency per directory via `--consistentProperty` or the corresponding yaml config
+
 ## 0.1.0 - 2026-03-22
 
 Initial version
