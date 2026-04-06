@@ -10,6 +10,12 @@ public class Extraction {
 
     private static final Map<ExtractorType, ThreadLocal<Extractor>> EXTRACTOR_IMPLEMENTATIONS = new HashMap<>();
 
+    /**
+     * Return a thread-safe implementation of an extractor.
+     *
+     * @param extratorType the extractor type
+     * @return an initialized thread-safe extractor implementation
+     */
     public static Extractor getImplementation(ExtractorType extratorType) {
         if (!EXTRACTOR_IMPLEMENTATIONS.containsKey(extratorType)) {
             if (extratorType.equals(ExtractorType.jhove)) {

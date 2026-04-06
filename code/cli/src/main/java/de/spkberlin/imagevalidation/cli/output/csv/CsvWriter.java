@@ -30,6 +30,13 @@ public class CsvWriter {
         "Validation Warning",
     };
 
+    /**
+     * Write the CSV validation report file.
+     *
+     * @param outputPath output filepath of the CSV file
+     * @param validateAllResult validation results for all files and directories
+     * @param columns additional properties to include in the CSV file
+     */
     public static void writeReport(Path outputPath, ValidateAllResult validateAllResult, List<CsvPropertyColumn> columns) {
         logger.info("write csv output file '{}'", outputPath);
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputPath.toFile()), CSVFormat.EXCEL)) {
@@ -40,7 +47,7 @@ public class CsvWriter {
         }
     }
 
-    public static void writeDirectories(CSVPrinter printer, ValidateAllResult validateAllResult, List<CsvPropertyColumn> columns)
+    private static void writeDirectories(CSVPrinter printer, ValidateAllResult validateAllResult, List<CsvPropertyColumn> columns)
         throws IOException {
         for (Entry<Path, List<Path>> entry : validateAllResult.getFilesByDirectory().entrySet()) {
             Path directory = entry.getKey();
@@ -52,7 +59,7 @@ public class CsvWriter {
         }
     }
 
-    public static void writeFile(
+    private static void writeFile(
         CSVPrinter printer,
         Path filepath,
         ImageValidationResult imageValidationResult,
@@ -75,11 +82,11 @@ public class CsvWriter {
         printer.printRecord(line);
     }
 
-    public static void writeHeader(CSVPrinter printer, List<CsvPropertyColumn> columns) throws IOException {
+    private static void writeHeader(CSVPrinter printer, List<CsvPropertyColumn> columns) throws IOException {
         printer.printRecord(Stream.concat(Stream.of(COLUMN_HEADER), columns.stream().map(c -> c.getLabel())));
     }
 
-    public static String extractPropertyOrNull(String propertyPath, Map<String, Object> properties) {
+    private static String extractPropertyOrNull(String propertyPath, Map<String, Object> properties) {
         try {
             Object property = JsonPath.read(properties, propertyPath);
             return PropertiesSerializer.toPrettyString(property);

@@ -25,6 +25,13 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     private List<ExtractorType> extractors;
     private List<ImageRule> rules;
 
+    /**
+     * Initialize image validation task for a specific image file.
+     *
+     * @param filepath the filepath to the image file to be validated
+     * @param extractors the extractor modules to use for validation
+     * @param rules the image rules to check for validation
+     */
     public ImageValidationRunner(Path filepath, List<ExtractorType> extractors, List<ImageRule> rules) {
         this.filepath = filepath;
         this.extractors = extractors;
@@ -39,6 +46,13 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
         return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
     }
 
+    /**
+     * Extract image properties using a list of extractors for a single image file.
+     *
+     * @param filepath the filepath to the image file
+     * @param extractors the list of extractor modules to use
+     * @return the extracted image properties
+     */
     public static ExtractionResult extractImageProperties(Path filepath, List<ExtractorType> extractors) {
         Map<ExtractorType, ExtractionResult> resultsByExtractor = new HashMap<>();
         for (ExtractorType extratorType : extractors) {
@@ -49,6 +63,12 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
         return mergeExtractionResults(resultsByExtractor);
     }
 
+    /**
+     * Merge extracted properties for all extractors by appending the extractor name to the object tree.
+     *
+     * @param results extracted properties for each extractor individually
+     * @return combined property tree, with root map based on extractor names
+     */
     public static ExtractionResult mergeExtractionResults(Map<ExtractorType, ExtractionResult> results) {
         Map<String, Object> mergedProperties = new HashMap<>();
         for (Entry<ExtractorType, ExtractionResult> entry : results.entrySet()) {
@@ -57,6 +77,15 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
         return new ExtractionResult(mergedProperties);
     }
 
+    /**
+     * Check a list of image rules against extracted properties for a single image file.
+     *
+     * @param filepath the filepath to the image file
+     * @param extractionResult already extracted properties from all extractors combined
+     * @param rules the list of image validation rules to check
+     * @return a result object containing potential errors or warnings
+     * @throws IOException in case something fails during rule evaluation
+     */
     public static ImageRuleEvaluationResult evaluateImageRules(Path filepath, ExtractionResult extractionResult, List<ImageRule> rules)
         throws IOException {
         ImageRuleEvaluationResult result = ImageRuleEvaluator.evaluateRules(rules, extractionResult.getProperties());

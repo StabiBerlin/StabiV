@@ -46,6 +46,12 @@ public class FileUtils {
         return filesByDirectory;
     }
 
+    /**
+     * Group all files by their respective parent directory.
+     *
+     * @param files the list of filepaths
+     * @return a map from parent directory to files
+     */
     public static Map<Path, List<Path>> mapFilesByDirectory(List<Path> files) {
         Map<Path, List<Path>> filesByDirectory = new TreeMap<>();
         for (Path path : files) {

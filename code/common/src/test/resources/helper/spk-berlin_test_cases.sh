@@ -12,7 +12,6 @@ SOURCE=base.tif
 
 echo "create $SOURCE as base valid file"
 
-
 exiftool -overwrite_original -IFD0:Make="scanner manufacturer" $SOURCE
 exiftool -overwrite_original -IFD0:Model="scanner model" $SOURCE
 exiftool -overwrite_original -IFD0:Software="scanner software" $SOURCE

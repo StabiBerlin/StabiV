@@ -68,6 +68,12 @@ public class ConfigurationMerger {
         }
     }
 
+    /**
+     * Merge the "validation" section of the yaml configuration with relevant CLI options.
+     *
+     * @param config the yaml configuration
+     * @param imageRules the list of additional image validation rules provided via CLI options
+     */
     public static void mergeValidation(ConfigurationRoot config, List<String> imageRules) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {

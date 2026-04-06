@@ -20,6 +20,12 @@ public class ValidateAll {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidateAll.class);
 
+    /**
+     * Validate all files and directories given a full configuration of the CLI.
+     *
+     * @param config the full configuration for validating a set of image directories and files
+     * @return the validation result for all directories and images
+     */
     public static ValidateAllResult validateAll(ConfigurationRoot config) {
         ExecutorService pool = Executors.newFixedThreadPool(2);
 
@@ -37,12 +43,12 @@ public class ValidateAll {
 
                 for (Future<ImageValidationResult> resultFuture : resultFutures) {
                     ImageValidationResult result = resultFuture.get();
-                    Path filepath = result.getFilePath();
 
                     if (config.getOutput().getLogging().getJson()) {
-                        JsonLogWriter.writeFileValidationLog(filepath, result);
+                        JsonLogWriter.writeFileValidationLog(result);
                     }
 
+                    Path filepath = result.getFilePath();
                     imageValidationResultsByDirectory.put(filepath, result);
                 }
 
@@ -51,12 +57,11 @@ public class ValidateAll {
                 allImageValidationResults.putAll(imageValidationResultsByDirectory);
 
                 if (config.getOutput().getLogging().getJson()) {
-                    JsonLogWriter.writeDirectoryValidationLog(directory, directoryResult);
+                    JsonLogWriter.writeDirectoryValidationLog(directoryResult);
                 }
             }
 
             logger.info("done validating all files");
-
             return new ValidateAllResult(filesByDirectory, allImageValidationResults);
         } catch (IOException e) {
             logger.error("failed to resolve files due to:", e);
@@ -72,6 +77,13 @@ public class ValidateAll {
         }
     }
 
+    /**
+     * Create image validation tasks to be run in parallel from a pool of processing threads.
+     *
+     * @param filepaths the filepaths of images to be validated
+     * @param config the full configuration of the CLI
+     * @return a list of image validation tasks to be queued for execution
+     */
     public static List<ImageValidationRunner> createImageValidationTasks(List<Path> filepaths, ConfigurationRoot config) {
         return filepaths
             .stream()

@@ -15,21 +15,14 @@ import picocli.CommandLine.IHelpSectionRenderer;
 /** Main class of CLI, which triggers parsing of arguments. */
 public class Main {
 
+    /**
+     * Main method to start the CLI.
+     * @param args any arguments provided via the CLI
+     */
     public static void main(String... args) {
         // set up validate command
         CommandLine cmd = new CommandLine(new MainCommand());
         cmd.setCaseInsensitiveEnumValuesAllowed(true);
-
-        /*cmd.setHelpFactory(commandSpec -> {
-            CommandLine.Help help = new CommandLine.Help(commandSpec) {
-                @Override
-                public String toString() {
-                    String result = super.toString();
-                    return result.replace("&ast;", "*");
-                }
-            };
-            return help;
-        });*/
 
         Map<String, IHelpSectionRenderer> helpSectionMap = new HashMap<>(cmd.getHelpSectionMap());
         helpSectionMap.put(SECTION_KEY_DESCRIPTION, help -> help.optionList().replace("&ast;", "*"));

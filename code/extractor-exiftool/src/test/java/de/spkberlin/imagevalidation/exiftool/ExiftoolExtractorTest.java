@@ -12,7 +12,7 @@ public class ExiftoolExtractorTest {
     public void testTransformPropertyName() {
         assertEquals(
             "TIFF/IFD[0]/ICC_Profile/Header/ProfileVersion",
-            ExiftoolExtractor.transformPropertyName("[TIFF-IFD0-ICC_Profile-Header] ProfileVersion")
+            ExiftoolExtractor.transformPropertyPath("[TIFF-IFD0-ICC_Profile-Header] ProfileVersion")
         );
     }
 }

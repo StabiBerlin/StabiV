@@ -14,7 +14,16 @@ public class PathPropertiesTree {
 
     private static final Pattern ARRAY_PATTERN = Pattern.compile("(.+)\\[(\\d+)]");
 
-    public static Map<String, Object> buildTreeFromPaths(Set<PathProperty> properties) throws RuntimeException {
+    /**
+     * Constructor an object tree of maps, lists and strings from a set of pairs of property path and value.
+     *
+     * <p>Property paths need to be specified as a simplified JSON path, e.g. "property/subproperty/array[0]/something". Hierarchy levels
+     * are encoded as slash and array indices are referenced via brackets. Property values are simple strings.
+     *
+     * @param properties the set of path properties
+     * @return the object tree of maps, lists and strings
+     */
+    public static Map<String, Object> buildTreeFromPaths(Set<PathProperty> properties) {
         Map<String, Object> tree = new HashMap<>();
 
         for (PathProperty property : properties) {

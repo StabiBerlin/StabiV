@@ -12,6 +12,13 @@ public class ConfigurationParser {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationParser.class);
 
+    /**
+     * Parse a yaml configuration file via ObjectMapper.
+     *
+     * @param filepath the filepath to the yaml configuration file
+     * @return the parsed configuration object
+     * @throws IOException in case parsing fails
+     */
     public static ConfigurationRoot parseConfigurationFile(Path filepath) throws IOException {
         logger.debug("parse yaml configuration file from '{}'", filepath);
         ConfigurationRoot config = new ObjectMapper(new YAMLFactory()).readValue(filepath.toFile(), ConfigurationRoot.class);

@@ -27,6 +27,14 @@ public class ImageRuleEvaluator {
 
     private static final String DEFAULT_CONTEXT = "$";
 
+    /**
+     * Evaluate a list of image rules against a property object.
+     *
+     * @param rules the list of image rules
+     * @param properties the property object extracted from the image
+     * @return a result object containing potential validation errors and warnings
+     * @throws IOException in case rule evaluation fails
+     */
     public static ImageRuleEvaluationResult evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
         logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeAsPrettyJson(properties));
         List<String> errors = new ArrayList<>();
@@ -41,6 +49,13 @@ public class ImageRuleEvaluator {
         return new ImageRuleEvaluationResult(errors, warnings);
     }
 
+    /**
+     * Evaluate a single image rule against a property object.
+     *
+     * @param rule the image rule to check
+     * @param properties the property object extracted from the image
+     * @return a result object containing potential validation errors and warnings
+     */
     public static ImageRuleEvaluationResult evaluateRule(ImageRule rule, Object properties) {
         logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
         List<String> errors = new ArrayList<>();
@@ -64,6 +79,13 @@ public class ImageRuleEvaluator {
         return new ImageRuleEvaluationResult(errors, warnings);
     }
 
+    /**
+     * Evaluate the "condition" part against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the image rule condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateCondition(ImageRuleCondition condition, Object properties) {
         if (condition instanceof ImageRuleSimpleCondition) {
             ImageRuleSimpleCondition simpleCondition = (ImageRuleSimpleCondition) condition;
@@ -83,6 +105,13 @@ public class ImageRuleEvaluator {
         return String.format("rule condition '%s' not yet implemented", condition.getClass().getName());
     }
 
+    /**
+     * Evaluate a composite condition (and, or, not) against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the composite condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateCompositeCondition(ImageRuleCompositeCondition condition, Object properties) {
         if (condition instanceof ImageRuleCompositeAndCondition) {
             return evaluateCompositeAndCondition((ImageRuleCompositeAndCondition) condition, properties);
@@ -94,6 +123,13 @@ public class ImageRuleEvaluator {
         return String.format("composite condition '%s' of unknown type", condition.getClass().getName());
     }
 
+    /**
+     * Evaluate an "and" composite condition against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the "and" composite condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateCompositeAndCondition(ImageRuleCompositeAndCondition condition, Object properties) {
         // evaluate all sub conditions
         List<String> results = condition
@@ -114,6 +150,13 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate an "or" composite condition against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the "or" composite condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateCompositeOrCondition(ImageRuleCompositeOrCondition condition, Object properties) {
         // evaluate all sub conditions
         List<String> results = condition
@@ -129,6 +172,13 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate a "not" composite condition against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the "not" composite condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateCompositeNotCondition(ImageRuleCompositeNotCondition condition, Object properties) {
         // evaluate all sub conditions
         String result = evaluateCondition(condition.getNot(), properties);
@@ -140,32 +190,49 @@ public class ImageRuleEvaluator {
         return null;
     }
 
-    public static String evaluateSimpleCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
+    /**
+     * Evaluate a simple non-composite condition against a property object resolved from the "context" of an image rule.
+     *
+     * @param condition the simple non-composite condition
+     * @param properties the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
+    public static String evaluateSimpleCondition(ImageRuleSimpleCondition condition, Object properties) {
         switch (condition.getOperator()) {
             case ImageRuleSimpleConditionOperatorType.equal:
-                return evaluateEqualCondition(condition, extractedValue);
+                return evaluateEqualCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.lowerThan:
             case ImageRuleSimpleConditionOperatorType.lowerThanOrEqual:
             case ImageRuleSimpleConditionOperatorType.greaterThan:
             case ImageRuleSimpleConditionOperatorType.greaterThanOrEqual:
-                return evaluateNumberCondition(condition, extractedValue);
+                return evaluateNumberCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.isInteger:
-                return evaluateIsIntegerCondition(condition, extractedValue);
+                return evaluateIsIntegerCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.occurrences:
-                return evaluateOccurrencesCondition(condition, extractedValue);
+                return evaluateOccurrencesCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.oneOf:
-                return evaluateOneOfCondition(condition, extractedValue);
+                return evaluateOneOfCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.isEmpty:
-                return evaluateIsEmptyCondition(condition, extractedValue);
+                return evaluateIsEmptyCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.exists:
-                return evaluateExistsCondition(condition, extractedValue);
+                return evaluateExistsCondition(condition, properties);
             case ImageRuleSimpleConditionOperatorType.matches:
-                return evaluateMatchesCondition(condition, extractedValue);
+                return evaluateMatchesCondition(condition, properties);
             default:
                 return String.format("failed validation with unknown operator '%s'", condition.getOperator());
         }
     }
 
+    /**
+     * Evaluate a "matches" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>A "matches" condition interprets the condition values as regular expressions and checks whether the extracted image property
+     * matches any of the provided regular expressions.
+     *
+     * @param condition the "matches" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateMatchesCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.isNull(condition.getValues()) || condition.getValues().size() == 0) {
             return String.format("matches operator requires comparison values as regular expressions");
@@ -197,6 +264,15 @@ public class ImageRuleEvaluator {
         );
     }
 
+    /**
+     * Evaluate an "exists" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>An "exists" condition checks wether any (possibly empty) value was extracted from the image for this property.
+     *
+     * @param condition the "exists" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateExistsCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
             logger.warn("ignoring values of 'doesNotExist' condition");
@@ -217,6 +293,15 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate an "empty" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>An "empty" condition checks wether the extracted image property can be considered empty (when interpreted as a string).
+     *
+     * @param condition the "empty" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateIsEmptyCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
             logger.warn("ignoring values of 'isEmpty' condition");
@@ -251,6 +336,15 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate a "oneOf" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>A "oneOf" condition checks wether the extracted image property is equal to one of the provided condition comparison values.
+     *
+     * @param condition the "oneOf" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateOneOfCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.isNull(condition.getValues())) {
             return String.format("oneOf operator requires at least one comparison value");
@@ -274,6 +368,15 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate an "isInteger" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>An "isInteger" condition checks wether the extracted image property is can be interpreted as a natural number.
+     *
+     * @param condition the "isInteger" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateIsIntegerCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.nonNull(condition.getValues()) && condition.getValues().size() > 0) {
             logger.warn("ignoring values of 'isInteger' condition");
@@ -286,6 +389,15 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate an "occurrences" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>An "occurrences" condition checks wether the extracted image property is a list with a length matching the condition value.
+     *
+     * @param condition the "occurrences" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateOccurrencesCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (!(extractedValue instanceof List)) {
             return String.format(
@@ -302,6 +414,15 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate an "equal" condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>An "equal" condition checks wether the extracted image property is exactly equal to the provided condition value.
+     *
+     * @param condition the "equal" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateEqualCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (Objects.isNull(condition.getValues()) || condition.getValues().size() == 0) {
             return String.format("equal operator requires comparison values");
@@ -332,6 +453,16 @@ public class ImageRuleEvaluator {
         return null;
     }
 
+    /**
+     * Evaluate a number comparison condition against a property object resolved from the "context" of an image rule.
+     *
+     * <p>A number comparison condition checks wether the extracted image property is can be interpreted as a number and fulfills the
+     * comparison condition (lower than, lower than or equal, greater than, greater than or equal).
+     *
+     * @param condition the "equal" condition
+     * @param extractedValue the resolved context property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
     public static String evaluateNumberCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
         if (condition.getValues().size() == 0) {
             return String.format("comparison value is required for condition operator '%s'", condition.getOperator());

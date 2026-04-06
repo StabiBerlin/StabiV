@@ -30,6 +30,9 @@ public class JHoveExtractor implements Extractor {
     private ObjectIdentifier identifier;
     private JhoveBase jhove;
 
+    /**
+     * Initialize a new JHove instance.
+     */
     public JHoveExtractor() {
         try {
             modules = new Module[] { new TiffModule(), new Jpeg2000Module(), new JpegModule(), new GifModule(), new PdfModule() };
@@ -44,6 +47,12 @@ public class JHoveExtractor implements Extractor {
         }
     }
 
+    /**
+     * Extract image properties for an image file.
+     *
+     * @param filepath the filepath to the image file whose properties are supposed to be extracted
+     * @return the extracted property tree
+     */
     public ExtractionResult extractProperties(Path filepath) throws ExtractionError {
         try {
             RepInfo info = new RepInfo(filepath.toString());

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.spkberlin.imagevalidation.cli.validation.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import org.slf4j.Logger;
@@ -30,7 +29,12 @@ public class JsonLogWriter {
         String warning
     ) {}
 
-    public static void writeFileValidationLog(Path filepath, ImageValidationResult result) {
+    /**
+     * Write a JSON log entry to stdout summarizing the validation result for a single image file.
+     *
+     * @param result the image validation result for one image file
+     */
+    public static void writeFileValidationLog(ImageValidationResult result) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
             Boolean passed = result.getImageRuleEvaluationResult().getErrors().isEmpty();
@@ -38,7 +42,7 @@ public class JsonLogWriter {
             LogEntry entry = new LogEntry(
                 time,
                 "file",
-                filepath.toString(),
+                result.getFilePath().toString(),
                 result.getChecksum(),
                 passed ? "success" : "failed",
                 result.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse(null),
@@ -52,14 +56,19 @@ public class JsonLogWriter {
         }
     }
 
-    public static void writeDirectoryValidationLog(Path directory, DirectoryValidationResult result) {
+    /**
+     * Write a JSON log entry to stdout summarizing the validation result for a single directory.
+     *
+     * @param result the validation result for a single image directory
+     */
+    public static void writeDirectoryValidationLog(DirectoryValidationResult result) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
 
             LogEntry entry = new LogEntry(
                 time,
                 "directory",
-                directory.toString(),
+                result.getDirectory().toString(),
                 null,
                 result.getPassed() ? "success" : "failed",
                 null,

@@ -12,6 +12,13 @@ public class ConfigurationWriter {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationWriter.class);
 
+    /**
+     * Convert a configuration to yaml format via ObjectMapper.
+     *
+     * @param config the configuration
+     * @return a string of the configuration in yaml format
+     * @throws IOException in case conversion fails
+     */
     public static String writeConfigurationFile(ConfigurationRoot config) throws IOException {
         logger.debug("serialize yaml configuration");
         return YAMLMapper.builder()

@@ -11,6 +11,14 @@ public class ImageValidationResult {
     private ExtractionResult extractionResult;
     private String checksum;
 
+    /**
+     * Initialize new image validation result.
+     *
+     * @param filepath the filepath to the image that was validated
+     * @param imageRuleEvaluationResult the validation result of checking image rules
+     * @param extractionResult the extracted image properties for all extractors
+     * @param checksum the image file checksum
+     */
     public ImageValidationResult(
         Path filepath,
         ImageRuleEvaluationResult imageRuleEvaluationResult,

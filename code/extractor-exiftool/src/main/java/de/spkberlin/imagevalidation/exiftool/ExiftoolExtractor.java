@@ -37,6 +37,13 @@ public class ExiftoolExtractor implements Extractor {
         return new ExtractionResult(parseExifToolOutput(output));
     }
 
+    /**
+     * Spawn a new process for ExifTool and collect both stdout and stderr.
+     *
+     * @param filename the filepath of the file to process with ExifTool
+     * @return the stdout of ExifTool
+     * @throws ExtractionError in case something failed or there is data transmitted on stderr
+     */
     public String runExifTool(Path filename) throws ExtractionError {
         StringBuilder stdout = new StringBuilder();
         StringBuilder stderr = new StringBuilder();
@@ -75,6 +82,12 @@ public class ExiftoolExtractor implements Extractor {
         return stdout.toString();
     }
 
+    /**
+     * Parse the output of Exiftool to a property tree by reading each line as a path property.
+     *
+     * @param output the stdout of the ExifTool assuming options "-a -u -s -G5"
+     * @return the parsed property tree
+     */
     public Map<String, Object> parseExifToolOutput(String output) {
         Set<PathProperty> properties = new HashSet<>();
         String[] lines = output.split(NEWLINE);
@@ -87,7 +100,7 @@ public class ExiftoolExtractor implements Extractor {
                 continue;
             }
 
-            String propertyPath = transformPropertyName(propertyArray[0].trim());
+            String propertyPath = transformPropertyPath(propertyArray[0].trim());
             String propertyValue = propertyArray[1].trim();
 
             properties.add(new PathProperty(propertyPath, propertyValue));
@@ -96,11 +109,27 @@ public class ExiftoolExtractor implements Extractor {
         return PathPropertiesTree.buildTreeFromPaths(properties);
     }
 
+    /**
+     * Convert a property path part provided by Exiftool into a path property following a simplified JsonPath schema.
+     *
+     * <p>For example, `IFD0` will be converted to `IFD[0]`.
+     *
+     * @param part the part of the property path that might encode a list of values
+     * @return the convert part suitable for interpretation as simplified JsonPath
+     */
     public static String transformArrayProperty(String part) {
         return ARRAY_PATTERN.matcher(part).replaceAll(m -> m.group(1) + (Objects.nonNull(m.group(2)) ? ("[" + m.group(2) + "]") : ""));
     }
 
-    public static String transformPropertyName(String encoded) {
+    /**
+     * Convert a property path provided by Exiftool into a path property following a simplified JsonPath schema.
+     *
+     * <p>For example, `[TIFF-IFD0] XResolution` is converted to `TIFF/IFD[0]/Xresolution`.
+     *
+     * @param encoded the property path as provided by ExifTool
+     * @return the converted path property in simplified JsonPath schema
+     */
+    public static String transformPropertyPath(String encoded) {
         return LINE_PATTERN.matcher(encoded).replaceAll(match -> {
             String propertyPath = Arrays.asList(match.group(1).split("-"))
                 .stream()

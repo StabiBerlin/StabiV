@@ -24,6 +24,7 @@
 
     <!--dependency versions -->
     <asciidoctor-maven-plugin.version>3.1.1</asciidoctor-maven-plugin.version>
+    <commons-codec.version>1.21.0</commons-codec.version>
     <commons-csv.version>1.14.1</commons-csv.version>
     <commons-lang3.version>3.18.0</commons-lang3.version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
@@ -61,6 +62,11 @@
         <groupId>com.jayway.jsonpath</groupId>
         <artifactId>json-path</artifactId>
         <version>${json-path.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons-codec.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -261,6 +267,8 @@
               <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <linkXRef>false</linkXRef>
+              <failOnViolation>true</failOnViolation>
+              <violationSeverity>warning</violationSeverity>
             </configuration>
             <executions>
               <execution>
