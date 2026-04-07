@@ -12,7 +12,7 @@ In Linux, install Java 21+ and Exiftool:
 Then, you can start the tool from your console with the following command:
 
 ```
-bash run.sh --help
+bash spk-iv-cli.sh --help
 ```
 
 ## First Steps
@@ -21,7 +21,7 @@ In order to get familiar with this tool, you should start taking a look at the `
 properties with [JHove](https://jhove.openpreservation.org/) and [Exiftool](https://exiftool.org/) and visualizes the extracted information:
 
 ```
-bash run.sh extract examples/simple/wellformed/simple_rgb.tif
+bash spk-iv-cli.sh extract examples/simple/wellformed/simple_rgb.tif
 ```
 
 The extracted properties are visualized as a hierarchical JSON file:
@@ -67,7 +67,7 @@ hierarchy via a JsonPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc95
 In order to extract the Tif tag `PhotometricInterpretation`, you can use the following command:
 
 ```
-bash run.sh extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif
+bash spk-iv-cli.sh extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif
 ```
 
 Its output should be:
@@ -85,13 +85,13 @@ There are many other possible path variants. A comprehensive list of examples ca
 You can test validating images from the two examples provided in the `examples` directory.
 
 ```
-bash run.sh validate -v --config=examples/simple/config.yaml
+bash spk-iv-cli.sh validate -v --config=examples/simple/config.yaml
 ```
 
 or
 
 ```
-bash run.sh validate -v --config=examples/spk-berlin/config.yaml
+bash spk-iv-cli.sh validate -v --config=examples/spk-berlin/config.yaml
 ```
 
 Both commands will generate an CSV file `output.csv` in their respective directories.
