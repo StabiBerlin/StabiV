@@ -3,6 +3,7 @@ package de.spkberlin.imagevalidation.cli.validation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ public class DirectoryValidation {
     public static DirectoryValidationResult validate(
         Path directory,
         List<String> consistentProperties,
+        ConfigurationValidationConsecutiveNumbering consecutiveNumbering,
         Map<Path, ImageValidationResult> imageValidationResults
     ) throws IOException {
         String allImagesValidError = evaluateAllImagesAreValid(imageValidationResults);
@@ -43,6 +45,15 @@ public class DirectoryValidation {
         if (Objects.nonNull(allPropertiesConsistentError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allPropertiesConsistentError);
             return new DirectoryValidationResult(directory, imageValidationResults, allPropertiesConsistentError);
+        }
+
+        String consecutivenessError = DirectoryConsecutivenessValidation.evaluateConsecutiveness(
+            consecutiveNumbering,
+            imageValidationResults.keySet()
+        );
+        if (Objects.nonNull(consecutivenessError)) {
+            logger.info("validation of directory '{}' failed due to '{}'", directory, consecutivenessError);
+            return new DirectoryValidationResult(directory, imageValidationResults, consecutivenessError);
         }
 
         logger.info("validation of directory '{}' was successful", directory);
@@ -77,11 +88,7 @@ public class DirectoryValidation {
             }
 
             if (allValues.size() != 1) {
-                return String.format(
-                    "there are %d different values for property '%s' that should be consistent",
-                    allValues.size(),
-                    consistentProperty
-                );
+                return String.format("property '%s' is not consistent (has %d different values)", consistentProperty, allValues.size());
             }
         }
 

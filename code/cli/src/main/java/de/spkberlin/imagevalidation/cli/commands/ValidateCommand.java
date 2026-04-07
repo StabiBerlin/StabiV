@@ -137,6 +137,21 @@ public class ValidateCommand implements Callable<Integer> {
         List<String> consistentProperties = Collections.emptyList();
 
         @Option(
+            names = { "--consecutiveNumbering" },
+            paramLabel = "REGEXP",
+            arity = "1",
+            description = """
+            Add the validation requirement that a directory is supposed to only contain files with numbers in consecutive order from 1 to n.
+
+            The regular expression needs to match filenames and capture the part of the filename that contains a number with a match group.
+
+            Example:
+             - `"^(\\d{6})\\.tif$"` - tif files with 6-digit numbers, e.g. `000001.tif`, `000002.tif`, etc.
+            """
+        )
+        String consecutiveNumbering;
+
+        @Option(
             names = { "--threads" },
             arity = "1",
             paramLabel = "COUNT",
@@ -283,6 +298,7 @@ public class ValidateCommand implements Callable<Integer> {
             config,
             validationOptions.imageRules,
             validationOptions.consistentProperties,
+            validationOptions.consecutiveNumbering,
             validationOptions.parallelThreads
         );
         ConfigurationMerger.mergeOutput(

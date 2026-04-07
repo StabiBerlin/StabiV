@@ -6,6 +6,7 @@ import java.util.List;
 public class ConfigurationValidationDirectoryRules {
 
     private List<String> consistentProperties;
+    private ConfigurationValidationConsecutiveNumbering consecutiveNumbering;
 
     public ConfigurationValidationDirectoryRules() {
         this.consistentProperties = new ArrayList<>();
@@ -17,5 +18,13 @@ public class ConfigurationValidationDirectoryRules {
 
     public void setConsistentProperties(List<String> consistentProperties) {
         this.consistentProperties = consistentProperties;
+    }
+
+    public ConfigurationValidationConsecutiveNumbering getConsecutiveNumbering() {
+        return consecutiveNumbering;
+    }
+
+    public void setConsecutiveNumbering(ConfigurationValidationConsecutiveNumbering consecutiveNumbering) {
+        this.consecutiveNumbering = consecutiveNumbering;
     }
 }

@@ -94,6 +94,7 @@ public class ValidateAll {
         DirectoryValidationResult directoryResult = DirectoryValidation.validate(
             directory,
             config.getValidation().getDirectoryRules().getConsistentProperties(),
+            config.getValidation().getDirectoryRules().getConsecutiveNumbering(),
             imageValidationResultsByDirectory
         );
 
