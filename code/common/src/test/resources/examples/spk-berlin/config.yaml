@@ -1,30 +1,4 @@
-# ---
-# Input Options
-#
-# Specify which directories and files to process, and which directories and files to ignore
 input:
-  # ---
-  # Include Patterns
-  #
-  # List all directories or files that are supposed to be validated. Relative paths are resolved relative to the location of this
-  # configuration file. If a directory is listed, all of its contents are validated, including any subdirectories. If a pattern is listed,
-  # subdirectories are only processed if the directory path matches the pattern. For example, the pattern `directory/*.tif` only matches
-  # files with the "tif" extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/*` matches any files or
-  # subdirectories, and thus, subdirectories are also validated.
-  #
-  # Patterns can be defined via the "glob" syntax. Single asterisks (*) match any characters without crossing directory boundaries. Double
-  # asterisks (**) match any characters crossing directory boundings. More details can be found here:
-  # https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)
-  #
-  # For Example:
-  #
-  # includes:
-  #  - /path/to/directory
-  #  - /path/to/file.tif
-  #  - /all/tif/files/*.tif
-  #  - /all/tif/files/in/all/subdirectories/**/*.tif
-  #  - /tif/or/jpeg/files/*.{tif,jpg}
-  #
   includes:
     - valid_variants
     - invalid_images
@@ -32,75 +6,14 @@ input:
     - consecutive_numbering
     - numbering_gap
 
-  # ---
-  # Exclude Patterns
-  #
-  # List all directories or files that match an "includes" pattern, but are supposed to be ignored and not validated.
-  # Patterns can be defined in the same way as describe for "includes" pattern.
-  #
-  # For Example:
-  #
-  # excludes:
-  #  - /path/to/directory  # exclude a specific directory
-  #  - **.jpg              # exclude jpg files in any subdirectories
-  #
-  excludes:
-
-# ---
-# Validation Options
-#
 validation:
-  # ---
-  # Parallel Execution Threads
-  #
-  # Specify the number of images that are validated in parallel (default 4). Only images of the same directory are validated in parallel.
-  # Directories are processed one after another.
-  #
   parallelThreads: 4
 
-  # ---
-  # Validation Rules for Directories
-  #
-  # The following options are used to determine whether a directory is considered valid or not. Even if no options are provided, a
-  # directory is only considered valid if all images files contained in it are evalated as valid.
-  #
   directoryRules:
-    # ---
-    # Consistent Properties by Directory
-    #
-    # Define a list of properties with JsonPath that are required to be consistent for all images within a directory.
-    # If there are two images with different values for the same property, the validation of this directory fails.
-    # Individual images may still be valid by themselves. Defaults to an empty list.
-    #
-    # For Example:
-    #
-    # consistentProperties:
-    #   - $.exiftool.TIFF.IFD[0].PhotometricInterpretation
-    #   - $.exiftool.TIFF.IFD[0].BitsPerSample
-    #
     consistentProperties:
       - $.exiftool.TIFF.IFD[0].PhotometricInterpretation
       - $.exiftool.TIFF.IFD[0].BitsPerSample
 
-    # ---
-    # Consecutive Numbering of Files in a Directory
-    #
-    # Define a regular expression that is used to parse a unique number from a filename that can be checked for consecutiveness within a
-    # directory. This check will verify that image files are numbered without gaps inside a directory, e.g. `000001.tif`, `000002.tif`,
-    # etc. The regular expression needs to be defined in a way that the number contained in a filename is matched with a single
-    # match group. For example, the regular expression `^(\d{6})\.tif$` defines a match group around a 6-digit number by adding
-    # parentheses around this part of the filename. There can be multiple match groups if required. The match group number can be
-    # specified (defaults to 1). By default, the first file in the directory must start with number 1.
-    #
-    # Regular Expression documentation:
-    # https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html
-    #
-    # For Example:
-    #
-    # consecutiveNumbering:
-    #   filenameRegExp: ^(\d{6})\.tif$
-    #   numberMatchGroup: 1
-    #   startNumber: 1
     consecutiveNumbering:
       filenameRegExp: ^(\d{6})\.tif$
       numberMatchGroup: 1
