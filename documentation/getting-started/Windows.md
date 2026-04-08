@@ -4,7 +4,7 @@ This tool provides a command line interface (CLI) that validates images and thei
 
 ## Installation
 
-In Windows, no additional installation is required. Double click on `prompt.bat` to open a command prompt in this directory.
+On Windows, no additional installation is required. Double-click on `prompt.bat` to open a command prompt in this directory.
 
 You can now start the tool from your console with the following command:
 
@@ -61,7 +61,7 @@ The extracted properties are visualized as a hierarchical JSON file:
 Images will be validated based on this information. Validation rules are defined on specific properties extracted from this
 hierarchy via a JsonPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535)).
 
-In order to extract the Tif tag `PhotometricInterpretation`, you can use the following command:
+In order to extract the TIF tag `PhotometricInterpretation`, you can use the following command:
 
 ```
 spk-iv-cli.bat extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif

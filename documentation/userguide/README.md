@@ -4,12 +4,12 @@ This document describes how the Image Validation CLI can be used to validate ima
 
 ## Getting Started
 
-The Image Validation CLI is currently supported on Windows and Linux. Since installation is slightly different on both plattforms, there are two separate guides located here:
+The Image Validation CLI is currently supported on Windows and Linux. Since installation is slightly different on both platforms, there are two separate guides located here:
 
 - [Getting Started on Windows](./Windows.md)
 - [Getting Started on Linux](./Linux.md)
 
-Once installed and running, the only difference between Windows and Linux is how filepaths are specified, meaning `/path/to/directory` (Linux) vs. `C:\\path\to\directory` (Windows).
+Once installed and running, the only difference between Windows and Linux is how file paths are specified, meaning `/path/to/directory` (Linux) vs. `C:\\path\to\directory` (Windows).
 
 ## Command Line Options
 
@@ -34,11 +34,11 @@ Each section is described in detail as follows.
 
 The `input` section specifies which directories and files to process, and which directories and files to ignore.
 
-You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative filepaths are resolved relative to the location of the configuration file.
+You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative file paths are resolved relative to the location of the configuration file.
 
 If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories are only processed if the directory path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the "tif" extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/*` matches any files or subdirectories, and thus, subdirectories are also validated.
 
-Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory boundings. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
+Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 
 For Example:
 
@@ -69,7 +69,7 @@ input:
 
 ### Extraction Section
 
-The `extraction` sections allows to configure which extractor modules are applied to each image, as well as additional options for each of these extractor modules. However, currently, only the list of modules can be configured:
+The `extraction` sections allows configuring which extractor modules are applied to each image, as well as additional options for each of these extractor modules. However, currently, only the list of modules can be configured:
 
 For example:
 
@@ -114,14 +114,14 @@ validation:
 
 #### Image Rules
 
-The `imageRules` section contains a list of validation rules that check extracted image properties against certain conditions (e.g. `exists`, `equal`, `oneOf`). An image rule is comprised of the following options:
+The `imageRules` section contains a list of validation rules that check extracted image properties against certain conditions (e.g. `exists`, `equal`, `oneOf`). An image rule consists of the following options:
 
 - `message` - an error or warning message that is shown in case the validation rule fails
-- `severity` - either `error` or `warning`, an image with a warning still passes validation succesfully
+- `severity` - either `error` or `warning`, an image with a warning still passes validation successfully
 - `context` - the set of properties or property subtrees that are checked against the condition
 - `condition` - the condition that is checked
 
-The options `context` and `condition` work together in the following way: the context option describes which property or properties to check, and the condition option describes how to check them. This two-fold definition is required, because image properties are hierarchical and may occur multiple times, e.g., in case of multi-page tif images with multiple IFDs. Suppose you would like validate that every multi-page tif subimage uses the colorspace `rgb`. Then, the context will describe the part "every IFD", and the condition will describe the part "has to have rgb colorspace". An appropriate rule for this scenario would be:
+The options `context` and `condition` work together in the following way: the context option describes which property or properties to check, and the condition option describes how to check them. This two-fold definition is required, because image properties are hierarchical and may occur multiple times, e.g., in case of multipage TIF images with multiple IFDs. Suppose you would like validate that every multipage TIF sub-image uses the color space `rgb`. Then, the context will describe the part "every IFD", and the condition will describe the part "has to have RGB color space". An appropriate rule for this scenario would be:
 
 ```
 message: Every IFD needs to be have RGB colorspace
@@ -200,7 +200,7 @@ condition:
 
 #### Additional Image Rule Examples
 
-Check that JHove has detected the image as wellformed if the JHove extractor module is used:
+Check that JHove has detected the image as well-formed if the JHove extractor module is used:
 
 ```
 message: JHove must detect file as wellformed
@@ -212,7 +212,7 @@ condition:
   value: true
 ```
 
-Always check that the JHove extractor is applied and that the image is detected as wellformed even if the JHove extractor is disabled based on other configuration options:
+Always check that the JHove extractor is applied and that the image is detected as well-formed even if the JHove extractor is disabled based on other configuration options:
 
 ```
 message: JHove must detect file as wellformed
@@ -223,7 +223,7 @@ condition:
   value: true
 ```
 
-Check that a Tif image has exactly one IFD if the Exiftool extractor module is used:
+Check that a TIF image has exactly one IFD if the ExifTool extractor module is used:
 
 ```
 message: Must have exactly one IFD
@@ -237,7 +237,7 @@ condition:
 
 #### Directory Rules
 
-The following options are used to determine whether a directory is considered valid or not. Even if no options are provided, a directory is only considered valid if all images files contained in it are evalated as valid.
+The following options are used to determine whether a directory is considered valid or not. Even if no options are provided, a directory is only considered valid if all images files contained in it are evaluated as valid.
 
 ##### Consistent Properties by Directory
 
@@ -308,7 +308,7 @@ The `output` section contains the following subsections:
 
 #### Logging
 
-The logging section allows to control what log messages are generated during the excecution of the image validation CLI. There are two options:
+The logging section allows controlling what log messages are generated during the execution of the image validation CLI. There are two options:
 
 - `json` - whether to write JSON-formatted log messages to `stdout`, and regular log messages to `stderr`
 - `verbosity` - the verbosity of regular log messages, either `error`, `warning`, `info`, `debug`, `trace`
@@ -337,10 +337,10 @@ output:
 
 The CSV report can be configured based on two options:
 
-- `path` - the filepath that is used to write the CSV report
+- `path` - the file path that is used to write the CSV report
 - `columns` - the list of additional property columns added to CSV report
 
-A relative filepath is resolved relative to the location of the configuration file.
+A relative file path is resolved relative to the location of the configuration file.
 
 Additional property columns can be specified as a list of two options:
 
@@ -380,7 +380,7 @@ The "validate" command of the Image Validation CLI works by following these gene
 1. Read command line options
 2. Load configuration file if provided
 3. Mix configuration and command line options into one configuration
-4. Find all files based on the list of included and excluded filepath patterns
+4. Find all files based on the list of included and excluded file path patterns
 5. Process one directory after another
    - Process all images of the directory in parallel (with max `--threads` concurrency)
      - Extract properties for the image with each extractor module one after another

@@ -4,7 +4,7 @@ This tool provides a command line interface (CLI) that validates images and thei
 
 ## Installation
 
-In Linux, install Java 21+ and Exiftool:
+On Linux, install Java 21+ and Exiftool:
 
 - Ubuntu: `sudo apt-get install default-jre-headless exiftool`
 - Fedora: `sudo dnf install java-latest-openjdk exiftool`
@@ -64,7 +64,7 @@ The extracted properties are visualized as a hierarchical JSON file:
 Images will be validated based on this information. Validation rules are defined on specific properties extracted from this
 hierarchy via a JsonPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535)).
 
-In order to extract the Tif tag `PhotometricInterpretation`, you can use the following command:
+In order to extract the TIF tag `PhotometricInterpretation`, you can use the following command:
 
 ```
 bash spk-iv-cli.sh extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif
