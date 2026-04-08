@@ -24,7 +24,6 @@ Known Issues
 - Configuration file problems will trigger unreadable error messages
 - CSV columns do not include Tiff tag ids
 - The CSV report doesn't contain an overall validation summary
-
 - Exit codes are not correct
 
 ## 0.1.0 - 2026-03-22
