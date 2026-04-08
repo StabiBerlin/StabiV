@@ -377,7 +377,7 @@ output:
 
 The "validate" command of the Image Validation CLI works by following these general processing steps:
 
-1. Process command line options
+1. Read command line options
 2. Load configuration file if provided
 3. Mix configuration and command line options into one configuration
 4. Find all files based on the list of included and excluded filepath patterns

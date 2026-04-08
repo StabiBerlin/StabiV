@@ -223,6 +223,7 @@
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
                         <include>*.md</include>
+                        <include>*.pdf</include>
                       </includes>
                     </fileSet>
                   </fileSets>
@@ -236,8 +237,13 @@
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/userguide/Linux.md}</source>
+                      <source>${project.basedir/../../documentation/getting-started/Linux.md}</source>
                       <destName>README.md</destName>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir/../../documentation/getting-started/Linux.pdf}</source>
+                      <destName>README.pdf</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
@@ -308,6 +314,7 @@
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
                         <include>*.md</include>
+                        <include>*.pdf</include>
                       </includes>
                     </fileSet>
                     <fileSet>
@@ -335,8 +342,13 @@
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/userguide/Windows.md}</source>
+                      <source>${project.basedir/../../documentation/getting-started/Windows.md}</source>
                       <destName>README.md</destName>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir/../../documentation/getting-started/Windows.pdf}</source>
+                      <destName>README.pdf</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
