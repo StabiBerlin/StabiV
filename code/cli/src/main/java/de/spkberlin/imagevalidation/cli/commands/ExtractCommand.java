@@ -104,7 +104,7 @@ public class ExtractCommand implements Callable<Integer> {
         @Parameters(
             paramLabel = "PATH",
             index = "0",
-            arity = "1",
+            arity = "1..a.",
             description = "filepath to individual file whose properties are extracted"
         )
         Path filepath;
