@@ -213,9 +213,16 @@
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/generated-docs</directory>
-                      <outputDirectory>documentation</outputDirectory>
+                      <outputDirectory>documentation/cli</outputDirectory>
                       <includes>
                         <include>*.html</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.basedir/../../documentation/userguide}</directory>
+                      <outputDirectory>documentation/userguide</outputDirectory>
+                      <includes>
+                        <include>*.md</include>
                       </includes>
                     </fileSet>
                   </fileSets>
@@ -226,6 +233,11 @@
                     </file>
                     <file>
                       <source>${project.basedir/../../CHANGELOG.md}</source>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir/../../documentation/userguide/Linux.md}</source>
+                      <destName>README.md</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
@@ -286,9 +298,16 @@
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/generated-docs</directory>
-                      <outputDirectory>documentation</outputDirectory>
+                      <outputDirectory>documentation/cli</outputDirectory>
                       <includes>
                         <include>*.html</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.basedir/../../documentation/userguide}</directory>
+                      <outputDirectory>documentation/userguide</outputDirectory>
+                      <includes>
+                        <include>*.md</include>
                       </includes>
                     </fileSet>
                     <fileSet>
@@ -313,6 +332,11 @@
                     </file>
                     <file>
                       <source>${project.basedir/../../CHANGELOG.md}</source>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir/../../documentation/userguide/Windows.md}</source>
+                      <destName>README.md</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
