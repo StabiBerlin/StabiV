@@ -218,6 +218,10 @@
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
+                      <source>${project.basedir/../../CHANGELOG.pdf}</source>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
                       <source>${project.basedir/../../documentation/getting-started/Linux.md}</source>
                       <destName>README.md</destName>
                       <outputDirectory>.</outputDirectory>
@@ -320,6 +324,10 @@
                     </file>
                     <file>
                       <source>${project.basedir/../../CHANGELOG.md}</source>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir/../../CHANGELOG.pdf}</source>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
