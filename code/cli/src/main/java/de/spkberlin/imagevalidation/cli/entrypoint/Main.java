@@ -25,7 +25,7 @@ public class Main {
         cmd.setCaseInsensitiveEnumValuesAllowed(true);
 
         Map<String, IHelpSectionRenderer> helpSectionMap = new HashMap<>(cmd.getHelpSectionMap());
-        helpSectionMap.put(SECTION_KEY_DESCRIPTION, help -> help.optionList().replace("&ast;", "*"));
+        helpSectionMap.put(SECTION_KEY_DESCRIPTION, help -> help.description().replace("&ast;", "*"));
         helpSectionMap.put(SECTION_KEY_OPTION_LIST, help -> help.optionList().replace("&ast;", "*"));
         cmd.setHelpSectionMap(helpSectionMap);
 
