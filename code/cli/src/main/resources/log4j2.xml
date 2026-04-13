@@ -6,16 +6,12 @@
                        https://logging.apache.org/xml/ns/log4j-config-2.xsd">
 
   <Appenders>
-    <Console name="CONSOLE" target="System.out">
+    <Console name="CONSOLE_OUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
+    </Console>
+    <Console name="CONSOLE_ERR" target="SYSTEM_ERR">
       <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
     </Console>
   </Appenders>
-
-  <Loggers>
-    <Logger name="de.spkberlin" level="INFO"/>
-    <Root level="WARN">
-      <AppenderRef ref="CONSOLE"/>
-    </Root>
-  </Loggers>
 
 </Configuration>
