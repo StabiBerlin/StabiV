@@ -179,7 +179,7 @@
                       <directory>src/main/assembly/linux</directory>
                       <outputDirectory>.</outputDirectory>
                       <includes>
-                        <include>*</include>
+                        <include>**</include>
                       </includes>
                     </fileSet>
                     <fileSet>
@@ -274,7 +274,7 @@
                       <directory>src/main/assembly/windows</directory>
                       <outputDirectory>.</outputDirectory>
                       <includes>
-                        <include>*</include>
+                        <include>**</include>
                       </includes>
                     </fileSet>
                     <fileSet>
