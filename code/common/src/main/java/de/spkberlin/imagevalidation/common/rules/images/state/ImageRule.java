@@ -1,10 +1,19 @@
 package de.spkberlin.imagevalidation.common.rules.images.state;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+
 public class ImageRule {
 
     private String context;
+
+    @Valid
     private ImageRuleCondition condition;
+
+    @Valid
     private ImageRuleSeverityType severity;
+
+    @NotBlank
     private String message;
 
     public ImageRule() {

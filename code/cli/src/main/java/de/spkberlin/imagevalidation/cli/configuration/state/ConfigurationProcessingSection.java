@@ -1,8 +1,12 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.constraints.Min;
+
 public class ConfigurationProcessingSection {
 
+    @Min(1)
     private Integer threads;
+
     private String checksumAlgorithm;
 
     public ConfigurationProcessingSection() {

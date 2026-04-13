@@ -1,5 +1,6 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 public class ConfigurationLoggingSection {
@@ -12,7 +13,10 @@ public class ConfigurationLoggingSection {
         ConfigurationLoggingVerbosityType.trace
     );
 
+    @Valid
     private Boolean json;
+
+    @Valid
     private ConfigurationLoggingVerbosityType verbosity;
 
     public ConfigurationLoggingSection() {

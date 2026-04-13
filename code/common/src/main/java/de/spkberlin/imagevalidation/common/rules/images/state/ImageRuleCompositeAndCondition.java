@@ -1,10 +1,13 @@
 package de.spkberlin.imagevalidation.common.rules.images.state;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 public class ImageRuleCompositeAndCondition extends ImageRuleCompositeCondition {
 
-    private List<ImageRuleCondition> and;
+    @NotEmpty
+    private List<@Valid ImageRuleCondition> and;
 
     public ImageRuleCompositeAndCondition() {
         // empty

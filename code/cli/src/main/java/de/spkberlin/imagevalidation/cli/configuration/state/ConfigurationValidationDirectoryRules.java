@@ -1,11 +1,14 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationValidationDirectoryRules {
 
     private List<String> consistentProperties;
+
+    @Valid
     private ConfigurationValidationConsecutiveNumbering consecutiveNumbering;
 
     public ConfigurationValidationDirectoryRules() {

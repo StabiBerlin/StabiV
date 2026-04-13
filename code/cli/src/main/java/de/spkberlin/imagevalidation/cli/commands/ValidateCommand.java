@@ -1,9 +1,12 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
+import com.fasterxml.jackson.databind.DatabindException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationMerger;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationParser;
+import de.spkberlin.imagevalidation.cli.configuration.ConfigurationValidator;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationWriter;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
@@ -267,7 +270,18 @@ public class ValidateCommand implements Callable<Integer> {
 
         logger.info("run validate command");
 
-        ConfigurationRoot config = loadConfiguration();
+        ConfigurationRoot config;
+        try {
+            config = loadConfiguration();
+        } catch (IOException e) {
+            logger.error("configuration file could not be loaded, exiting ...");
+            return 2;
+        }
+
+        if (!ConfigurationValidator.validateConfiguration(config)) {
+            logger.error("configuration invalid, exiting ...");
+            return 2;
+        }
 
         Logging.setLogMode(config.getOutput().getLogging().getJson());
         Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));

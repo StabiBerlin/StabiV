@@ -1,11 +1,22 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.Valid;
+
 public class ConfigurationRoot {
 
+    @Valid
     private ConfigurationInputSection input;
+
+    @Valid
     private ConfigurationProcessingSection processing;
+
+    @Valid
     private ConfigurationExtractionSection extraction;
+
+    @Valid
     private ConfigurationValidationSection validation;
+
+    @Valid
     private ConfigurationOutputSection output;
 
     /**

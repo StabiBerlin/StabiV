@@ -8,10 +8,11 @@ New Features
 - Added an example script `move_directories.sh` that demonstrates how directories can be moved via `rsync` to two different targets depending on validation success
 - Image filenames can be checked with regular expressions via Exiftool property `$.exiftool.System.FileName` and the `matches` operation
 - The checksum algorithm can now be configured via `--checksum` or the corresponding yaml config
+- Configuration files are validated and problems will be logged as error messages
 
 Breaking Changes
 
-- Configurtion option `parallelThreads` was moved from section `validation` to section `processing` and is now called `threads`
+- Configurtion option `parallelThreads` was moved from YAML section `validation` to YAML section `processing` and is now called `threads`
 
 Fixes
 
@@ -20,7 +21,6 @@ Fixes
 Known Issues
 
 - It is not possible yet to define maximum deviations for image dimensions within one directory
-- Configuration file problems will trigger unreadable error messages
 - CSV columns do not include Tiff tag ids
 - The CSV report doesn't contain an overall validation summary
 - Exiftool and Java is not bundled with the Linux version

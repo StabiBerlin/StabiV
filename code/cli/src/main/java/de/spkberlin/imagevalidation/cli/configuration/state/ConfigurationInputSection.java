@@ -1,12 +1,18 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationInputSection {
 
-    private List<ConfigurationPath> includes;
-    private List<ConfigurationPath> excludes;
+    @NotEmpty
+    private List<@Valid ConfigurationPath> includes;
+
+    private List<@Valid ConfigurationPath> excludes;
+
+    @Valid
     private ConfigurationPath path;
 
     public ConfigurationInputSection() {

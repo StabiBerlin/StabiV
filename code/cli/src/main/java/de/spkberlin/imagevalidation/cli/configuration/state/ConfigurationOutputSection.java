@@ -1,8 +1,13 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.Valid;
+
 public class ConfigurationOutputSection {
 
+    @Valid
     private ConfigurationCsvSection csv;
+
+    @Valid
     private ConfigurationLoggingSection logging;
 
     public ConfigurationOutputSection() {

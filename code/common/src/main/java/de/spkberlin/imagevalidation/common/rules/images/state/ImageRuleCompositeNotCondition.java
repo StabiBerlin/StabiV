@@ -1,7 +1,12 @@
 package de.spkberlin.imagevalidation.common.rules.images.state;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 public class ImageRuleCompositeNotCondition extends ImageRuleCompositeCondition {
 
+    @Valid
+    @NotNull
     private ImageRuleCondition not;
 
     public ImageRuleCompositeNotCondition() {

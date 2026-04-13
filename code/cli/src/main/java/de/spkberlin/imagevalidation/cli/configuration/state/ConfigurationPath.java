@@ -1,11 +1,14 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import jakarta.validation.constraints.NotBlank;
 import java.nio.file.Path;
 
 public class ConfigurationPath {
 
     private Path baseDirectory;
+
+    @NotBlank
     private String path;
 
     public ConfigurationPath() {

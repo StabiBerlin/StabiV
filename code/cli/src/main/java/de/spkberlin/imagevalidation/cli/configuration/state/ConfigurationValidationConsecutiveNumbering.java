@@ -1,9 +1,15 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.constraints.Min;
+
 public class ConfigurationValidationConsecutiveNumbering {
 
     private String filenameRegExp;
+
+    @Min(0)
     private Integer numberMatchGroup;
+
+    @Min(0)
     private Integer startNumber;
 
     public ConfigurationValidationConsecutiveNumbering() {

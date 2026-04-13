@@ -2,11 +2,16 @@ package de.spkberlin.imagevalidation.common.rules.images.state;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class ImageRuleSimpleCondition extends ImageRuleCondition {
 
+    @NotEmpty
     private String property;
+
+    @NotNull
     private ImageRuleSimpleConditionOperatorType operator;
 
     @JsonProperty("value")
