@@ -1,7 +1,5 @@
 package de.spkberlin.imagevalidation.cli.commands;
 
-import com.fasterxml.jackson.databind.DatabindException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import de.spkberlin.imagevalidation.cli.commands.options.CommonOptions;
 import de.spkberlin.imagevalidation.cli.common.Logging;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationMerger;
