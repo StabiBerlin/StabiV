@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -119,5 +120,31 @@ public class ValidateAll {
                 new ImageValidationRunner(filepath, config.getExtraction().getModules(), config.getValidation().getImageRules())
             )
             .toList();
+    }
+
+    /**
+     * Return true if validation of directories and images was succesful overall.
+     *
+     * @param result the validation results for all directories and images
+     * @return true if all were valid
+     */
+    public static boolean isOverallValid(ValidateAllResult result) {
+        // check all directory results
+        for (DirectoryValidationResult directoryResult : result.getDirectoryValidationResults().values()) {
+            if (Objects.nonNull(directoryResult.getError())) {
+                return false;
+            }
+        }
+
+        // check all image results
+        for (ImageValidationResult imageResult : result.getImageValidationResults().values()) {
+            if (
+                Objects.nonNull(imageResult.getImageRuleEvaluationResult().getErrors()) &&
+                imageResult.getImageRuleEvaluationResult().getErrors().size() > 0
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 }

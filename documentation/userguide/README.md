@@ -392,4 +392,51 @@ The "validate" command of the Image Validation CLI works by following these gene
    - Check filename consecutiveness in the directory
    - Generate a JSON command line output log summarizing the validation result for the directory
 6. Build CSV report of all validation results
-7. **_TODO_**: Exit with exit code based on overall validation success
+7. Exit with exit code based on overall validation success
+
+## JSON Output Mode
+
+In order to postprocess validation results the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
+
+The JSON output mode generates one JSON document per line of output. Each JSON document follows the same structure and consists of the following properties:
+
+- `time` - the current time
+- `type` - either `file` or `directory`, depending on whether the validation report concerns a file or directory
+- `path` - the absolute path to the file or directory that was validated
+- `checksum` - the checksum of the file (only for files)
+- `validation` - either `success` or `failed` depending on the validation success
+- `error` - either `null` or an error message describing the cause of validation failure
+- `warning` - either `null` or a warning message describing images validation rules with severity level "warning" that did not pass
+
+For example, succesful images will be reported as:
+
+```
+{"time":"2026-04-13 15:42:55.151","type":"file","path":"/path/to/valid.tif","checksum":"04baa2eb55625d139b56ea00d6e8f82e0d01462d","validation":"success","error":null,"warning":null}
+```
+
+Succesful directories will be reported as:
+
+```
+{"time":"2026-04-13 15:42:54.276","type":"directory","path":"/path/to/valid/directory","checksum":null,"validation":"success","error":null,"warning":null}
+```
+
+Images that fail validation are reported as:
+
+```
+{"time":"2026-04-13 15:42:54.909","type":"file","path":"/path/to/invalid.tif","checksum":"79b65f7a496fc8bede1756f32c2f9f75d7468688","validation":"failed","error":"SerialNumber required","warning":null}
+```
+
+Directories that fail validation are reported as:
+
+```
+{"time":"2026-04-13 15:42:54.912","type":"directory","path":"/path/to/invalid/directory","checksum":null,"validation":"failed","error":"at least one image has a validation error","warning":null}
+```
+
+## Exit Codes
+
+The "validate" command returns special exit codes depending on whether validation for all images and directories was succesful or not:
+
+- `0` - successful validation of all images and directories without any errors
+- `1` - generic program error, validation was aborted
+- `2` - an unknown CLI option or invalid parameter was specified
+- `3` - no program errors, but validation failed for at least one image or directory with an error

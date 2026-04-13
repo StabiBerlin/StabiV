@@ -43,12 +43,17 @@ import picocli.CommandLine.Parameters;
     """,
     showAtFileInUsageHelp = true, // allow to provide list of directories and files as a file instead of as cli arguments
     optionListHeading = "%n@|bold General Options|@%n%n",
+    exitCodeOnExecutionException = 1,
+    exitCodeOnInvalidInput = 2,
+    exitCodeOnSuccess = 0,
+    exitCodeOnUsageHelp = 0,
+    exitCodeOnVersionHelp = 0,
     exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
     exitCodeList = {
-        "0:successful validation without errors",
-        "1:generic program error, validation aborted",
-        "2:no program errors, but validation finished with errors",
-        "64:an unknown option or invalid parameter was specified",
+        "0:successful validation of all images and directories without any errors",
+        "1:generic program error, validation was aborted",
+        "2:an unknown CLI option or invalid parameter was specified",
+        "3:no program errors, but validation failed for at least one image or directory with an error",
     }
 )
 public class ValidateCommand implements Callable<Integer> {
@@ -259,7 +264,7 @@ public class ValidateCommand implements Callable<Integer> {
             CsvWriter.writeReport(resolvedCsvPath, result, config.getOutput().getCsv().getColumns());
         }
 
-        return 0;
+        return ValidateAll.isOverallValid(result) ? 0 : 3;
     }
 
     /**

@@ -1,6 +1,27 @@
 # Changelog
 
-## 0.2.0 - 2026-04-08
+## v0.3.0 - tbd
+
+New Features
+
+- Exit codes are now correct and reflect the overall validation success or failure
+- Added an example script `move_directories.sh` that demonstrates how directories can be moved via `rsync` to two different targets depending on validation success
+- Image filenames can be checked with regular expressions via Exiftool property `$.exiftool.System.FileName` and the `matches` operation
+
+Fixes
+
+- Fix log messages were not redirected to `stderr` in `--json` mode
+
+Known Issues
+
+- The checksum algorithm cannot be configured yet (fixed to SHA-1)
+- It is not possible yet to define maximum deviations for image dimensions within one directory
+- Configuration file problems will trigger unreadable error messages
+- CSV columns do not include Tiff tag ids
+- The CSV report doesn't contain an overall validation summary
+- Exiftool and Java is not bundled with the Linux version
+
+## v0.2.0 - 2026-04-08
 
 New Features
 
@@ -24,9 +45,8 @@ Known Issues
 - Configuration file problems will trigger unreadable error messages
 - CSV columns do not include Tiff tag ids
 - The CSV report doesn't contain an overall validation summary
-- Exit codes are not correct
 
-## 0.1.0 - 2026-03-22
+## v0.1.0 - 2026-03-22
 
 Initial version
 
