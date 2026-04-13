@@ -3,6 +3,7 @@ package de.spkberlin.imagevalidation.cli.configuration.state;
 public class ConfigurationRoot {
 
     private ConfigurationInputSection input;
+    private ConfigurationProcessingSection processing;
     private ConfigurationExtractionSection extraction;
     private ConfigurationValidationSection validation;
     private ConfigurationOutputSection output;
@@ -23,6 +24,14 @@ public class ConfigurationRoot {
 
     public void setInput(ConfigurationInputSection input) {
         this.input = input;
+    }
+
+    public ConfigurationProcessingSection getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(ConfigurationProcessingSection processing) {
+        this.processing = processing;
     }
 
     public ConfigurationExtractionSection getExtraction() {

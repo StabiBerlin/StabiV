@@ -7,6 +7,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLogging
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationProcessingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
@@ -54,6 +55,28 @@ public class ConfigurationMerger {
     }
 
     /**
+     * Merge processing section of yaml configuration with CLI options.
+     *
+     * @param config the yaml configuration
+     * @param parallelThreads the number of executions threads for image validation provided via CLI option
+     * @param checksumAlgorithm the checksum algorithm that is provided via CLI option
+     */
+    public static void mergeProcessing(ConfigurationRoot config, Integer parallelThreads, String checksumAlgorithm) {
+        // make sure processing section exists
+        if (Objects.isNull(config.getProcessing())) {
+            config.setProcessing(new ConfigurationProcessingSection());
+        }
+        // set parallel threads if provided
+        if (Objects.nonNull(parallelThreads)) {
+            config.getProcessing().setThreads(parallelThreads);
+        }
+        // set checksum algorithm if provided
+        if (Objects.nonNull(checksumAlgorithm)) {
+            config.getProcessing().setChecksumAlgorithm(checksumAlgorithm);
+        }
+    }
+
+    /**
      * Merge extraction section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
@@ -77,22 +100,16 @@ public class ConfigurationMerger {
      * @param imageRules the list of additional image validation rules provided via CLI options
      * @param consistentProperties the list of additional properties to check to be consistent via CLI option
      * @param consecutiveNumberingFilenameRegExp the filename regexp for checking consecutive numbering provided via CLI option
-     * @param parallelThreads the number of executions threads for image validation provided via CLI option
      */
     public static void mergeValidation(
         ConfigurationRoot config,
         List<String> imageRules,
         List<String> consistentProperties,
-        String consecutiveNumberingFilenameRegExp,
-        Integer parallelThreads
+        String consecutiveNumberingFilenameRegExp
     ) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {
             config.setValidation(new ConfigurationValidationSection());
-        }
-        // set parallel threads if provided
-        if (Objects.nonNull(parallelThreads)) {
-            config.getValidation().setParallelThreads(parallelThreads);
         }
         // make sure directory section exists
         if (Objects.isNull(config.getValidation().getDirectoryRules())) {

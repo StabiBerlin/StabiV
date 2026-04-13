@@ -28,8 +28,8 @@ public class ValidateAll {
      * @return the validation result for all directories and images
      */
     public static ValidateAllResult validateAll(ConfigurationRoot config) {
-        logger.debug("initialize {} threads for parallel image validation", config.getValidation().getParallelThreads());
-        ExecutorService pool = Executors.newFixedThreadPool(config.getValidation().getParallelThreads());
+        logger.debug("initialize {} threads for parallel image validation", config.getProcessing().getThreads());
+        ExecutorService pool = Executors.newFixedThreadPool(config.getProcessing().getThreads());
 
         try {
             Map<Path, List<Path>> filesByDirectory = FileUtils.resolveFiles(config.getInput());
@@ -117,7 +117,12 @@ public class ValidateAll {
         return filepaths
             .stream()
             .map(filepath ->
-                new ImageValidationRunner(filepath, config.getExtraction().getModules(), config.getValidation().getImageRules())
+                new ImageValidationRunner(
+                    filepath,
+                    config.getExtraction().getModules(),
+                    config.getValidation().getImageRules(),
+                    config.getProcessing().getChecksumAlgorithm()
+                )
             )
             .toList();
     }

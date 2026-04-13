@@ -6,9 +6,11 @@ input:
     - consecutive_numbering
     - numbering_gap
 
-validation:
-  parallelThreads: 4
+processing:
+  threads: 4
+  checksumAlgorithm: SHA-1
 
+validation:
   directoryRules:
     consistentProperties:
       - $.exiftool.TIFF.IFD[0].PhotometricInterpretation

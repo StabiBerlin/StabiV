@@ -7,6 +7,11 @@ New Features
 - Exit codes are now correct and reflect the overall validation success or failure
 - Added an example script `move_directories.sh` that demonstrates how directories can be moved via `rsync` to two different targets depending on validation success
 - Image filenames can be checked with regular expressions via Exiftool property `$.exiftool.System.FileName` and the `matches` operation
+- The checksum algorithm can now be configured via `--checksum` or the corresponding yaml config
+
+Breaking Changes
+
+- Configurtion option `parallelThreads` was moved from section `validation` to section `processing` and is now called `threads`
 
 Fixes
 
@@ -14,7 +19,6 @@ Fixes
 
 Known Issues
 
-- The checksum algorithm cannot be configured yet (fixed to SHA-1)
 - It is not possible yet to define maximum deviations for image dimensions within one directory
 - Configuration file problems will trigger unreadable error messages
 - CSV columns do not include Tiff tag ids

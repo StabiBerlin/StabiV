@@ -75,7 +75,33 @@ public class ValidateCommand implements Callable<Integer> {
         String configFilepath;
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Extraction Options|@%n%n", order = 3, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Processing Options|@%n%n", order = 2, exclusive = false)
+    public ProcessingOptions processingOptions = new ProcessingOptions();
+
+    static class ProcessingOptions {
+
+        @Option(
+            names = { "--threads" },
+            arity = "1",
+            paramLabel = "COUNT",
+            description = """
+            The number of execution threads that are used to validate images in parallel (default 4).
+            """
+        )
+        Integer parallelThreads;
+
+        @Option(
+            names = { "--checksum" },
+            arity = "1",
+            paramLabel = "ALGORITHM",
+            description = """
+            The checksum algorithm that is used to calculate image file checksums (default SHA-1).
+            """
+        )
+        String checksumAlgorithm;
+    }
+
+    @ArgGroup(validate = true, heading = "%n@|bold Extraction Options|@%n%n", order = 4, exclusive = false)
     public ExtractionOptions extractionOptions = new ExtractionOptions();
 
     static class ExtractionOptions {
@@ -95,7 +121,7 @@ public class ValidateCommand implements Callable<Integer> {
         List<ExtractorType> modules = List.of(ExtractorType.exiftool, ExtractorType.jhove);
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 4, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 5, exclusive = false)
     public ValidationOptions validationOptions = new ValidationOptions();
 
     static class ValidationOptions {
@@ -155,19 +181,9 @@ public class ValidateCommand implements Callable<Integer> {
             """
         )
         String consecutiveNumbering;
-
-        @Option(
-            names = { "--threads" },
-            arity = "1",
-            paramLabel = "COUNT",
-            description = """
-            The number of execution threads that are used to validate images in parallel (default 4).
-            """
-        )
-        Integer parallelThreads;
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 5, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 6, exclusive = false)
     public OutputOptions outputOptions = new OutputOptions();
 
     static class OutputOptions {
@@ -298,13 +314,13 @@ public class ValidateCommand implements Callable<Integer> {
         logger.debug("merge configuration with command line options");
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         ConfigurationMerger.mergeInput(config, cwd, configPath, absoluteIncludes, absoluteExcludes);
+        ConfigurationMerger.mergeProcessing(config, processingOptions.parallelThreads, processingOptions.checksumAlgorithm);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
         ConfigurationMerger.mergeValidation(
             config,
             validationOptions.imageRules,
             validationOptions.consistentProperties,
-            validationOptions.consecutiveNumbering,
-            validationOptions.parallelThreads
+            validationOptions.consecutiveNumbering
         );
         ConfigurationMerger.mergeOutput(
             config,

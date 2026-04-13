@@ -24,6 +24,7 @@ The Image Validation CLI can be configured with a single configuration file in [
 Configuration files consists of the following main YAML sections:
 
 - `input` - options to decide which images and directories need to be validated
+- `processing` - general processiong options
 - `extraction` - options about which extractor module to apply
 - `validation` - options about how images and directories are validated
 - `output` - options about logging and the CSV report
@@ -67,7 +68,53 @@ input:
   excludes:
 ```
 
+### Processing Section
+
+The `processing` section allows configuring general processing options that are not directly related to the extraction of image properties and their validation.
+
+#### Parallel Processing Threads
+
+Specify the number of images that are processed in parallel (default 4). Only images of the same directory are processed in parallel. Directories are processed one after another.
+
+For example:
+
+```
+processing:
+
+  threads: 1
+```
+
+Default configuration:
+
+```
+processing:
+
+  threads: 4
+```
+
+#### Checksum Algorithms
+
+Specify which checksum algorithm is used when calculating the checksum of an image file. The following algorithms are available, see [MessageDigest Algorithms](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#messagedigest-algorithms), e.g., `MD5`, `SHA-1`, `SHA-512`.
+
+For example:
+
+```
+processing:
+
+  checksum: MD5
+```
+
+Default configuration:
+
+```
+processing:
+
+  checksum: SHA-1
+```
+
 ### Extraction Section
+
+#### Extraction Modules
 
 The `extraction` sections allows configuring which extractor modules are applied to each image, as well as additional options for each of these extractor modules. However, currently, only the list of modules can be configured:
 
@@ -91,26 +138,6 @@ extraction:
 ```
 
 ### Validation Section
-
-#### Parallel Processing Threads
-
-Specify the number of images that are validated in parallel (default 4). Only images of the same directory are validated in parallel. Directories are processed one after another.
-
-For example:
-
-```
-validation:
-
-  parallelThreads: 1
-```
-
-Default configuration:
-
-```
-validation:
-
-  parallelThreads: 4
-```
 
 #### Image Rules
 

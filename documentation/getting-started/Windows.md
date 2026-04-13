@@ -75,9 +75,7 @@ Its output should be:
 
 There are many other possible path variants. A comprehensive list of examples can be found in the documentation of the Java library [Json-Path](https://github.com/json-path/JsonPath).
 
-## Configuration Files
-
-### Examples
+## Examples
 
 You can test validating images from the two examples provided in the `examples` directory.
 
@@ -93,6 +91,6 @@ spk-iv-cli.bat validate -v --config=examples\spk-berlin\config.yaml
 
 Both commands will generate an CSV file `output.csv` in their respective directories.
 
-### Configuration File Schema
+## User Guide
 
-TODO
+More information can be found in the separate document "User Guide".

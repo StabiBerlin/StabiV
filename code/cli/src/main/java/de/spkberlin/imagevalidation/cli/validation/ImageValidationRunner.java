@@ -24,6 +24,7 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     private Path filepath;
     private List<ExtractorType> extractors;
     private List<ImageRule> rules;
+    private String checksumAlgorithm;
 
     /**
      * Initialize image validation task for a specific image file.
@@ -32,17 +33,18 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
      * @param extractors the extractor modules to use for validation
      * @param rules the image rules to check for validation
      */
-    public ImageValidationRunner(Path filepath, List<ExtractorType> extractors, List<ImageRule> rules) {
+    public ImageValidationRunner(Path filepath, List<ExtractorType> extractors, List<ImageRule> rules, String checksumAlgorithm) {
         this.filepath = filepath;
         this.extractors = extractors;
         this.rules = rules;
+        this.checksumAlgorithm = checksumAlgorithm;
     }
 
     @Override
     public ImageValidationResult call() throws Exception {
         ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
         ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
-        String checksum = ChecksumUtil.calculate(filepath, "SHA-1");
+        String checksum = ChecksumUtil.calculate(filepath, checksumAlgorithm);
         return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
     }
 
