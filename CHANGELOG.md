@@ -10,6 +10,7 @@ New Features
 - The checksum algorithm can now be configured via `--checksum` or the corresponding yaml config
 - Configuration files are validated and problems will be logged as error messages
 - Exiftool and Java is now bundled with the Linux version
+- Add license text and include third-party licenses in assemblies
 
 Breaking Changes
 
