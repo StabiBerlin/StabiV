@@ -24,6 +24,9 @@ Known Issues
 - It is not possible yet to define maximum deviations for image dimensions within one directory
 - CSV columns do not include Tiff tag ids
 - The CSV report doesn't contain an overall validation summary
+- Image directories cannot be moved to a target directory based on validation success (requires bash script, see `move_directories.sh`)
+- Checksum are not written to a separate file yet
+- Two image properties cannot be checked for equality, e.g. checking that image resolution is the same for both x and y axis
 
 ## v0.2.0 - 2026-04-08
 
