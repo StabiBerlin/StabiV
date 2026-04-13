@@ -191,6 +191,13 @@
                       </includes>
                     </fileSet>
                     <fileSet>
+                      <directory>${project.basedir}/opt/java</directory>
+                      <outputDirectory>tools/java</outputDirectory>
+                      <includes>
+                        <include>**</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
                       <directory>${project.basedir}/../common/src/test/resources/examples</directory>
                       <outputDirectory>examples</outputDirectory>
                       <includes>
@@ -208,7 +215,7 @@
                       </includes>
                     </fileSet>
                     <fileSet>
-                      <directory>${project.basedir/../../documentation/userguide}</directory>
+                      <directory>${project.basedir}/../../documentation/userguide</directory>
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
                         <include>*.md</include>
@@ -222,20 +229,24 @@
                       <outputDirectory>tools/spk-iv-cli</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../CHANGELOG.md}</source>
+                      <source>${project.basedir}/../extractor-exiftool/src/main/exiftool/exiftool</source>
+                      <outputDirectory>tools/exiftool</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir}/../../CHANGELOG.md</source>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../CHANGELOG.pdf}</source>
+                      <source>${project.basedir}/../../CHANGELOG.pdf</source>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/getting-started/Linux.md}</source>
+                      <source>${project.basedir}/../../documentation/getting-started/Linux.md</source>
                       <destName>README.md</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/getting-started/Linux.pdf}</source>
+                      <source>${project.basedir}/../../documentation/getting-started/Linux.pdf</source>
                       <destName>README.pdf</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
@@ -303,7 +314,7 @@
                       </includes>
                     </fileSet>
                     <fileSet>
-                      <directory>${project.basedir/../../documentation/userguide}</directory>
+                      <directory>${project.basedir}/../../documentation/userguide</directory>
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
                         <include>*.md</include>
@@ -331,20 +342,20 @@
                       <outputDirectory>tools/spk-iv-cli</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../CHANGELOG.md}</source>
+                      <source>${project.basedir}/../../CHANGELOG.md</source>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../CHANGELOG.pdf}</source>
+                      <source>${project.basedir}/../../CHANGELOG.pdf</source>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/getting-started/Windows.md}</source>
+                      <source>${project.basedir}/../../documentation/getting-started/Windows.md</source>
                       <destName>README.md</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                     <file>
-                      <source>${project.basedir/../../documentation/getting-started/Windows.pdf}</source>
+                      <source>${project.basedir}/../../documentation/getting-started/Windows.pdf</source>
                       <destName>README.pdf</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>

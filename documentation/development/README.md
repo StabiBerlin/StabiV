@@ -28,6 +28,26 @@ Make sure that Java, Maven and Exiftool are available on the command line:
 - for Maven: type in `mvn --version`
 - for Exiftool: type in `exiftool -ver`
 
+## Linux
+
+In order to develop this tool on Linux, download and install the following software:
+
+- []
+
+You should be able to install everything from your favorite package manager.
+
+Alternatively, you can use the Dockerfile located in the directory `deployment/development`. It contains all relevant tools.
+
+### Packaging For Linux
+
+In order to bundle everything into one zip file, two things need to be done manually:
+
+1. Download a Linux build for [OpenJDK](https://jdk.java.net/26/) and unpack everything into the directory `code/cli/opt/java` such that the Java binary is located at `code/cli/opt/java/bin/java.`
+
+2. Install an set up "podman" or "docker" and start the build script `code/extractor-exiftool/src/main/exiftool/build.sh`. This script will build a statically linked binary of `exiftool` to be included in the final bundle.
+
+Now, when running `bash bin/package.sh`, both Java and exiftool is included in the final zip file.
+
 ## Code Formatting
 
 This repository uses `spotless` to automatically format code according to coding guidlines.
