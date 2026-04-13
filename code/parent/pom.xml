@@ -10,6 +10,13 @@
   <name>Image Validation Parent Pom</name>
   <url>http://github.com/TODO</url>
 
+  <licenses>
+    <license>
+      <name>GNU General Public License, Version 3.0</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+    </license>
+  </licenses>
+
   <modules>
     <module>../cli</module>
     <module>../common</module>
@@ -43,6 +50,7 @@
     <json.version>20251224</json.version>
     <json-path.version>3.0.0</json-path.version>
     <junit-bom.version>6.0.3</junit-bom.version>
+    <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
     <log4j.version>2.25.3</log4j.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -223,6 +231,11 @@
           <configuration>
             <skip>true</skip>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>${license-maven-plugin.version}</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>

@@ -4,4 +4,4 @@ cd "$(dirname "$0")"
 cd ../code/parent
 
 # mvn package
-mvn dependency:tree
+mvn -am compile dependency:tree

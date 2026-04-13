@@ -138,6 +138,33 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>download-licenses</id>
+            <goals>
+              <goal>download-licenses</goal>
+            </goals>
+            <configuration>
+              <licensesOutputDirectory>${project.build.directory}/generated-resources/licenses/individual</licensesOutputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>third-party-report</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-resources/licenses</outputDirectory>
+              <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
+              <includeTransitiveDependencies>true</includeTransitiveDependencies>
+              <excludedScopes>test</excludedScopes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
@@ -215,6 +242,13 @@
                       </includes>
                     </fileSet>
                     <fileSet>
+                      <directory>${project.build.directory}/generated-resources/licenses</directory>
+                      <outputDirectory>licenses</outputDirectory>
+                      <includes>
+                        <include>**</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
                       <directory>${project.basedir}/../../documentation/userguide</directory>
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
@@ -248,6 +282,11 @@
                     <file>
                       <source>${project.basedir}/../../documentation/getting-started/Linux.pdf</source>
                       <destName>README.pdf</destName>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir}/../../LICENSE</source>
+                      <destName>LICENSE.txt</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
@@ -314,6 +353,13 @@
                       </includes>
                     </fileSet>
                     <fileSet>
+                      <directory>${project.build.directory}/generated-resources/licenses</directory>
+                      <outputDirectory>licenses</outputDirectory>
+                      <includes>
+                        <include>**</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
                       <directory>${project.basedir}/../../documentation/userguide</directory>
                       <outputDirectory>documentation/userguide</outputDirectory>
                       <includes>
@@ -357,6 +403,11 @@
                     <file>
                       <source>${project.basedir}/../../documentation/getting-started/Windows.pdf</source>
                       <destName>README.pdf</destName>
+                      <outputDirectory>.</outputDirectory>
+                    </file>
+                    <file>
+                      <source>${project.basedir}/../../LICENSE</source>
+                      <destName>LICENSE.txt</destName>
                       <outputDirectory>.</outputDirectory>
                     </file>
                   </files>
