@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0 - tbd
+## v0.3.0 - 2026-04-14
 
 New Features
 
