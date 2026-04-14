@@ -4,10 +4,15 @@ This tool provides a command line interface (CLI) that validates images and thei
 
 ## Installation
 
-On Linux, install Java 21+ and Exiftool:
+On Linux, the Image Validation CLI includes OpenJDK and ExifTool binaries that should work out-of-the-box on many Linux distributions.
 
-- Ubuntu: `sudo apt-get install default-jre-headless exiftool`
-- Fedora: `sudo dnf install java-latest-openjdk exiftool`
+On Ubuntu 22.04, 24.04 no additional packages need to be installed. On Debia 12 and 13 no additional packages need to be installed. However, on Rocky Linux 9 and Fedora 42 and 43, you need to install the package `libxcrypt-compat`:
+
+```
+dnf install -y libxcrypt-compat
+```
+
+Ubuntu 20.04, Debian 11 and Rocky Linux 8 are not supported.
 
 Then, you can start the tool from your console with the following command:
 
