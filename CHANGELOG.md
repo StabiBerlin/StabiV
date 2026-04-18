@@ -9,6 +9,7 @@ New Features
 Breaking Changes
 
 - Configuration option `consistentProperties` now distinguishes between `label` and `property` (JsonPath) to show easier error message
+- Use slash (`/`) instead of pipe (`|`) character for CLI options `--imageRule` and `--csvColumn` due to incompatibility with powershell
 
 Fixes
 

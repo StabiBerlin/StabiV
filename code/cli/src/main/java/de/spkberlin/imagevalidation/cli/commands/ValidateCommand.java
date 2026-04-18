@@ -37,7 +37,7 @@ import picocli.CommandLine.Parameters;
     @|bold Examples|@
 
     Validate all TIF files in all subdirectories and check JHove has detected them as wellformed:%n
-      ${COMMAND-FULL-NAME} --rule="$.jhove.wellformed|equal|true" /path/to/images/**/*.tif
+      ${COMMAND-FULL-NAME} --imageRule="$.jhove.wellformed/equal/true" /path/to/images/**/*.tif
 
     Use a config file to define all validation options:%n
       ${COMMAND-FULL-NAME} --config /path/to/config.yaml
@@ -134,13 +134,13 @@ public class ValidateCommand implements Callable<Integer> {
             description = """
             Add a validation rule that is checked against extracted image properties
 
-            Image validation rules need to be specified in the format `"PROPERTY|ASSERT|VALUE"`.
+            Image validation rules need to be specified in the format `"PROPERTY/ASSERT/VALUE"`.
 
             Examples
-              - `"$.jhove.wellformed|equal|true"` - check that JHove detects file as wellformed
-              - `"$.exiftool..PhotometricInterpretation|oneOf|RGB,BlackIsZero"` - image must be either RGB or grayscale
-              - `"$.exiftool.TIFF.IFD|occurrences|1"` - tif image must contain exactly one IFD
-              - `"$.exiftool.TIFF.IFD[0].SubfileType|equal|Full-resolution image"` - first sub-image must be a full-resolution image
+              - `"$.jhove.wellformed/equal/true"` - check that JHove detects file as wellformed
+              - `"$.exiftool..PhotometricInterpretation/oneOf/RGB,BlackIsZero"` - image must be either RGB or grayscale
+              - `"$.exiftool.TIFF.IFD/occurrences/1"` - tif image must contain exactly one IFD
+              - `"$.exiftool.TIFF.IFD[0].SubfileType/equal/Full-resolution image"` - first sub-image must be a full-resolution image
 
             Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
 
@@ -200,11 +200,11 @@ public class ValidateCommand implements Callable<Integer> {
             description = """
             Include an image property as column in the csv output file.
 
-            Columns need to be specified in the format `"LABEL|PROPERTY"`.
+            Columns need to be specified in the format `"LABEL/PROPERTY"`.
 
             Examples:
-              - `"JHove Wellformed|$.jhove.wellformed"`
-              - `"Color Format|$.exiftool..PhotometricInterpretation"`
+              - `"JHove Wellformed/$.jhove.wellformed"`
+              - `"Color Format/$.exiftool..PhotometricInterpretation"`
 
             Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
 

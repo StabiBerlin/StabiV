@@ -179,9 +179,9 @@ public class ConfigurationMerger {
     }
 
     private static ImageRule getImageRuleFromCommandLineOption(String imageRuleText) {
-        String[] ruleTextSplit = imageRuleText.split("\\|", 3);
+        String[] ruleTextSplit = imageRuleText.split("/", 3);
         if (ruleTextSplit.length != 3) {
-            throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by `|`", imageRuleText));
+            throw new RuntimeException(String.format("image rule '%s' needs to consist of three parts separated by /", imageRuleText));
         }
 
         ImageRuleSimpleCondition condition = new ImageRuleSimpleCondition();
@@ -259,9 +259,9 @@ public class ConfigurationMerger {
     }
 
     private static CsvPropertyColumn getCsvPropertyColumnFromCommandLineOption(String columnText) {
-        String[] columnTextSplit = columnText.split("\\|", 2);
+        String[] columnTextSplit = columnText.split("/", 2);
         if (columnTextSplit.length != 2) {
-            throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by `|`", columnText));
+            throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by /", columnText));
         }
 
         return new CsvPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
