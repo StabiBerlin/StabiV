@@ -40,6 +40,7 @@
     <jackson-core.version>2.21.1</jackson-core.version>
     <jackson-databind.version>2.21.1</jackson-databind.version>
     <jackson-dataformat-yaml.version>2.21.1</jackson-dataformat-yaml.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
     <jhove.version>1.32.1</jhove.version>
     <jhove.modules.gif.hul.version>1.4.3</jhove.modules.gif.hul.version>
     <jhove.modules.jpeg2000.hul.version>1.4.4</jhove.modules.jpeg2000.hul.version>
@@ -223,6 +224,11 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
