@@ -123,7 +123,7 @@ public class DirectoryPropertyDeviationsValidation {
                 if (deviationInPercent > maxDeviation) {
                     return String.format(
                         "image '%s' deviates for property '%s' by %.1f percent from %s of %.1f",
-                        imagePath,
+                        imagePath.getFileName(),
                         propertyLabel,
                         deviationInPercent,
                         aggregateType.name(),
@@ -135,7 +135,7 @@ public class DirectoryPropertyDeviationsValidation {
                 if (absoluteDeviation > maxDeviation) {
                     return String.format(
                         "image '%s deviates for property '%s' by %.1f from %s of %.1f",
-                        imagePath,
+                        imagePath.getFileName(),
                         propertyLabel,
                         absoluteDeviation,
                         aggregateType.name(),
