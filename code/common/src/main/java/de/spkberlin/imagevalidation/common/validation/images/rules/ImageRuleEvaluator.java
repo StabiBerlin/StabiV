@@ -89,11 +89,11 @@ public class ImageRuleEvaluator {
     public static String evaluateCondition(ImageRuleCondition condition, Object properties) {
         if (condition instanceof ImageRuleSimpleCondition) {
             ImageRuleSimpleCondition simpleCondition = (ImageRuleSimpleCondition) condition;
-            Object propertyObject;
+            Object propertyObject = null;
             try {
                 propertyObject = JsonPath.read(properties, simpleCondition.getProperty());
             } catch (PathNotFoundException e) {
-                return String.format("cannot extract value for path '%s', failed with '%s'", simpleCondition.getProperty(), e.getMessage());
+                // do not return this as an error, because assert could be "not exist" and returning and error would violate not composite
             }
             return evaluateSimpleCondition(simpleCondition, propertyObject);
         }
@@ -238,6 +238,10 @@ public class ImageRuleEvaluator {
             return String.format("matches operator requires comparison values as regular expressions");
         }
 
+        if (Objects.isNull(extractedValue)) {
+            return "missing extracted value cannot match regular expression";
+        }
+
         String extractedString = extractedValue.toString();
 
         if (extractedValue instanceof List) {
@@ -349,6 +353,9 @@ public class ImageRuleEvaluator {
         if (Objects.isNull(condition.getValues())) {
             return String.format("oneOf operator requires at least one comparison value");
         }
+        if (Objects.isNull(extractedValue)) {
+            return "missing extracted value cannot match one of the provided comparison values";
+        }
         if (extractedValue instanceof List) {
             List<?> extractedList = (List<?>) extractedValue;
             if (extractedList.size() == 1) {
@@ -429,6 +436,9 @@ public class ImageRuleEvaluator {
         }
         if (condition.getValues().size() > 1) {
             return String.format("too many comparison values for equal operator (use oneOf instead?)");
+        }
+        if (Objects.isNull(extractedValue)) {
+            return "missing extracted value cannot equal provided comparison value";
         }
 
         String comparisonValue = condition.getValues().get(0);

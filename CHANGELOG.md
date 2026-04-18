@@ -6,6 +6,10 @@ New Features
 
 - Add check for property deviations from average value (e.g. image width and image height)
 
+Fixes
+
+- Fix negation of "isEmpty" is considered valid if property is not available at all
+
 ## v0.3.0 - 2026-04-14
 
 New Features
