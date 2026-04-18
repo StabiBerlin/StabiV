@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0 - tbd
+
+New Features
+
+- Add check for property deviations from average value (e.g. image width and image height)
+
 ## v0.3.0 - 2026-04-14
 
 New Features

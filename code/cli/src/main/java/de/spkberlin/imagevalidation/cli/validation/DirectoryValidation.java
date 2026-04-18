@@ -1,17 +1,17 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
+import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
+import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsecutivenessValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsistencyValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.DirectoryPropertyDeviationsValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsEntry;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,24 +31,38 @@ public class DirectoryValidation {
         Path directory,
         List<String> consistentProperties,
         ConfigurationValidationConsecutiveNumbering consecutiveNumbering,
+        List<DirectoryPropertyDeviationsEntry> propertyDeviations,
         Map<Path, ImageValidationResult> imageValidationResults
     ) throws IOException {
-        String allImagesValidError = evaluateAllImagesAreValid(imageValidationResults);
+        if (imageValidationResults.isEmpty()) {
+            logger.info("validation of directory '{}' failed because it does not contain images", directory);
+            return new DirectoryValidationResult(directory, imageValidationResults, String.format("directory does not contain any images"));
+        }
 
+        String allImagesValidError = evaluateAllImagesAreValid(imageValidationResults);
         if (Objects.nonNull(allImagesValidError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allImagesValidError);
             return new DirectoryValidationResult(directory, imageValidationResults, allImagesValidError);
         }
 
-        String allPropertiesConsistentError = evaluateAllPropertiesAreConsistent(consistentProperties, imageValidationResults);
+        Map<Path, ExtractionResult> extractionResults = imageValidationResults
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getExtractionResult()));
 
+        String allPropertiesConsistentError = DirectoryConsistencyValidation.evaluateAllPropertiesAreConsistent(
+            consistentProperties,
+            extractionResults
+        );
         if (Objects.nonNull(allPropertiesConsistentError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allPropertiesConsistentError);
             return new DirectoryValidationResult(directory, imageValidationResults, allPropertiesConsistentError);
         }
 
         String consecutivenessError = DirectoryConsecutivenessValidation.evaluateConsecutiveness(
-            consecutiveNumbering,
+            consecutiveNumbering.getFilenameRegExp(),
+            consecutiveNumbering.getNumberMatchGroup(),
+            consecutiveNumbering.getStartNumber(),
             imageValidationResults.keySet()
         );
         if (Objects.nonNull(consecutivenessError)) {
@@ -56,43 +70,17 @@ public class DirectoryValidation {
             return new DirectoryValidationResult(directory, imageValidationResults, consecutivenessError);
         }
 
-        logger.info("validation of directory '{}' was successful", directory);
-        return new DirectoryValidationResult(directory, imageValidationResults, null);
-    }
-
-    /**
-     * Evaluate whether properties have consistent values for each image in a directory.
-     *
-     * @param consistentProperties the properties to check for consistency
-     * @param imageValidationResults the image validation results for each image of a directory
-     * @return an error message in case properties are inconsistent, otherwise null
-     * @throws IOException in case an error occurrs during validation
-     */
-    public static String evaluateAllPropertiesAreConsistent(
-        List<String> consistentProperties,
-        Map<Path, ImageValidationResult> imageValidationResults
-    ) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        for (String consistentProperty : consistentProperties) {
-            Set<String> allValues = new HashSet<>();
-            for (Entry<Path, ImageValidationResult> entry : imageValidationResults.entrySet()) {
-                Path filepath = entry.getKey();
-                ImageValidationResult result = entry.getValue();
-                try {
-                    Object extractedProperty = JsonPath.read(result.getExtractionResult().getProperties(), consistentProperty);
-                    allValues.add(objectMapper.writeValueAsString(extractedProperty));
-                } catch (PathNotFoundException e) {
-                    logger.error("path '{}' not found in extracted properties", consistentProperty);
-                    return String.format("consistent property '%s' not found in image '%s'", consistentProperty, filepath);
-                }
-            }
-
-            if (allValues.size() != 1) {
-                return String.format("property '%s' is not consistent (has %d different values)", consistentProperty, allValues.size());
-            }
+        String propertyDeviationsError = DirectoryPropertyDeviationsValidation.evaluatePropertyDeviations(
+            propertyDeviations,
+            extractionResults
+        );
+        if (Objects.nonNull(propertyDeviationsError)) {
+            logger.info("validation of directory '{}' failed due to '{}'", directory, propertyDeviationsError);
+            return new DirectoryValidationResult(directory, imageValidationResults, propertyDeviationsError);
         }
 
-        return null;
+        logger.info("validation of directory '{}' was successful", directory);
+        return new DirectoryValidationResult(directory, imageValidationResults, null);
     }
 
     private static String evaluateAllImagesAreValid(Map<Path, ImageValidationResult> imageValidationResults) {

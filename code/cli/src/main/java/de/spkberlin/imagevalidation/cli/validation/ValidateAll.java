@@ -96,6 +96,7 @@ public class ValidateAll {
             directory,
             config.getValidation().getDirectoryRules().getConsistentProperties(),
             config.getValidation().getDirectoryRules().getConsecutiveNumbering(),
+            config.getValidation().getDirectoryRules().getPropertyDeviations(),
             imageValidationResultsByDirectory
         );
 

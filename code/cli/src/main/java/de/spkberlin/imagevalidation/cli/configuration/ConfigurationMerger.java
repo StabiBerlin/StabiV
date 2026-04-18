@@ -134,6 +134,10 @@ public class ConfigurationMerger {
                 .getDirectoryRules()
                 .setConsecutiveNumbering(new ConfigurationValidationConsecutiveNumbering(consecutiveNumberingFilenameRegExp));
         }
+        // make sure property deviations list exists
+        if (Objects.isNull(config.getValidation().getDirectoryRules().getPropertyDeviations())) {
+            config.getValidation().getDirectoryRules().setPropertyDeviations(new ArrayList<>());
+        }
         // make sure image rule list exists
         if (Objects.isNull(config.getValidation().getImageRules())) {
             config.getValidation().setImageRules(new ArrayList<>());

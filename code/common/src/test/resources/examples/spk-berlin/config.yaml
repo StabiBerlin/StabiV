@@ -1,10 +1,9 @@
 input:
   includes:
-    - valid_variants
-    - invalid_images
-    - inconsistent_colorspace
     - consecutive_numbering
-    - numbering_gap
+    - consistency
+    - image_rules
+    - size_deviations
 
 processing:
   threads: 4
@@ -20,6 +19,53 @@ validation:
       filenameRegExp: ^(\d{6})\.tif$
       numberMatchGroup: 1
       startNumber: 1
+
+    propertyDeviations:
+      # max image width deviation
+      - label: ImageWidth
+        property: $.exiftool.TIFF.IFD[0].ImageWidth
+        condition:
+          aggregate: average
+          maxDeviation: 10
+          inPercent: false
+        additionalSlices:
+          - from: 1
+            to: 3
+            reversed: false
+            condition:
+              aggregate: average
+              maxDeviation: 10
+              inPercent: false
+          - from: 1
+            to: 3
+            reversed: true
+            condition:
+              aggregate: average
+              maxDeviation: 10
+              inPercent: false
+
+      # max image height deviation
+      - label: ImageHeight
+        property: $.exiftool.TIFF.IFD[0].ImageHeight
+        condition:
+          aggregate: average
+          maxDeviation: 10
+          inPercent: false
+        additionalSlices:
+          - from: 1
+            to: 3
+            reversed: false
+            condition:
+              aggregate: average
+              maxDeviation: 10
+              inPercent: false
+          - from: 1
+            to: 3
+            reversed: true
+            condition:
+              aggregate: average
+              maxDeviation: 10
+              inPercent: false
 
   imageRules:
     # JHove wellformed

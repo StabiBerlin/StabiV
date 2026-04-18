@@ -1,6 +1,5 @@
-package de.spkberlin.imagevalidation.cli.validation;
+package de.spkberlin.imagevalidation.common.validation.directories;
 
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
@@ -19,35 +18,37 @@ public class DirectoryConsecutivenessValidation {
     /**
      * Checks whether a set of filepaths follows a consecutive numbering pattern.
      *
-     * @param config consecutive numbering configuration
+     * @param fileNameRegExp the regula expression that allows to extract a number from the filename
+     * @param matchGroup the match group id of the match group that matches the number part of the filename
+     * @param startNumber the starting number when counting files (e.g. 1, 2, 3, ... vs. 0, 1, 2, ...)
      * @param imageFilepaths a set of image filepaths to verify for consecutiveness
      * @return an error message if files are not correctly consecutive, null if success
      */
-    public static String evaluateConsecutiveness(ConfigurationValidationConsecutiveNumbering config, Set<Path> imageFilepaths) {
-        if (Objects.isNull(config.getFilenameRegExp()) || config.getFilenameRegExp().isEmpty()) {
+    public static String evaluateConsecutiveness(String fileNameRegExp, Integer matchGroup, Integer startNumber, Set<Path> imageFilepaths) {
+        if (Objects.isNull(fileNameRegExp) || fileNameRegExp.isEmpty()) {
             logger.debug("skip consecutiveness check due to empty filenameRegExp");
             return null;
         }
 
-        logger.debug("evaluate consecutive numbering with pattern '{}'", config.getFilenameRegExp());
-        Pattern pattern = Pattern.compile(config.getFilenameRegExp());
+        logger.debug("evaluate consecutive numbering with pattern '{}'", fileNameRegExp);
+        Pattern pattern = Pattern.compile(fileNameRegExp);
 
         List<String> filenames = imageFilepaths
             .stream()
             .map(p -> p.getFileName().toString())
             .toList();
 
-        String unmatchedFilename = findFirstUnmatchedFilename(filenames, pattern, config.getNumberMatchGroup());
+        String unmatchedFilename = findFirstUnmatchedFilename(filenames, pattern, matchGroup);
         if (Objects.nonNull(unmatchedFilename)) {
             return String.format(
                 "filename '%s' doesn't match regular expression '%s' for consecutiveness check",
                 unmatchedFilename,
-                config.getFilenameRegExp()
+                fileNameRegExp
             );
         }
 
-        List<Integer> numberList = getNumbersFromFilenames(filenames, pattern, config.getNumberMatchGroup());
-        String consecutivenessError = checkNumbersForConsecutiveness(numberList, config.getStartNumber());
+        List<Integer> numberList = getNumbersFromFilenames(filenames, pattern, matchGroup);
+        String consecutivenessError = checkNumbersForConsecutiveness(numberList, startNumber);
         if (Objects.nonNull(consecutivenessError)) {
             return consecutivenessError;
         }
@@ -90,7 +91,13 @@ public class DirectoryConsecutivenessValidation {
             .toList();
     }
 
-    private static String checkNumbersForConsecutiveness(List<Integer> numberList, Integer startNumber) {
+    /**
+     * Checks a list of numbers for consecutiveness given a starting number, assuming an increment of 1.
+     * @param numberList the list of numbers
+     * @param startNumber the starting number
+     * @return an error message or null, in case of success
+     */
+    public static String checkNumbersForConsecutiveness(List<Integer> numberList, Integer startNumber) {
         Set<Integer> seenSet = new HashSet<>();
         Integer duplicate = numberList
             .stream()
