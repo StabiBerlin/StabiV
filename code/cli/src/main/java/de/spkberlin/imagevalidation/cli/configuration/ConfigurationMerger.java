@@ -14,6 +14,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidat
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
@@ -111,6 +112,15 @@ public class ConfigurationMerger {
         if (Objects.isNull(config.getValidation())) {
             config.setValidation(new ConfigurationValidationSection());
         }
+        mergeValidationDirectoryRules(config, consistentProperties, consecutiveNumberingFilenameRegExp);
+        mergeValidationImageRules(config, imageRules);
+    }
+
+    private static void mergeValidationDirectoryRules(
+        ConfigurationRoot config,
+        List<String> consistentProperties,
+        String consecutiveNumberingFilenameRegExp
+    ) {
         // make sure directory section exists
         if (Objects.isNull(config.getValidation().getDirectoryRules())) {
             config.getValidation().setDirectoryRules(new ConfigurationValidationDirectoryRules());
@@ -121,7 +131,16 @@ public class ConfigurationMerger {
         }
         // add additional consistent properties
         if (Objects.nonNull(consistentProperties)) {
-            config.getValidation().getDirectoryRules().getConsistentProperties().addAll(consistentProperties);
+            config
+                .getValidation()
+                .getDirectoryRules()
+                .getConsistentProperties()
+                .addAll(
+                    consistentProperties
+                        .stream()
+                        .map(p -> getConsistencyConditionFromCommandLineOption(p))
+                        .toList()
+                );
         }
         // make sure consecutive numbering exists
         if (Objects.isNull(config.getValidation().getDirectoryRules().getConsecutiveNumbering())) {
@@ -138,6 +157,13 @@ public class ConfigurationMerger {
         if (Objects.isNull(config.getValidation().getDirectoryRules().getPropertyDeviations())) {
             config.getValidation().getDirectoryRules().setPropertyDeviations(new ArrayList<>());
         }
+    }
+
+    private static DirectoryConsistencyCondition getConsistencyConditionFromCommandLineOption(String consistentProperty) {
+        return new DirectoryConsistencyCondition(String.format("command line property '%s'", consistentProperty), consistentProperty);
+    }
+
+    private static void mergeValidationImageRules(ConfigurationRoot config, List<String> imageRules) {
         // make sure image rule list exists
         if (Objects.isNull(config.getValidation().getImageRules())) {
             config.getValidation().setImageRules(new ArrayList<>());

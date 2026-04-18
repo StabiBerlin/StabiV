@@ -6,6 +6,10 @@ New Features
 
 - Add check for property deviations from average value (e.g. image width and image height)
 
+Breaking Changes
+
+- Configuration option `consistentProperties` now distinguishes between `label` and `property` (JsonPath) to show easier error message
+
 Fixes
 
 - Fix negation of "isEmpty" is considered valid if property is not available at all

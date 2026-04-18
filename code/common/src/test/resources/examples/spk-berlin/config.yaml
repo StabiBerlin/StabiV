@@ -12,8 +12,10 @@ processing:
 validation:
   directoryRules:
     consistentProperties:
-      - $.exiftool.TIFF.IFD[0].PhotometricInterpretation
-      - $.exiftool.TIFF.IFD[0].BitsPerSample
+      - label: PhotometricInterpretation
+        property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+      - label: BitsPerSample
+        property: $.exiftool.TIFF.IFD[0].BitsPerSample
 
     consecutiveNumbering:
       filenameRegExp: ^(\d{6})\.tif$

@@ -5,6 +5,7 @@ import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsecutivenessValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsistencyValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryPropertyDeviationsValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsEntry;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +30,7 @@ public class DirectoryValidation {
      */
     public static DirectoryValidationResult validate(
         Path directory,
-        List<String> consistentProperties,
+        List<DirectoryConsistencyCondition> consistentProperties,
         ConfigurationValidationConsecutiveNumbering consecutiveNumbering,
         List<DirectoryPropertyDeviationsEntry> propertyDeviations,
         Map<Path, ImageValidationResult> imageValidationResults
