@@ -1,4 +1,4 @@
-package de.spkberlin.imagevalidation.common.rules.images.state;
+package de.spkberlin.imagevalidation.common.validation.images.rules.state;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

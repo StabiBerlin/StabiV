@@ -1,7 +1,7 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
-import de.spkberlin.imagevalidation.common.rules.images.ImageRuleEvaluationResult;
+import de.spkberlin.imagevalidation.common.validation.images.rules.ImageRuleEvaluationResult;
 import java.nio.file.Path;
 
 public class ImageValidationResult {

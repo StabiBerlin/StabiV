@@ -14,10 +14,10 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidat
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;

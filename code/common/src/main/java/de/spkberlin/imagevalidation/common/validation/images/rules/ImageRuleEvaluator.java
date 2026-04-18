@@ -1,17 +1,17 @@
-package de.spkberlin.imagevalidation.common.rules.images;
+package de.spkberlin.imagevalidation.common.validation.images.rules;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeAndCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeNotCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCompositeOrCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSeverityType;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeAndCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeNotCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeOrCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;

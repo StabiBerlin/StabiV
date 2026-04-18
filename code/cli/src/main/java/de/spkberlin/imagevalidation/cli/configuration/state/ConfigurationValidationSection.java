@@ -1,6 +1,6 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
-import de.spkberlin.imagevalidation.common.rules.images.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
