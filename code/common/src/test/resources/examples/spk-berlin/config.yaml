@@ -4,6 +4,8 @@ input:
     - consistency
     - image_rules
     - size_deviations
+  excludes:
+    - "**.sha1"
 
 processing:
   threads: 4
@@ -70,6 +72,15 @@ validation:
               inPercent: false
 
   imageRules:
+    # TIF format
+    - message: Image must be a TIF file
+      severity: error
+      context: $.exiftool
+      condition:
+        property: $.TIFF.FileType
+        assert: equal
+        value: TIFF
+
     # JHove wellformed
     - message: JHove must detect file as wellformed
       severity: error
@@ -499,6 +510,9 @@ validation:
           assert: exists
 
 output:
+  checksum:
+    filename: ${directory}.sha1
+    lineFormat: ${checksum} *${filename}
   csv:
     path: output.csv
     columns:

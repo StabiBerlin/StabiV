@@ -49,8 +49,8 @@ public class ValidateAll {
             logger.error("failed to resolve files due to:", e);
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
-            logger.error("failed to start image validation due to:", e);
-            throw new RuntimeException(e);
+            logger.error("error during image validation due to:", e.getCause());
+            throw new RuntimeException(e.getCause());
         } catch (InterruptedException e) {
             logger.error("image validation was interrupted due to:", e);
             throw new RuntimeException(e);
@@ -97,7 +97,8 @@ public class ValidateAll {
             config.getValidation().getDirectoryRules().getConsistentProperties(),
             config.getValidation().getDirectoryRules().getConsecutiveNumbering(),
             config.getValidation().getDirectoryRules().getPropertyDeviations(),
-            imageValidationResultsByDirectory
+            imageValidationResultsByDirectory,
+            config.getOutput().getChecksum()
         );
 
         if (config.getOutput().getLogging().getJson()) {

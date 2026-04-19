@@ -94,6 +94,10 @@ public class ImageRuleEvaluator {
                 propertyObject = JsonPath.read(contextProperties, simpleCondition.getProperty());
             } catch (PathNotFoundException e) {
                 // do not return this as an error, because assert could be "not exist" and returning and error would violate not composite
+                logger.trace(
+                    "ignore that json path '{}' was not found in properties when evaluating condition",
+                    simpleCondition.getProperty()
+                );
             }
             return evaluateSimpleCondition(simpleCondition, propertyObject, contextProperties);
         }
@@ -606,9 +610,15 @@ public class ImageRuleEvaluator {
         );
     }
 
-    private static List<Object> resolveContext(String context, Object properties) {
-        logger.trace("resolve context jsonpath '{}'", context);
-        Object matches = JsonPath.read(properties, context);
+    private static List<Object> resolveContext(String contextPath, Object properties) {
+        logger.trace("resolve context jsonpath '{}'", contextPath);
+        Object matches = Collections.emptyList();
+        try {
+            matches = JsonPath.read(properties, contextPath);
+        } catch (PathNotFoundException e) {
+            // ignore context that is not available
+            logger.trace("ignore that json path '{}' was not found in properties when determining rule context", contextPath);
+        }
 
         // make sure to return a list, even if only one element matched
         @SuppressWarnings("unchecked")

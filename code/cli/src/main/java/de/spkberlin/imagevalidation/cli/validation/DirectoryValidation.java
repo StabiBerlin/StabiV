@@ -1,6 +1,8 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputChecksumSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
+import de.spkberlin.imagevalidation.cli.output.checksum.ChecksumFileWriter;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsecutivenessValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsistencyValidation;
@@ -33,7 +35,8 @@ public class DirectoryValidation {
         List<DirectoryConsistencyCondition> consistentProperties,
         ConfigurationValidationConsecutiveNumbering consecutiveNumbering,
         List<DirectoryPropertyDeviationsEntry> propertyDeviations,
-        Map<Path, ImageValidationResult> imageValidationResults
+        Map<Path, ImageValidationResult> imageValidationResults,
+        ConfigurationOutputChecksumSection checksumConfig
     ) throws IOException {
         if (imageValidationResults.isEmpty()) {
             logger.info("validation of directory '{}' failed because it does not contain images", directory);
@@ -46,14 +49,9 @@ public class DirectoryValidation {
             return new DirectoryValidationResult(directory, imageValidationResults, allImagesValidError);
         }
 
-        Map<Path, ExtractionResult> extractionResults = imageValidationResults
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getExtractionResult()));
-
         String allPropertiesConsistentError = DirectoryConsistencyValidation.evaluateAllPropertiesAreConsistent(
             consistentProperties,
-            extractionResults
+            mapToExtractionResults(imageValidationResults)
         );
         if (Objects.nonNull(allPropertiesConsistentError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allPropertiesConsistentError);
@@ -73,7 +71,7 @@ public class DirectoryValidation {
 
         String propertyDeviationsError = DirectoryPropertyDeviationsValidation.evaluatePropertyDeviations(
             propertyDeviations,
-            extractionResults
+            mapToExtractionResults(imageValidationResults)
         );
         if (Objects.nonNull(propertyDeviationsError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, propertyDeviationsError);
@@ -81,6 +79,12 @@ public class DirectoryValidation {
         }
 
         logger.info("validation of directory '{}' was successful", directory);
+        ChecksumFileWriter.writeFile(
+            directory,
+            checksumConfig.getFilename(),
+            checksumConfig.getLineFormat(),
+            mapToChecksums(imageValidationResults)
+        );
         return new DirectoryValidationResult(directory, imageValidationResults, null);
     }
 
@@ -93,5 +97,16 @@ public class DirectoryValidation {
             return "at least one image has a validation error";
         }
         return null;
+    }
+
+    private static Map<Path, ExtractionResult> mapToExtractionResults(Map<Path, ImageValidationResult> imageValidationResults) {
+        return imageValidationResults
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getExtractionResult()));
+    }
+
+    private static Map<Path, String> mapToChecksums(Map<Path, ImageValidationResult> imageValidationResults) {
+        return imageValidationResults.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getChecksum()));
     }
 }

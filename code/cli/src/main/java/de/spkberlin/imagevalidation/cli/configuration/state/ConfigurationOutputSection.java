@@ -10,9 +10,16 @@ public class ConfigurationOutputSection {
     @Valid
     private ConfigurationLoggingSection logging;
 
+    @Valid
+    private ConfigurationOutputChecksumSection checksum;
+
+    /**
+     * Initialize ConfigurationOutputSection.
+     */
     public ConfigurationOutputSection() {
         csv = new ConfigurationCsvSection();
         logging = new ConfigurationLoggingSection();
+        checksum = new ConfigurationOutputChecksumSection();
     }
 
     public ConfigurationCsvSection getCsv() {
@@ -29,5 +36,13 @@ public class ConfigurationOutputSection {
 
     public void setLogging(ConfigurationLoggingSection logging) {
         this.logging = logging;
+    }
+
+    public ConfigurationOutputChecksumSection getChecksum() {
+        return this.checksum;
+    }
+
+    public void setChecksum(ConfigurationOutputChecksumSection checksum) {
+        this.checksum = checksum;
     }
 }
