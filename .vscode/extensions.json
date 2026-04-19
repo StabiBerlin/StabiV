@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "ms-vscode-remote.remote-containers",
+    "redhat.java",
+    "RudraPatel.prettier-plugin-java-vscode",
+    "ryanluker.vscode-coverage-gutters",
+    "shengchen.vscode-checkstyle",
+    "vscjava.vscode-maven",
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-java-debug",
+    "vscjava.vscode-java-dependency",
+    "vscjava.vscode-java-test",
+    "yzane.markdown-pdf"
+  ]
+}
