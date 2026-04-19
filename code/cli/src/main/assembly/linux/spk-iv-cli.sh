@@ -13,4 +13,4 @@ export EXIFTOOL_HOME="$SCRIPT_DIR/tools/exiftool"
 export PATH="$EXIFTOOL_HOME:$PATH"
 
 # run image validation cli
-$JAVA_HOME/bin/java -jar $SCRIPT_DIR/tools/spk-iv-cli/imagevalidation-cli-0.4.0-SNAPSHOT.jar "$@"
+$JAVA_HOME/bin/java -cp "$SCRIPT_DIR/tools/spk-iv-cli/*" de.spkberlin.imagevalidation.cli.entrypoint.Main "$@"

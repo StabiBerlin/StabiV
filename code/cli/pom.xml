@@ -114,6 +114,23 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}/runtimeDependencies</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctor-maven-plugin</artifactId>
         <configuration>
@@ -142,15 +159,6 @@
         <artifactId>license-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>download-licenses</id>
-            <goals>
-              <goal>download-licenses</goal>
-            </goals>
-            <configuration>
-              <licensesOutputDirectory>${project.build.directory}/generated-resources/licenses/individual</licensesOutputDirectory>
-            </configuration>
-          </execution>
-          <execution>
             <id>third-party-report</id>
             <goals>
               <goal>add-third-party</goal>
@@ -160,26 +168,6 @@
               <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
               <includeTransitiveDependencies>true</includeTransitiveDependencies>
               <excludedScopes>test</excludedScopes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>${main.class}</mainClass>
-                </transformer>
-              </transformers>
             </configuration>
           </execution>
         </executions>
@@ -254,6 +242,13 @@
                       <includes>
                         <include>*.md</include>
                         <include>*.pdf</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.build.directory}/runtimeDependencies</directory>
+                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <includes>
+                        <include>*.jar</include>
                       </includes>
                     </fileSet>
                   </fileSets>
@@ -379,6 +374,13 @@
                       <outputDirectory>tools/exiftool</outputDirectory>
                       <includes>
                         <include>**</include>
+                      </includes>
+                    </fileSet>
+                    <fileSet>
+                      <directory>${project.build.directory}/runtimeDependencies</directory>
+                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <includes>
+                        <include>*.jar</include>
                       </includes>
                     </fileSet>
                   </fileSets>
