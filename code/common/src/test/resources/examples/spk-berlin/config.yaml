@@ -223,6 +223,15 @@ validation:
           - 400
           - 600
 
+    # XResolution = YResolution
+    - message: XResolution must be the same as YResolution
+      severity: error
+      context: $.exiftool.TIFF.IFD[0]
+      condition:
+        property: $.XResolution
+        assert: equalsProperty
+        value: $.YResolution
+
     # ResolutionUnit
     - message: ResolutionUnit must be inches
       severity: error

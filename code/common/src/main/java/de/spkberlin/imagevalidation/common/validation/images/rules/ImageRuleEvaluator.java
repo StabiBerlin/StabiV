@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -83,23 +84,23 @@ public class ImageRuleEvaluator {
      * Evaluate the "condition" part against a property object resolved from the "context" of an image rule.
      *
      * @param condition the image rule condition
-     * @param properties the resolved context property object extracted from the image
+     * @param contextProperties the resolved context property object extracted from the image
      * @return an error message if the condition fails, or null
      */
-    public static String evaluateCondition(ImageRuleCondition condition, Object properties) {
+    public static String evaluateCondition(ImageRuleCondition condition, Object contextProperties) {
         if (condition instanceof ImageRuleSimpleCondition) {
             ImageRuleSimpleCondition simpleCondition = (ImageRuleSimpleCondition) condition;
             Object propertyObject = null;
             try {
-                propertyObject = JsonPath.read(properties, simpleCondition.getProperty());
+                propertyObject = JsonPath.read(contextProperties, simpleCondition.getProperty());
             } catch (PathNotFoundException e) {
                 // do not return this as an error, because assert could be "not exist" and returning and error would violate not composite
             }
-            return evaluateSimpleCondition(simpleCondition, propertyObject);
+            return evaluateSimpleCondition(simpleCondition, propertyObject, contextProperties);
         }
         if (condition instanceof ImageRuleCompositeCondition) {
             ImageRuleCompositeCondition compositeCondition = (ImageRuleCompositeCondition) condition;
-            return evaluateCompositeCondition(compositeCondition, properties);
+            return evaluateCompositeCondition(compositeCondition, contextProperties);
         }
 
         return String.format("rule condition '%s' not yet implemented", condition.getClass().getName());
@@ -194,13 +195,15 @@ public class ImageRuleEvaluator {
      * Evaluate a simple non-composite condition against a property object resolved from the "context" of an image rule.
      *
      * @param condition the simple non-composite condition
-     * @param properties the resolved context property object extracted from the image
+     * @param properties the resolved property object extracted from the image
      * @return an error message if the condition fails, or null
      */
-    public static String evaluateSimpleCondition(ImageRuleSimpleCondition condition, Object properties) {
+    public static String evaluateSimpleCondition(ImageRuleSimpleCondition condition, Object properties, Object contextProperties) {
         switch (condition.getOperator()) {
             case ImageRuleSimpleConditionOperatorType.equal:
                 return evaluateEqualCondition(condition, properties);
+            case ImageRuleSimpleConditionOperatorType.equalsProperty:
+                return evaluateEqualsPropertyCondition(condition, properties, contextProperties);
             case ImageRuleSimpleConditionOperatorType.lowerThan:
             case ImageRuleSimpleConditionOperatorType.lowerThanOrEqual:
             case ImageRuleSimpleConditionOperatorType.greaterThan:
@@ -427,7 +430,7 @@ public class ImageRuleEvaluator {
      * <p>An "equal" condition checks wether the extracted image property is exactly equal to the provided condition value.
      *
      * @param condition the "equal" condition
-     * @param extractedValue the resolved context property object extracted from the image
+     * @param extractedValue the resolved property object extracted from the image
      * @return an error message if the condition fails, or null
      */
     public static String evaluateEqualCondition(ImageRuleSimpleCondition condition, Object extractedValue) {
@@ -460,6 +463,50 @@ public class ImageRuleEvaluator {
                 condition.getValues().get(0)
             );
         }
+        return null;
+    }
+
+    /**
+     * Evaluate an "equalsProperty" condition by extracting a comparison value using the json path provided as condition value.
+     *
+     * <p>An "equal" condition checks wether the extracted image property is exactly equal to the provided condition value.
+     *
+     * @param condition the "equal" condition
+     * @param extractedValue the resolved property object extracted from the image
+     * @return an error message if the condition fails, or null
+     */
+    public static String evaluateEqualsPropertyCondition(
+        ImageRuleSimpleCondition condition,
+        Object extractedValue,
+        Object contextProperties
+    ) {
+        if (Objects.isNull(condition.getValues()) || condition.getValues().size() == 0) {
+            return String.format("equalsProperty operator requires comparison property");
+        }
+        if (condition.getValues().size() > 1) {
+            return String.format("only one comparison property is allowed for equalsProperty operator");
+        }
+        if (Objects.isNull(extractedValue)) {
+            return "missing extracted value cannot equal provided comparison property";
+        }
+
+        // extract comparison value based on provided json path
+        String comparisonPath = condition.getValues().get(0);
+        Object comparisonValue = null;
+        try {
+            comparisonValue = JsonPath.read(contextProperties, comparisonPath);
+        } catch (PathNotFoundException e) {
+            return "comparison property is missing";
+        }
+
+        if (!extractedValue.equals(comparisonValue)) {
+            return String.format(
+                "extracted value '%s' does not equal comparison property with value '%s'",
+                PropertiesSerializer.toPrettyString(extractedValue),
+                PropertiesSerializer.toPrettyString(comparisonValue)
+            );
+        }
+
         return null;
     }
 

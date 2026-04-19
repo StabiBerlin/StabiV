@@ -12,4 +12,5 @@ public enum ImageRuleSimpleConditionOperatorType {
     isEmpty,
     exists,
     matches,
+    equalsProperty,
 }

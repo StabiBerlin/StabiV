@@ -160,6 +160,7 @@ magick $RGB_SMALL_SOURCE -compress LZW -type TrueColor image_rules/invalid/compr
 
 magick $RGB_SMALL_SOURCE -depth 24 -type TrueColor image_rules/invalid/bit_depth_24.tif
 magick $RGB_SMALL_SOURCE -density 100 -type TrueColor image_rules/invalid/resolution_100.tif
+magick $RGB_SMALL_SOURCE -density 300x400 -type TrueColor image_rules/invalid/resolution_xy_different.tif
 magick $RGB_SMALL_SOURCE -units PixelsPerCentimeter -density 300 -type TrueColor image_rules/invalid/resolution_unit_centimeter.tif
 
 

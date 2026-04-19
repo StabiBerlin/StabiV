@@ -5,6 +5,7 @@
 New Features
 
 - Add check for property deviations from average value (e.g. image width and image height)
+- Two properties can be checked for equality via the `equalsProperty` condition, e.g., verifying that `XResolution` is the same as `YResolution`
 
 Breaking Changes
 
