@@ -301,7 +301,6 @@
             <artifactId>maven-checkstyle-plugin</artifactId>
             <configuration>
               <configLocation>src/main/resources/checkstyle.xml</configLocation>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <linkXRef>false</linkXRef>
               <failOnViolation>true</failOnViolation>
