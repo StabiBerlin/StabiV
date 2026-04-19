@@ -173,58 +173,58 @@ cp $GRAYSCALE_SOURCE consistency/invalid/grayscale.tif
 # --------------------------------------------------------------------
 echo "create consecutive numbering examples"
 mkdir -p consecutive_numbering/valid
-cp $RGB_SMALL_SOURCE consecutive_numbering/valid/000001.tif
-cp $RGB_SMALL_SOURCE consecutive_numbering/valid/000002.tif
-cp $RGB_SMALL_SOURCE consecutive_numbering/valid/000003.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/valid/00000001.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/valid/00000002.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/valid/00000003.tif
 
 mkdir -p consecutive_numbering/invalid
-cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/000001.tif
-cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/000003.tif
-cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/000004.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/00000001.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/00000003.tif
+cp $RGB_SMALL_SOURCE consecutive_numbering/invalid/00000004.tif
 
 # --------------------------------------------------------------------
 echo "create size deviations example examples"
 
 mkdir -p size_deviations/invalid_first_slice
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/000001.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/000002.tif
-cp $RGB_LARGE_SOURCE size_deviations/invalid_first_slice/000003.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/000004.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/000005.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/000006.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/000007.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/000008.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/000009.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/00000001.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/00000002.tif
+cp $RGB_LARGE_SOURCE size_deviations/invalid_first_slice/00000003.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/00000004.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/00000005.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_first_slice/00000006.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/00000007.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/00000008.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_first_slice/00000009.tif
 
 mkdir -p size_deviations/invalid_last_slice
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/000001.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/000002.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/000003.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/000004.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/000005.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/000006.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/000007.tif
-cp $RGB_LARGE_SOURCE size_deviations/invalid_last_slice/000008.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/000009.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/00000001.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/00000002.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/00000003.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/00000004.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/00000005.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_last_slice/00000006.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/00000007.tif
+cp $RGB_LARGE_SOURCE size_deviations/invalid_last_slice/00000008.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_last_slice/00000009.tif
 
 mkdir -p size_deviations/invalid_center_slice
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000001.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000002.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000003.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_center_slice/000004.tif
-cp $RGB_LARGE_SOURCE size_deviations/invalid_center_slice/000005.tif
-cp $RGB_SMALL_SOURCE size_deviations/invalid_center_slice/000006.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000007.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000008.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/000009.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000001.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000002.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000003.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_center_slice/00000004.tif
+cp $RGB_LARGE_SOURCE size_deviations/invalid_center_slice/00000005.tif
+cp $RGB_SMALL_SOURCE size_deviations/invalid_center_slice/00000006.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000007.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000008.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/invalid_center_slice/00000009.tif
 
 mkdir -p size_deviations/valid_deviations
-cp $RGB_MEDIUM_SOURCE size_deviations/valid/000001.tif
-cp $RGB_SMALL_SOURCE size_deviations/valid/000002.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/valid/000003.tif
-cp $RGB_SMALL_SOURCE size_deviations/valid/000004.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/valid/000005.tif
-cp $RGB_SMALL_SOURCE size_deviations/valid/000006.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/valid/000007.tif
-cp $RGB_MEDIUM_SOURCE size_deviations/valid/000008.tif
-cp $RGB_SMALL_SOURCE size_deviations/valid/000009.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/valid/00000001.tif
+cp $RGB_SMALL_SOURCE size_deviations/valid/00000002.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/valid/00000003.tif
+cp $RGB_SMALL_SOURCE size_deviations/valid/00000004.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/valid/00000005.tif
+cp $RGB_SMALL_SOURCE size_deviations/valid/00000006.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/valid/00000007.tif
+cp $RGB_MEDIUM_SOURCE size_deviations/valid/00000008.tif
+cp $RGB_SMALL_SOURCE size_deviations/valid/00000009.tif

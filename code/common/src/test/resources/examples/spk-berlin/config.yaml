@@ -18,7 +18,7 @@ validation:
         property: $.exiftool.TIFF.IFD[0].BitsPerSample
 
     consecutiveNumbering:
-      filenameRegExp: ^(\d{6})\.tif$
+      filenameRegExp: ^(\d{8})\.tif$
       numberMatchGroup: 1
       startNumber: 1
 
