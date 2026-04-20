@@ -603,6 +603,8 @@ The "validate" command of the Image Validation CLI works by following these gene
    - Check whether all images of the directory were validated successfully
    - Check properties that are supposed to be consistent for all images in the directory
    - Check filename consecutiveness in the directory
+   - Check property deviations in the directory
+   - Write a checksum file if the directory is considered valid
    - Generate a JSON command line output log summarizing the validation result for the directory
 6. Build CSV report of all validation results
 7. Exit with exit code based on overall validation success
