@@ -212,7 +212,7 @@ Also, if the context of an image rule does not resolve to any property or proper
 
 By default, the rule context is defined as the root property tree (JsonPath `$`), meaning the context does not have any effect on the rule condition and can be ignored.
 
-#### Conditions
+##### Conditions
 
 Image rule conditions are comprised of the following options:
 
@@ -272,7 +272,7 @@ condition:
         assert: isEmpty
 ```
 
-#### Additional Image Rule Examples
+##### Additional Image Rule Examples
 
 Check that JHove has detected the image as well-formed if the JHove extractor module is used:
 
