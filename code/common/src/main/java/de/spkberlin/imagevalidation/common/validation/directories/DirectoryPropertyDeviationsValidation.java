@@ -131,7 +131,7 @@ public class DirectoryPropertyDeviationsValidation {
                     );
                 }
             } else {
-                double absoluteDeviation = Math.abs(value.doubleValue() - aggregate);
+                double absoluteDeviation = Math.abs(value - aggregate);
                 if (absoluteDeviation > maxDeviation) {
                     return String.format(
                         "image '%s' deviates for property '%s' by %.1f from %s of %.1f",

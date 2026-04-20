@@ -2,14 +2,43 @@
 
 This document describes how the Image Validation CLI can be used to validate images and directories of images.
 
+## Contents
+
+This document is structured into the following sections:
+
+- [Getting Started](#getting-started)
+- [Fundamentals](#fundamentals)
+  - [JsonPath](#jsonpath)
+  - [YAML Format](#yaml-format)
+- [Command Line Options](#command-line-options)
+- [Configuration File Options](#command-line-options)
+  - [Input Section](#input-section)
+  - [Processing Section](#processing-section)
+  - [Extraction Section](#extraction-section)
+  - [Validation Section](#validation-section)
+  - [Output Section](#output-section)
+- [General Processing Steps](#general-processing-steps)
+- [Json Output Mode](#json-output-mode)
+- [Exit Codes](#exit-codes)
+
 ## Getting Started
 
 The Image Validation CLI is currently supported on Windows and Linux. Since installation is slightly different on both platforms, there are two separate guides located here:
 
-- [Getting Started on Windows](./Windows.md)
-- [Getting Started on Linux](./Linux.md)
+- [Getting Started on Windows](../getting-started/Windows.md)
+- [Getting Started on Linux](../getting-started/Linux.md)
 
 Once installed and running, the only difference between Windows and Linux is how file paths are specified, meaning `/path/to/directory` (Linux) vs. `C:\\path\to\directory` (Windows).
+
+## Fundamentals
+
+### JsonPath
+
+TODO
+
+### YAML Format
+
+TODO
 
 ## Command Line Options
 
@@ -17,7 +46,7 @@ The Image Validation CLI can be configured via a separate configuration file as 
 
 A detailed description of all command line options can be found inside the separate "cli" documentation (HTML files), or by adding the `--help` option when starting the Image Validation CLI. Both of these descriptions are the same.
 
-## Configuration Files
+## Configuration File Options
 
 The Image Validation CLI can be configured with a single configuration file in [YAML](https://en.wikipedia.org/wiki/YAML) format. Loading multiple configuration files is not supported. You can find example configuration files in the `examples` directory.
 
@@ -33,7 +62,7 @@ Each section is described in detail as follows.
 
 ### Input Section
 
-The `input` section specifies which directories and files to process, and which directories and files to ignore.
+The `input` section specifies which directories and files will be processed, and which directories and files will be ignored.
 
 You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative file paths are resolved relative to the location of the configuration file.
 
@@ -58,7 +87,19 @@ input:
     - /path/to/mixed/files/**.jpg
 ```
 
-Default configuration (no files included or excluded):
+Alternatively, but not recommended, the list of includes and excludes can also be defined as pairs of `baseDirectory` and `path`, for example:
+
+```
+input:
+
+  includes:
+    - baseDirectory: /path/to/directory
+    - path: subdirectory/*.tif
+```
+
+This distinction is used by the tool to differentiate how relative paths are resolved in case they are provided as CLI argument or from a configuration file. When providing a relative filepaths via CLI argument, the `baseDirectory` defaults to the current working directory. When defining configuration file options, the `baseDirectory` defaults to the directory that contains the configuration file.
+
+By default, no files are included or excluded, which corresponds to the following empty configuration:
 
 ```
 input:
@@ -94,7 +135,7 @@ processing:
 
 #### Checksum Algorithms
 
-Specify which checksum algorithm is used when calculating the checksum of an image file. The following algorithms are available, see [MessageDigest Algorithms](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#messagedigest-algorithms), e.g., `MD5`, `SHA-1`, `SHA-512`.
+Specify which checksum algorithm is used when calculating the checksum of an image file. Only certain algorithms are available, see [MessageDigest Algorithms](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#messagedigest-algorithms), e.g., `MD5`, `SHA-1`, `SHA-512`.
 
 For example:
 
@@ -114,9 +155,14 @@ processing:
 
 ### Extraction Section
 
+The `extraction` sections allows configuring how image properties are extracted from images. Image properties may be extracted using the following two extraction modules:
+
+- `jhove` - uses [JHove](https://jhove.openpreservation.org/)
+- `exiftool` - uses [ExifTool](https://exiftool.org/)
+
 #### Extraction Modules
 
-The `extraction` sections allows configuring which extractor modules are applied to each image, as well as additional options for each of these extractor modules. However, currently, only the list of modules can be configured:
+Currently, only the list of modules can be configured:
 
 For example:
 
@@ -138,6 +184,8 @@ extraction:
 ```
 
 ### Validation Section
+
+The `validation` section defines all rules that are checked when validating individual images and directories of images.
 
 #### Image Rules
 
@@ -172,13 +220,12 @@ Image rule conditions are comprised of the following options:
 - `assert` - the type of check that is performed (e.g. `equal`, `oneOf`)
 - `value` - the value or list of values that the extracted image property is checked against
 
-Properties are defined a JsonPath on the property tree.
-
 The following assert types are supported:
 
-- `equal` - checks that the extracted property exactly matches the comparison value
+- `equal` - checks that the property value exactly matches the comparison value
+- `equalsProperty` - checks that the property value exactly matches another property's value extracted from the provided JsonPath
 - `oneOf` - checks that the property matches one of the provided alternative values
-- `isEmpty` - checks that the property exists but is empty
+- `isEmpty` - checks that the property value is empty (matches an empty string)
 - `exists` - checks that the property exists and ignores its value
 - `matches` - checks that the property matches the regular expression defined as comparison value
 - `occurrences` - checks that the property occurs a certain number of times
@@ -262,13 +309,17 @@ condition:
   value: 1
 ```
 
+Another example rules can be found in the configuration files in the `examples` directory.
+
 #### Directory Rules
 
-The following options are used to determine whether a directory is considered valid or not. Even if no options are provided, a directory is only considered valid if all images files contained in it are evaluated as valid.
+The following options are used to determine whether a directory is considered valid or not. Even if no options are provided, a directory is only considered valid if all images files contained in it are evaluated as valid based on all defined image rules.
 
 ##### Consistent Properties by Directory
 
-Define a list of properties with JsonPath that are required to be consistent for all images within a directory. If there are two images with different values for the same property, the validation of this directory fails. Individual images may still be valid by themselves.
+Define a list of properties that are required to be consistent for all images within a directory. If there are two images with different values for the same property, the validation of this directory fails. Individual images may still be valid by themselves.
+
+For each property, a label needs to be specified, which is used to describe the property when generating error messages in case the property is not consistent within a directory.
 
 For Example:
 
@@ -278,11 +329,13 @@ validation:
   directoryRules:
 
     consistentProperties:
-      - $.exiftool.TIFF.IFD[0].PhotometricInterpretation
-      - $.exiftool.TIFF.IFD[0].BitsPerSample
+      - label: Color Space
+        property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+      - label: Bits Per Sample
+        property: $.exiftool.TIFF.IFD[0].BitsPerSample
 ```
 
-Default configuration (no check for consistent properties):
+By default, no properties are checked for consistency, meaning the following configuration is used:
 
 ```
 validation:
@@ -294,11 +347,17 @@ validation:
 
 ##### Consecutive Numbering of Files in a Directory
 
-Define a regular expression that is used to parse a unique number from a filename that can be checked for consecutiveness within a directory. This check will verify that image files are numbered without gaps inside a directory, e.g., `000001.tif`, `000002.tif`, and so on.
+Define a regular expression that is used to parse a unique number from all filenames in a directory that are then checked for consecutiveness. This check will verify that image files are numbered without gaps inside a directory, e.g., `00000001.tif`, `00000002.tif`, and so on.
 
-The regular expression needs to be defined in a way that the number contained in a filename is matched with a single match group. For example, the regular expression `^(\d{6})\.tif$` defines a match group around a 6-digit number by adding parentheses around this part of the filename. There can be multiple match groups if required. The match group number can be specified (defaults to 1). More information about regular expressions can be found in the Java [java.util.regex.Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) documentation.
+The regular expression needs to be defined in a way that the number contained in a filename is matched with a single match group (or capture group). For example, the regular expression `^(\d{8})\.tif$` defines a match group around an 8-digit number by adding parentheses around this part of the filename. There can be multiple match groups if required. The match group number can be specified (defaults to 1). More information about regular expressions can be found in the Java [java.util.regex.Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) documentation.
 
 Additionally, it is possible to configure the starting number of files (defaults to 1).
+
+The following options need to be defined:
+
+- `filenameRegExp` - the regular expression that is used to extract a number from the filename
+- `numberMatchGroup` - the id of the capture group that matches the number part of the filename
+- `startNumber` - the starting number of the consecutiveness check (usually 0 or 1)
 
 For Example:
 
@@ -308,12 +367,12 @@ validation:
   directoryRules:
 
     consecutiveNumbering:
-      filenameRegExp: ^(\d{6})\.tif$
+      filenameRegExp: ^(\d{8})\.tif$
       numberMatchGroup: 1
       startNumber: 1
 ```
 
-Default configuration (no check for consecutiveness):
+By default, files are not checked for consecutiveness. Thus, the following configuration is used:
 
 ```
 validation:
@@ -326,38 +385,138 @@ validation:
       startNumber: 1
 ```
 
+##### Property Deviations
+
+You may check that a number-based property is almost consistent for all images within a directory by specifying a maximum allowed deviation from the average or median over all images. This is usually applied to dimension properties of images, e.g. the `ImageWidth` or `ImageHeight` property.
+
+In order to specify a property deviation rule, you need to define the following options:
+
+- `label` - the label that is used to describe the property in case of errors, mandatory
+- `property` - the JsonPath referring to the property that is being checked, mandatory
+
+Then, a property deviation condition consists of the following options:
+
+- `aggregate`: the method of aggregation, e.g. `average` or `median`, optional (default is `average`)
+- `maxDeviation`: the maximum deviation as absolute number or percentage, mandatory
+- `inPercent`: whether the maximum deviation is provided as absolute number or percentage, optional (default is `false`)
+
+An example configuration would be:
+
+```
+validation:
+
+  directoryRules:
+
+    propertyDeviations:
+      - label: ImageWidth
+        property: $.exiftool.TIFF.IFD[0].ImageWidth
+        condition:
+          aggregate: average
+          maxDeviation: 10
+          inPercent: false
+```
+
+This configuration validates that the width of all images lies within at most 10 pixels of the average width of all images. If any image inside the directory deviates from the average by more than 10 pixels, the directory is considered invalid.
+
+In addition, you may define property deviation rules for specific slices of images, e.g. the first 3 or last 3 images of a directory. These slices are defined by the following options:
+
+- `from` - the starting index of the slice that is checked (inclusive, begins with 1)
+- `to` - the end index of the slice that is checked (inclusive, begins with 1)
+- `reversed` - whether slice indexes are counted in ascending or descending order
+- `condition` - the property deviation condition (same as above)
+
+The `from` and `to` indexes do not refer to the number extracted from filenames via a regular expression as defined for the consecutivness check. Instead, the index is determined based on the lexicographical order of filenames, e.g.:
+
+- `a.tif` - index 1
+- `ba.tif` - index 2
+- `bb.tif` - index 3
+
+With the following configuration, you can validate that the first 3 images may deviate by at most 10 pixels from their average:
+
+```
+validation:
+
+  directoryRules:
+
+    propertyDeviations:
+      - label: ImageWidth
+        property: $.exiftool.TIFF.IFD[0].ImageWidth
+        condition:
+          aggregate: average
+          maxDeviation: 10
+          inPercent: false
+        additionalSlices:
+          - from: 1
+            to: 3
+            reversed: false
+            condition:
+              aggregate: average
+              maxDeviation: 10
+              inPercent: false
+```
+
+Additional slice conditions are evaluate within a slice. Meaning, the average is calculated within the slice. The width of the first 3 images could deviate from all other images by any amount. However, within the first 3 images, neither of them may deviate more than 10 pixels from their average.
+
+Consequently, the default deviation condition does not apply to the images of the slice any more. In this case, the default condition would only be applied to images 4, 5, 6, and so on. Also, the average that is used to calculate deviations would also only be calculated for these non-slice images.
+
+By default, no property deviations are checked. The following configuratio is used:
+
+```
+validation:
+
+  directoryRules:
+
+    propertyDeviations:
+```
+
 ### Output Section
 
 The `output` section contains the following subsections:
 
+- `checksum` - whether to generate checksum files for each valid directory
 - `logging` - options to control logging
 - `csv` - options related to the CSV report
 
-#### Logging
+#### Checksum Files
 
-The logging section allows controlling what log messages are generated during the execution of the image validation CLI. There are two options:
+The checksum section allows configuring whether a checksum file is generated if a directory is considered valid. The checksum file contains checksums for every image file of the directory. Checksums are calculated based on the algorith defined via the configuration option `checksum` in configuration section `processing`.
 
-- `json` - whether to write JSON-formatted log messages to `stdout`, and regular log messages to `stderr`
-- `verbosity` - the verbosity of regular log messages, either `error`, `warning`, `info`, `debug`, `trace`
+The following options can be specified to influence how checksum files are generated:
 
-For example:
+- `filename` - the filename template that is used to generate checksum filenames
+- `lineFormat` - the format template that is used to generate a line inside a checksum file
+
+Filename templates may use the following substitution variables to generate filenames:
+
+- `directory` - the name of the directory tat was successfully validated
+
+Variables may be referenced via the sytnax `${variable}`. For example, the filename template `${directory}.sha1` generates filenames that consist of the directory name followed by the file extension `.sha1`.
+
+Line format templates may use the following substition variables:
+
+- `checksum` - the actual checksum of the image file
+- `filename` the filename of the image file
+
+For example, the line format `${checksum} *${filename}` generates lines that first print the checksum of the image file, followed by a space and asterisk character, follwed by the filename of the image file.
+
+An example configuration may look like this:
 
 ```
 output:
 
-  logging:
-    json: true
-    verbosity: info
+  checksum:
+    filename: ${directory}.sha1
+    lineFormat: ${checksum} *${filename}
 ```
 
-Default configuration (no JSON output, only warning messages):
+By default, no checksum files are generated. The following default configuration is used:
 
 ```
 output:
 
-  logging:
-    json: false
-    verbosity: warning
+  checksum:
+    filename:
+    lineFormat: ${checksum} *${filename}
 ```
 
 #### CSV Report
@@ -398,6 +557,33 @@ output:
   csv:
     path:
     columns:
+```
+
+#### Logging
+
+The logging section allows controlling what log messages are generated during the execution of the image validation CLI. There are two options:
+
+- `json` - whether to write JSON-formatted log messages to `stdout`, and regular log messages to `stderr`
+- `verbosity` - the verbosity of regular log messages, either `error`, `warning`, `info`, `debug`, `trace`
+
+For example:
+
+```
+output:
+
+  logging:
+    json: true
+    verbosity: info
+```
+
+Default configuration (no JSON output, only warning messages):
+
+```
+output:
+
+  logging:
+    json: false
+    verbosity: warning
 ```
 
 ## General Processing Steps
