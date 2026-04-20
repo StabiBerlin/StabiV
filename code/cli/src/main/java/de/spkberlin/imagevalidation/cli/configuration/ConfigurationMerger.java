@@ -5,6 +5,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExtract
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputChecksumSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationProcessingSection;
@@ -15,6 +16,9 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidat
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
@@ -22,6 +26,7 @@ import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRu
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,25 +106,28 @@ public class ConfigurationMerger {
      * @param imageRules the list of additional image validation rules provided via CLI options
      * @param consistentProperties the list of additional properties to check to be consistent via CLI option
      * @param consecutiveNumberingFilenameRegExp the filename regexp for checking consecutive numbering provided via CLI option
+     * @param propertyDeviations the list of additional property deviation rules provided via CLI options
      */
     public static void mergeValidation(
         ConfigurationRoot config,
         List<String> imageRules,
         List<String> consistentProperties,
-        String consecutiveNumberingFilenameRegExp
+        String consecutiveNumberingFilenameRegExp,
+        List<String> propertyDeviations
     ) {
         // make sure validation section exists
         if (Objects.isNull(config.getValidation())) {
             config.setValidation(new ConfigurationValidationSection());
         }
-        mergeValidationDirectoryRules(config, consistentProperties, consecutiveNumberingFilenameRegExp);
+        mergeValidationDirectoryRules(config, consistentProperties, consecutiveNumberingFilenameRegExp, propertyDeviations);
         mergeValidationImageRules(config, imageRules);
     }
 
     private static void mergeValidationDirectoryRules(
         ConfigurationRoot config,
         List<String> consistentProperties,
-        String consecutiveNumberingFilenameRegExp
+        String consecutiveNumberingFilenameRegExp,
+        List<String> propertyDeviations
     ) {
         // make sure directory section exists
         if (Objects.isNull(config.getValidation().getDirectoryRules())) {
@@ -157,6 +165,35 @@ public class ConfigurationMerger {
         if (Objects.isNull(config.getValidation().getDirectoryRules().getPropertyDeviations())) {
             config.getValidation().getDirectoryRules().setPropertyDeviations(new ArrayList<>());
         }
+        if (Objects.nonNull(propertyDeviations)) {
+            List<DirectoryPropertyDeviationsRule> additionalRules = propertyDeviations
+                .stream()
+                .map(r -> getPropertyDeviationRuleFromCommandLineOption(r))
+                .toList();
+            config.getValidation().getDirectoryRules().getPropertyDeviations().addAll(additionalRules);
+        }
+    }
+
+    private static DirectoryPropertyDeviationsRule getPropertyDeviationRuleFromCommandLineOption(String propertyDeviationText) {
+        String[] ruleTextSplit = propertyDeviationText.split("/", 3);
+        if (ruleTextSplit.length != 3) {
+            throw new RuntimeException(
+                String.format("property deviation rule '%s' needs to consist of three parts separated by /", propertyDeviationText)
+            );
+        }
+
+        DirectoryPropertyDeviationsRule rule = new DirectoryPropertyDeviationsRule(
+            ruleTextSplit[0],
+            ruleTextSplit[1],
+            new DirectoryPropertyDeviationsCondition(
+                DirectoryPropertyDeviationsAggregateType.average,
+                Double.parseDouble(ruleTextSplit[2]),
+                Boolean.FALSE
+            ),
+            Collections.emptyList()
+        );
+
+        return rule;
     }
 
     private static DirectoryConsistencyCondition getConsistencyConditionFromCommandLineOption(String consistentProperty) {
@@ -205,6 +242,7 @@ public class ConfigurationMerger {
      * @param configFilePath the path to the configuration file
      * @param cwd the current working directory
      * @param csvPath the csv output path specified with CLI option
+     * @param checksumFilename the filename template for the checksum files provided via CLI option
      * @param json whether json output should be generated specified with CLI option
      * @param verbosity logging verbositry specified with CLI option
      */
@@ -214,6 +252,7 @@ public class ConfigurationMerger {
         Path cwd,
         String csvPath,
         List<String> csvColumns,
+        String checksumFilename,
         Boolean json,
         ConfigurationLoggingVerbosityType verbosity
     ) {
@@ -243,6 +282,14 @@ public class ConfigurationMerger {
             .map(c -> getCsvPropertyColumnFromCommandLineOption(c))
             .toList();
         config.getOutput().getCsv().getColumns().addAll(additionalColumns);
+
+        // make sure checksum section exists
+        if (Objects.isNull(config.getOutput().getChecksum())) {
+            config.getOutput().setChecksum(new ConfigurationOutputChecksumSection());
+        }
+        if (Objects.nonNull(checksumFilename)) {
+            config.getOutput().getChecksum().setFilename(checksumFilename);
+        }
 
         // overwrite json output
         if (Objects.isNull(config.getOutput().getLogging())) {

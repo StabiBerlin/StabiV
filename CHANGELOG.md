@@ -4,14 +4,15 @@
 
 New Features
 
-- Add check for property deviations from average value (e.g. image width and image height)
+- Add check for property deviations from average value (e.g. image width and image height) via the `--propertyDeviation` option or the corresponding YAML config
 - Two properties can be checked for equality via the `equalsProperty` condition, e.g., verifying that `XResolution` is the same as `YResolution`
-- Generate checksum files for directories that have been successfully validated
+- Generate checksum files for directories that have been successfully validated via the `--checksumFilename` option or the corresponding YAML config
 
 Breaking Changes
 
-- Configuration option `consistentProperties` now distinguishes between `label` and `property` (JsonPath) to show easier error message
-- Use slash (`/`) instead of pipe (`|`) character for CLI options `--imageRule` and `--csvColumn` due to incompatibility with powershell
+- Configuration option `consistentProperties` now distinguishes between `label` and `property` (JsonPath) to show easier error messages
+- Use slash (`/`) instead of pipe (`|`) character for CLI options `--imageRule` and `--csvColumn` due to incompatibility with Windows powershell
+- The CLI option `--checksum` of the validate command is now called `--checksumAlgorithm` instead
 
 Fixes
 

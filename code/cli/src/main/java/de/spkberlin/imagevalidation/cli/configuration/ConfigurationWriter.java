@@ -19,7 +19,7 @@ public class ConfigurationWriter {
      * @return a string of the configuration in yaml format
      * @throws IOException in case conversion fails
      */
-    public static String writeConfigurationFile(ConfigurationRoot config) throws IOException {
+    public static String writeFile(ConfigurationRoot config) throws IOException {
         logger.debug("serialize yaml configuration");
         return YAMLMapper.builder()
             .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)

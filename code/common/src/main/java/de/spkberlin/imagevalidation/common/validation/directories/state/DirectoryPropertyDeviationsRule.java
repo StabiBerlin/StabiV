@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectoryPropertyDeviationsEntry {
+public class DirectoryPropertyDeviationsRule {
 
     @NotBlank
     private String label;
@@ -18,7 +18,30 @@ public class DirectoryPropertyDeviationsEntry {
 
     private List<@Valid DirectoryPropertyDeviationsSliceEntry> additionalSlices;
 
-    public DirectoryPropertyDeviationsEntry() {
+    /**
+     * Intiailize property deviations rule.
+     *
+     * @param label a short label for a property that is included in error messages
+     * @param property the property that is checked as json path
+     * @param condition the deviation confition that is checked
+     * @param additionalSlices a list of slice definitions to check a specific range of images for deviations
+     */
+    public DirectoryPropertyDeviationsRule(
+        String label,
+        String property,
+        DirectoryPropertyDeviationsCondition condition,
+        List<DirectoryPropertyDeviationsSliceEntry> additionalSlices
+    ) {
+        this.label = label;
+        this.property = property;
+        this.condition = condition;
+        this.additionalSlices = additionalSlices;
+    }
+
+    /**
+     * Intiailize property deviations rule with default settings.
+     */
+    public DirectoryPropertyDeviationsRule() {
         additionalSlices = new ArrayList<>();
     }
 

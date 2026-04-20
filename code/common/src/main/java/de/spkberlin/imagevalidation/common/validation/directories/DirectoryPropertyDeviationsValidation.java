@@ -4,7 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
-import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsEntry;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsSliceEntry;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,10 +28,10 @@ public class DirectoryPropertyDeviationsValidation {
      * @return an error message, or null if successful
      */
     public static String evaluatePropertyDeviations(
-        Collection<DirectoryPropertyDeviationsEntry> deviationEntries,
+        Collection<DirectoryPropertyDeviationsRule> deviationEntries,
         Map<Path, ExtractionResult> extractionResults
     ) {
-        for (DirectoryPropertyDeviationsEntry entry : deviationEntries) {
+        for (DirectoryPropertyDeviationsRule entry : deviationEntries) {
             String error = evaluatePropertyDeviationEntry(entry, extractionResults);
             if (Objects.nonNull(error)) {
                 return error;
@@ -48,7 +48,7 @@ public class DirectoryPropertyDeviationsValidation {
      * @return an error message, or null if successful
      */
     public static String evaluatePropertyDeviationEntry(
-        DirectoryPropertyDeviationsEntry deviationEntry,
+        DirectoryPropertyDeviationsRule deviationEntry,
         Map<Path, ExtractionResult> extractionResults
     ) {
         Map<Path, Double> propertyValues = findNumberProperties(deviationEntry.getProperty(), extractionResults);
@@ -110,7 +110,7 @@ public class DirectoryPropertyDeviationsValidation {
     public static String checkMaxDeviation(
         Map<Path, Double> propertyValues,
         DirectoryPropertyDeviationsAggregateType aggregateType,
-        Integer maxDeviation,
+        Double maxDeviation,
         Boolean inPercent,
         String propertyLabel
     ) {
@@ -134,7 +134,7 @@ public class DirectoryPropertyDeviationsValidation {
                 double absoluteDeviation = Math.abs(value.doubleValue() - aggregate);
                 if (absoluteDeviation > maxDeviation) {
                     return String.format(
-                        "image '%s deviates for property '%s' by %.1f from %s of %.1f",
+                        "image '%s' deviates for property '%s' by %.1f from %s of %.1f",
                         imagePath.getFileName(),
                         propertyLabel,
                         absoluteDeviation,

@@ -9,20 +9,40 @@ public class DirectoryPropertyDeviationsCondition {
     private DirectoryPropertyDeviationsAggregateType aggregate;
 
     @NotNull
-    private Integer maxDeviation;
+    private Double maxDeviation;
 
     @NotNull
     private Boolean inPercent;
 
+    /**
+     * Initialize property deviations condition with default values.
+     */
     public DirectoryPropertyDeviationsCondition() {
         this.inPercent = false;
     }
 
-    public Integer getMaxDeviation() {
+    /**
+     * Initialize property deviations condition.
+     *
+     * @param aggregate the aggregation function that is applied (either average or median)
+     * @param maxDeviation the maximum allowed deviation
+     * @param inPercent whether the maximum allowed deviation is interpreted as percent or absolute value
+     */
+    public DirectoryPropertyDeviationsCondition(
+        DirectoryPropertyDeviationsAggregateType aggregate,
+        Double maxDeviation,
+        Boolean inPercent
+    ) {
+        this.aggregate = aggregate;
+        this.maxDeviation = maxDeviation;
+        this.inPercent = inPercent;
+    }
+
+    public Double getMaxDeviation() {
         return this.maxDeviation;
     }
 
-    public void setMaxDeviation(Integer maxDeviation) {
+    public void setMaxDeviation(Double maxDeviation) {
         this.maxDeviation = maxDeviation;
     }
 

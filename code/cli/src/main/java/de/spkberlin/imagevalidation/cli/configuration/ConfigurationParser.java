@@ -24,7 +24,7 @@ public class ConfigurationParser {
         logger.debug("parse yaml configuration file from '{}'", filepath);
         try {
             ConfigurationRoot config = new ObjectMapper(new YAMLFactory()).readValue(filepath.toFile(), ConfigurationRoot.class);
-            logger.trace("read yaml configuration:\n\n{}", ConfigurationWriter.writeConfigurationFile(config));
+            logger.trace("read yaml configuration:\n\n{}", ConfigurationWriter.writeFile(config));
             return config;
         } catch (DatabindException e) {
             logger.error("error parsing configuration file: {}", e.getMessage());

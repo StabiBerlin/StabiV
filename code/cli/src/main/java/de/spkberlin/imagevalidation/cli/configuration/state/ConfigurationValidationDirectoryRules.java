@@ -1,7 +1,7 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
-import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsEntry;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class ConfigurationValidationDirectoryRules {
     @Valid
     private ConfigurationValidationConsecutiveNumbering consecutiveNumbering;
 
-    private List<@Valid DirectoryPropertyDeviationsEntry> propertyDeviations;
+    private List<@Valid DirectoryPropertyDeviationsRule> propertyDeviations;
 
     public ConfigurationValidationDirectoryRules() {
         this.consistentProperties = new ArrayList<>();
@@ -35,11 +35,11 @@ public class ConfigurationValidationDirectoryRules {
         this.consecutiveNumbering = consecutiveNumbering;
     }
 
-    public List<DirectoryPropertyDeviationsEntry> getPropertyDeviations() {
+    public List<DirectoryPropertyDeviationsRule> getPropertyDeviations() {
         return this.propertyDeviations;
     }
 
-    public void setPropertyDeviations(List<DirectoryPropertyDeviationsEntry> propertyDeviations) {
+    public void setPropertyDeviations(List<DirectoryPropertyDeviationsRule> propertyDeviations) {
         this.propertyDeviations = propertyDeviations;
     }
 }

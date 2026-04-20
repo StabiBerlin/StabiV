@@ -92,7 +92,7 @@ public class ValidateCommand implements Callable<Integer> {
         Integer parallelThreads;
 
         @Option(
-            names = { "--checksum" },
+            names = { "--checksumAlgorithm" },
             arity = "1",
             paramLabel = "ALGORITHM",
             description = """
@@ -182,12 +182,58 @@ public class ValidateCommand implements Callable<Integer> {
             """
         )
         String consecutiveNumbering;
+
+        @Option(
+            names = { "--propertyDeviation" },
+            paramLabel = "RULE",
+            arity = "1",
+            description = """
+            Add a validation requirement that a number-based property may only deviate by a maximum amount from the average over all
+            files in a directory.
+
+            The validation rule needs to be defined in the format of `"LABEL/PROPERTY/DEVIATION"`.
+            Additional options can only be specified in the YAML configuration file (e.g. whether to use the average value or median value).
+
+            The label used to generate appropriate error messages in case the maximum deviation is exceeded.
+
+            Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
+
+            The maximum deviation needs to be specified as a simple number.
+
+            Example:
+             - `"ImageWidth/$.exiftool.TIFF.IFD[0].ImageWidth/10"` - check that image width deviates at most 10 pixels from average
+             - `"ImageHeight/$.exiftool.TIFF.IFD[0].ImageHeight/10"` - check that image height deviates at most 10 pixels from the average
+            """
+        )
+        List<String> propertyDeviations = Collections.emptyList();
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Output Options|@%n%n", order = 6, exclusive = false)
     public OutputOptions outputOptions = new OutputOptions();
 
     static class OutputOptions {
+
+        /** The filepath to the generated CSV file. */
+        @Option(
+            names = { "--checksumFilename" },
+            arity = "1",
+            paramLabel = "FILENAME",
+            description = """
+            The filename of a checksum file that is generated inside directories that have been succesfully validated.
+
+            The filename may contain the following substitution variables:
+
+            - `directory`
+
+            On Linux, the parameter needs to be enclosed in single quotes if a variable is included to prevent that environment variables
+            are substituted instead, e.g. `--checksum '${directory}.sha1'`.
+
+            For example:
+            - `checksum.sha1`
+            - `${directory}.sha1`
+            """
+        )
+        String checksumFilename;
 
         /** The filepath to the generated CSV file. */
         @Option(names = { "--csv" }, description = "CSV output file")
@@ -332,7 +378,8 @@ public class ValidateCommand implements Callable<Integer> {
             config,
             validationOptions.imageRules,
             validationOptions.consistentProperties,
-            validationOptions.consecutiveNumbering
+            validationOptions.consecutiveNumbering,
+            validationOptions.propertyDeviations
         );
         ConfigurationMerger.mergeOutput(
             config,
@@ -340,15 +387,12 @@ public class ValidateCommand implements Callable<Integer> {
             cwd,
             outputOptions.csvOutputFilepath,
             outputOptions.csvColumns,
+            outputOptions.checksumFilename,
             outputOptions.jsonLogging,
             verbosity
         );
 
-        logger.debug(
-            "yaml configuration after merging with command line options:\n\n{}",
-            ConfigurationWriter.writeConfigurationFile(config)
-        );
-
+        logger.debug("yaml configuration after merging with command line options:\n\n{}", ConfigurationWriter.writeFile(config));
         return config;
     }
 }
