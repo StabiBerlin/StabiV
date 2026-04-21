@@ -8,12 +8,13 @@ New Features
 - Two properties can be checked for equality via the `equalsProperty` condition, e.g., verifying that `XResolution` is the same as `YResolution`
 - Generate checksum files for directories that have been successfully validated via the `--checksumFilename` option or the corresponding YAML config
 - CSV report lists validation success for directories and files in two separate columns
-- CSV report does not contain checksums for images of directories that were not succesfully validated
+- CSV report does contain an overall validation summary and a summary for each directory
 - Parent directories that contain subdirectories but no image files are not validated
+- Added more documentation about the YAML format and JSONPath to the user guide
 
 Breaking Changes
 
-- Configuration option `consistentProperties` now distinguishes between `label` and `property` (JsonPath) to show easier error messages
+- Configuration option `consistentProperties` now distinguishes between `label` and `property` to show easier error messages
 - Use slash (`/`) instead of pipe (`|`) character for CLI options `--imageRule` and `--csvColumn` due to incompatibility with Windows powershell
 - The CLI option `--checksum` of the validate command is now called `--checksumAlgorithm` instead
 
@@ -23,10 +24,8 @@ Fixes
 
 Known Issues
 
-- The CSV report doesn't contain an overall validation summary
 - The `move_directories.sh` script is not yet documented
-- There is no introductory documentation of how YAML and JsonPath works
-- The Spk-Berlin example configuration doesn't check the name of the ICC profile
+- The spk-berlin example configuration file doesn't check the name of the ICC profile
 
 ## v0.3.0 - 2026-04-14
 

@@ -23,7 +23,7 @@ spk-iv-cli.bat extract examples/simple/wellformed/simple_rgb.tif
 
 The extracted properties are visualized as a hierarchical JSON file:
 
-```
+```JSON
 {
   "jhove" : {
     "TIFFMetadata" : {
@@ -59,7 +59,7 @@ The extracted properties are visualized as a hierarchical JSON file:
 ```
 
 Images will be validated based on this information. Validation rules are defined on specific properties extracted from this
-hierarchy via a JsonPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535)).
+hierarchy via a JSONPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535)).
 
 In order to extract the TIF tag `PhotometricInterpretation`, you can use the following command:
 
@@ -69,7 +69,7 @@ spk-iv-cli.bat extract -p "$.exiftool..PhotometricInterpretation" examples/simpl
 
 Its output should be:
 
-```
+```JSON
 [ "RGB" ]
 ```
 

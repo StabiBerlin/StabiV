@@ -8,7 +8,7 @@ This document is structured into the following sections:
 
 - [Getting Started](#getting-started)
 - [Fundamentals](#fundamentals)
-  - [JsonPath](#jsonpath)
+  - [JSONPath](#jsonpath)
   - [YAML Format](#yaml-format)
 - [Command Line Options](#command-line-options)
 - [Configuration File Options](#command-line-options)
@@ -32,13 +32,142 @@ Once installed and running, the only difference between Windows and Linux is how
 
 ## Fundamentals
 
-### JsonPath
+This sections describes two important concepts that are required to succesfully define validation rules: JSONPath and the YAML file format.
 
-TODO
+### JSONPath
+
+A JSONPath is a method to reference one or multiple subproperties in a hierarchy of properties. It is used to specify exactly which image properties are supposed to be validated.
+
+JSONPath is directly linked to the [JavaScript Object Notation](https://de.wikipedia.org/wiki/JSON) (JSON) format, which allows storing a hierarchy of properties and their values as simple text format.
+
+JSON and JSONPath are not inventions of this tool but universal standards, see [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) and [RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535). Because of that, you can also look for additional guides and tutorials online. Unfortunately, JSONPath is not as widely documented, though.
+
+If you have worked with XML before, then you may compare JSONPath with XPath. Both XPath and JSONPath serve the same purpose. Examples on how XPath compares to JSONPath can be found [here](https://datatracker.ietf.org/doc/html/rfc9535#tbl-xpath-equivalents).
+
+A JSONPath is an expression that selects how hierarchical properties are navigated. Lets assume that an image file contains two subimages: one thumbnail and one full resolution image. The following property hierarchy is extracted from the image (formatted as a JSON document):
+
+```JSON
+{
+  "TIFF": {
+    "IFD": [
+      {
+        "ImageWidth": 100,
+        "ImageHeight": 100,
+        "SubfileType": "Reduced-resolution image"
+      },
+      {
+        "ImageWidth": 1000,
+        "ImageHeight": 1000,
+        "SubfileType": "Full-resolution image"
+      }
+    ]
+  }
+}
+```
+
+You can navigate the property hierarchy by combining the following operators into a path:
+
+- `$` - references the root level of the hierarchy
+- `.` - navigates one level down in the hierarchy based on the property name that is written after the dot
+- `..` - scans the hierarchy for all properties with the same name that is written after boths dots
+- `[i]` - references the i-th element in a list of properties
+
+For example:
+
+- `$` - does not navigate at all, but represents the full hierarchy
+- `$.TIFF` - navigates to the hierarchy level `TIFF` and all its subproperties
+- `$.TIFF.IFD` - navigates to to the list of IFDs of the TIF file
+- `$.TIFF.IFD[0]` - navigates to the first IFD of the TIF file
+- `$.TIFF.IFD[0].SubfileType` - selects the property `SubfileType` of the first IFD of the TIF
+- `$..SubfileType` - selects any `SubfileType` properties in the hierarchy
+
+You can experiment with different JSONPaths by copying the JSON document to the [JSONPath Online Evaluator](https://jsonpath.com/) and typing in any JSONPath. Alternatively, you can use the `extract` command of the Image Validation CLI and apply a JSONPath with the `--property` argument as mentioned in the _Getting Started_ guide.
+
+JSONPaths containing special characters like asterisks (`*`) should be enclosed in double quotes (`"`) or single quotes (`'`) to avoid any parsing problems both in YAML configuration files and command line arguments.
+
+There are a lot more possibilities to define JSONPaths. Unfortunately, a comprehensive documentation of all options exceeds the scope of this user guide. Detailed information about the syntax can be found in [RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535) or in the [documentation](https://github.com/json-path/JsonPath) of the Java library that is used by the Image Validation CLI to resolve JSONPaths. Various examples are listed here (from the RFC documentation):
+
+- [Various Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-jsonpath-examples)
+- [Wildcard Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-3)
+- [Index Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-4)
+- [Slice Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-5)
+- [Filter Example](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-6)
+- [Function Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-7)
+- [Scanning Example](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-9)
 
 ### YAML Format
 
-TODO
+The [YAML](https://en.wikipedia.org/wiki/YAML) (Yet Another Markup Language) format is very similar to the JSON format and also allows storing hierarchical properties as simple text. The Image Validation CLI uses the YAML format to specify validation rules as configuration files.
+
+In comparison to JSON, the YAML format is usually easier for humans to read and write. Besides, you can specify comments, which makes them ideal for configuration files.
+
+Similar to JSON and JSONPath, the YAML format is also a universal standard (see [RFC 9512](https://datatracker.ietf.org/doc/html/rfc9512)). You can find lots of information about the YAML format online, e.g., at [Wikipedia](https://en.wikipedia.org/wiki/YAML) or [RedHat](https://www.redhat.com/en/topics/automation/what-is-yaml).
+
+Most importantly, YAML is structured based on indentation, for example:
+
+```YAML
+property:
+  subproperty: value
+  another: something
+```
+
+The property `subproperty` is considered a subproperty of `property`, because it is slightly shiftet to right with two spaces. The same is true for `another`, which is also considered a subproperty of `property`. In contrast, in the following YAML document, property `another` is no longer considered a subproperty of `property`.
+
+```YAML
+property:
+  subproperty: value
+another: something
+```
+
+Besides that, you can distinguish between named subproperties (like shown above) and a list of values or subproperties via the `-` (minus) symbol. A simple list is defined as:
+
+```YAML
+property:
+  - value1
+  - value2
+  - value3
+```
+
+This document models the property `property` as a list instead of a section containing subproperties. The corresponding JSON document would look like this:
+
+```JSON
+{
+  "property": ["value1", "value2", "value"]
+}
+```
+
+The Image Validation CLI configuration file uses these lists whenver a configuration options accepts an arbitrary amount of something, e.g. the list of image validation rules, or the list of directories that are supposed to be validated.
+
+Lists may not only contain specific values, but also subproperties:
+
+```YAML
+property:
+  - subproperty: value
+    another: something
+  - subproperty: value2
+    another: something2
+```
+
+This document corresponds to the following JSON document:
+
+```JSON
+{
+  "property": [
+    {"subproperty": "value", "another": "something"},
+    {"subproperty": "value2", "another": "something2"}
+  ]
+}
+```
+
+In case of Image Validation CLI configuration files, each list element needs to contain the same subproperties. The following YAML document would usually not be a valid configuration even though it is considered a valid YAML document:
+
+```YAML
+property:
+  - subproperty: value
+  - another: something
+```
+
+If there are issues in a YAML configuration file, detailed error messages are printed.
 
 ## Command Line Options
 
@@ -70,38 +199,40 @@ If a directory is listed in `includes`, all of its contents are validated, inclu
 
 Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 
+Patterns containing special characters like asterisks (`*`) should be enclosed in double quotes (`"`) to avoid any parsing problems.
+
 For Example:
 
-```
+```YAML
 input:
 
   includes:
     - /path/to/directory
     - /path/to/file.tif
-    - /all/tif/files/*.tif
-    - /all/tif/files/in/all/subdirectories/**/*.tif
-    - /path/to/mixed/files/*.{tif,jpg}
+    - "/all/tif/files/*.tif"
+    - "/all/tif/files/in/all/subdirectories/**/*.tif"
+    - "/path/to/mixed/files/*.{tif,jpg}"
 
   excludes:
     - /path/to/directory
-    - /path/to/mixed/files/**.jpg
+    - "/path/to/mixed/files/**.jpg"
 ```
 
 Alternatively, but not recommended, the list of includes and excludes can also be defined as pairs of `baseDirectory` and `path`, for example:
 
-```
+```YAML
 input:
 
   includes:
     - baseDirectory: /path/to/directory
-    - path: subdirectory/*.tif
+    - path: "subdirectory/*.tif"
 ```
 
 This distinction is used by the tool to differentiate how relative paths are resolved in case they are provided as CLI argument or from a configuration file. When providing a relative filepaths via CLI argument, the `baseDirectory` defaults to the current working directory. When defining configuration file options, the `baseDirectory` defaults to the directory that contains the configuration file.
 
 By default, no files are included or excluded, which corresponds to the following empty configuration:
 
-```
+```YAML
 input:
 
   includes:
@@ -119,7 +250,7 @@ Specify the number of images that are processed in parallel (default 4). Only im
 
 For example:
 
-```
+```YAML
 processing:
 
   threads: 1
@@ -127,7 +258,7 @@ processing:
 
 Default configuration:
 
-```
+```YAML
 processing:
 
   threads: 4
@@ -139,7 +270,7 @@ Specify which checksum algorithm is used when calculating the checksum of an ima
 
 For example:
 
-```
+```YAML
 processing:
 
   checksum: MD5
@@ -147,7 +278,7 @@ processing:
 
 Default configuration:
 
-```
+```YAML
 processing:
 
   checksum: SHA-1
@@ -166,7 +297,7 @@ Currently, only the list of modules can be configured:
 
 For example:
 
-```
+```YAML
 extraction:
 
   modules:
@@ -175,7 +306,7 @@ extraction:
 
 Default configuration:
 
-```
+```YAML
 extraction:
 
   modules:
@@ -198,7 +329,7 @@ The `imageRules` section contains a list of validation rules that check extracte
 
 The options `context` and `condition` work together in the following way: the context option describes which property or properties to check, and the condition option describes how to check them. This two-fold definition is required, because image properties are hierarchical and may occur multiple times, e.g., in case of multipage TIF images with multiple IFDs. Suppose you would like validate that every multipage TIF sub-image uses the color space `rgb`. Then, the context will describe the part "every IFD", and the condition will describe the part "has to have RGB color space". An appropriate rule for this scenario would be:
 
-```
+```YAML
 message: Every IFD needs to be have RGB colorspace
 severity: error
 context: $.exiftool.TIFF.IFD
@@ -210,20 +341,22 @@ condition:
 
 Also, if the context of an image rule does not resolve to any property or properties, because they do not exist, the rule is simply skipped. This can be useful in case of rules for optional subtree properties, e.g., checking whether the ICC Profile matches a condition, only if there is an ICC Profile attached to the file.
 
-By default, the rule context is defined as the root property tree (JsonPath `$`), meaning the context does not have any effect on the rule condition and can be ignored.
+By default, the rule context is defined as the root property tree (JSONPath `$`), meaning the context does not have any effect on the rule condition and can be ignored.
+
+JSONPaths containing special characters like asterisks (`*`) should be enclosed in double quotes (`"`) to avoid any parsing problems.
 
 ##### Conditions
 
 Image rule conditions are comprised of the following options:
 
-- `property` - the JsonPath to the property that is being checked relative to the `context`
+- `property` - the JSONPath to the property that is being checked relative to the `context`
 - `assert` - the type of check that is performed (e.g. `equal`, `oneOf`)
 - `value` - the value or list of values that the extracted image property is checked against
 
 The following assert types are supported:
 
 - `equal` - checks that the property value exactly matches the comparison value
-- `equalsProperty` - checks that the property value exactly matches another property's value extracted from the provided JsonPath
+- `equalsProperty` - checks that the property value exactly matches another property's value extracted from the provided JSONPath
 - `oneOf` - checks that the property matches one of the provided alternative values
 - `isEmpty` - checks that the property value is empty (matches an empty string)
 - `exists` - checks that the property exists and ignores its value
@@ -237,28 +370,28 @@ The following assert types are supported:
 
 In addition, conditions can be logically combined with `and`, `or` and `not` by enclosing a condition with an `and`-, `or`- or `not`-YAML section like this:
 
-```
+```YAML
 and:
   - <condition>
   - <condition>
   - <condition>
 ```
 
-```
+```YAML
 or:
   - <condition>
   - <condition>
   - <condition>
 ```
 
-```
+```YAML
 not:
   <condition>
 ```
 
 For example, the following rule checks that a non-empty `SerialNumber` property exists either in the subtree `ExifIFD` or subtree `XMP`:
 
-```
+```YAML
 message: SerialNumber required
 severity: error
 context: $.exiftool
@@ -276,7 +409,7 @@ condition:
 
 Check that JHove has detected the image as well-formed if the JHove extractor module is used:
 
-```
+```YAML
 message: JHove must detect file as wellformed
 severity: error
 context: $.jhove
@@ -288,7 +421,7 @@ condition:
 
 Always check that the JHove extractor is applied and that the image is detected as well-formed even if the JHove extractor is disabled based on other configuration options:
 
-```
+```YAML
 message: JHove must detect file as wellformed
 severity: error
 condition:
@@ -299,7 +432,7 @@ condition:
 
 Check that a TIF image has exactly one IFD if the ExifTool extractor module is used:
 
-```
+```YAML
 message: Must have exactly one IFD
 severity: error
 context: $.exiftool
@@ -323,7 +456,7 @@ For each property, a label needs to be specified, which is used to describe the 
 
 For Example:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -337,7 +470,7 @@ validation:
 
 By default, no properties are checked for consistency, meaning the following configuration is used:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -361,7 +494,7 @@ The following options need to be defined:
 
 For Example:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -374,7 +507,7 @@ validation:
 
 By default, files are not checked for consecutiveness. Thus, the following configuration is used:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -392,7 +525,7 @@ You may check that a number-based property is almost consistent for all images w
 In order to specify a property deviation rule, you need to define the following options:
 
 - `label` - the label that is used to describe the property in case of errors, mandatory
-- `property` - the JsonPath referring to the property that is being checked, mandatory
+- `property` - the JSONPath referring to the property that is being checked, mandatory
 
 Then, a property deviation condition consists of the following options:
 
@@ -402,7 +535,7 @@ Then, a property deviation condition consists of the following options:
 
 An example configuration would be:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -433,7 +566,7 @@ The `from` and `to` indexes do not refer to the number extracted from filenames 
 
 With the following configuration, you can validate that the first 3 images may deviate by at most 10 pixels from their average:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -461,7 +594,7 @@ Consequently, the default deviation condition does not apply to the images of th
 
 By default, no property deviations are checked. The following configuratio is used:
 
-```
+```YAML
 validation:
 
   directoryRules:
@@ -501,7 +634,7 @@ For example, the line format `${checksum} *${filename}` generates lines that fir
 
 An example configuration may look like this:
 
-```
+```YAML
 output:
 
   checksum:
@@ -511,7 +644,7 @@ output:
 
 By default, no checksum files are generated. The following default configuration is used:
 
-```
+```YAML
 output:
 
   checksum:
@@ -531,11 +664,11 @@ A relative file path is resolved relative to the location of the configuration f
 Additional property columns can be specified as a list of two options:
 
 - `label` - the column label that is used for this column in the CSV report
-- `property` - the JsonPath to the property that is supposed to be included in the CSV report
+- `property` - the JSONPath to the property that is supposed to be included in the CSV report
 
 For example:
 
-```
+```YAML
 output:
 
   csv:
@@ -551,7 +684,7 @@ output:
 
 Default configuration (no CSV report):
 
-```
+```YAML
 output:
 
   csv:
@@ -568,7 +701,7 @@ The logging section allows controlling what log messages are generated during th
 
 For example:
 
-```
+```YAML
 output:
 
   logging:
@@ -578,7 +711,7 @@ output:
 
 Default configuration (no JSON output, only warning messages):
 
-```
+```YAML
 output:
 
   logging:
@@ -625,25 +758,25 @@ The JSON output mode generates one JSON document per line of output. Each JSON d
 
 For example, succesful images will be reported as:
 
-```
+```JSON
 {"time":"2026-04-13 15:42:55.151","type":"file","path":"/path/to/valid.tif","checksum":"04baa2eb55625d139b56ea00d6e8f82e0d01462d","validation":"success","error":null,"warning":null}
 ```
 
 Succesful directories will be reported as:
 
-```
+```JSON
 {"time":"2026-04-13 15:42:54.276","type":"directory","path":"/path/to/valid/directory","checksum":null,"validation":"success","error":null,"warning":null}
 ```
 
 Images that fail validation are reported as:
 
-```
+```JSON
 {"time":"2026-04-13 15:42:54.909","type":"file","path":"/path/to/invalid.tif","checksum":"79b65f7a496fc8bede1756f32c2f9f75d7468688","validation":"failed","error":"SerialNumber required","warning":null}
 ```
 
 Directories that fail validation are reported as:
 
-```
+```JSON
 {"time":"2026-04-13 15:42:54.912","type":"directory","path":"/path/to/invalid/directory","checksum":null,"validation":"failed","error":"at least one image has a validation error","warning":null}
 ```
 

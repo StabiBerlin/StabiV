@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set metadata values according to sbk-berlin specification
-# see https://exiftool -overwrite_original.org/TagNames/EXIF.html
+# see https://exiftool.org/TagNames/EXIF.html
 
 rm -rf image_rules
 rm -rf consistency
