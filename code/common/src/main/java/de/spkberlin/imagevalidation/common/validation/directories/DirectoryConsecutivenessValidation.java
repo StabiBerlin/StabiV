@@ -117,7 +117,7 @@ public class DirectoryConsecutivenessValidation {
             .orElse(null);
 
         if (Objects.nonNull(missing)) {
-            return String.format("could not find image number '%d' in the list of filenames", missing);
+            return String.format("image with number %d is missing, which violates consecutivness", missing);
         }
 
         return null;
