@@ -1,11 +1,12 @@
 input:
   includes:
-    - consecutive_numbering
-    - consistency
-    - image_rules
-    - size_deviations
+    - "**"
   excludes:
+    - "config.yaml"
+    - "output.csv"
+    - ".~lock.output.csv#"
     - "**.sha1"
+    - "**.gitignore"
 
 processing:
   threads: 4

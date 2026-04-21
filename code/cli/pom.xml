@@ -118,23 +118,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <phase>package</phase>
-            <configuration>
-              <outputDirectory>${project.build.directory}/runtimeDependencies</outputDirectory>
-              <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctor-maven-plugin</artifactId>
         <configuration>
@@ -180,6 +163,33 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>assembly-all</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-dependencies</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <phase>package</phase>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/runtimeDependencies</outputDirectory>
+                  <includeScope>runtime</includeScope>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!-- Linux tar -->
     <profile>
       <id>assembly-linux</id>

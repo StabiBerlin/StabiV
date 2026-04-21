@@ -7,6 +7,9 @@ New Features
 - Add check for property deviations from average value (e.g. image width and image height) via the `--propertyDeviation` option or the corresponding YAML config
 - Two properties can be checked for equality via the `equalsProperty` condition, e.g., verifying that `XResolution` is the same as `YResolution`
 - Generate checksum files for directories that have been successfully validated via the `--checksumFilename` option or the corresponding YAML config
+- CSV report lists validation success for directories and files in two separate columns
+- CSV report does not contain checksums for images of directories that were not succesfully validated
+- Parent directories that contain subdirectories but no image files are not validated
 
 Breaking Changes
 
@@ -16,7 +19,14 @@ Breaking Changes
 
 Fixes
 
-- Fix negation of "isEmpty" is considered valid if property is not available at all
+- Fix negation of "isEmpty" is considered valid if a property is not available at all
+
+Known Issues
+
+- The CSV report doesn't contain an overall validation summary
+- The `move_directories.sh` script is not yet documented
+- There is no introductory documentation of how YAML and JsonPath works
+- The Spk-Berlin example configuration doesn't check the name of the ICC profile
 
 ## v0.3.0 - 2026-04-14
 

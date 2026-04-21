@@ -3,6 +3,7 @@ package de.spkberlin.imagevalidation.cli.output.csv;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
+import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import java.io.FileWriter;
@@ -24,12 +25,16 @@ public class CsvWriter {
     private static final Logger logger = LoggerFactory.getLogger(CsvWriter.class);
 
     private static String[] COLUMN_HEADER = {
-        "Directory",
-        "File",
-        "Checksum",
-        "Passed Validation",
+        "Heading",
+        "Subheading",
+        "Directory Name",
+        "File Name",
+        "Directory Passed Validation",
+        "File Passed Validation",
         "Validation Error",
         "Validation Warning",
+        "Path",
+        "Checksum",
     };
 
     /**
@@ -43,10 +48,34 @@ public class CsvWriter {
         logger.info("write csv output file '{}'", outputPath);
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputPath.toFile()), CSVFormat.EXCEL)) {
             writeHeader(printer, columns);
+            writeSummaryLine(printer, validateAllResult);
             writeDirectories(printer, validateAllResult, columns);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private static void writeSummaryLine(CSVPrinter printer, ValidateAllResult validateAllResult) throws IOException {
+        Boolean allValid = ValidateAll.isOverallValid(validateAllResult);
+        Integer totalFiles = ValidateAll.countOverallImages(validateAllResult);
+        Long validFiles = ValidateAll.countValidImages(validateAllResult);
+
+        printer.printRecord(); // empty record for spacing
+
+        printer.printRecord(
+            "Overall Result", // heading
+            "Target vs. Actual", // subheading
+            totalFiles, // directory name
+            validFiles, // file name
+            allValid, // directory passed validation
+            allValid, // file passed validation
+            null, // validation error
+            null, // validation warning
+            null, // path
+            null // checksum
+        );
+
+        printer.printRecord(); // empty record for spacing
     }
 
     private static void writeDirectories(CSVPrinter printer, ValidateAllResult validateAllResult, List<CsvPropertyColumn> columns)
@@ -55,8 +84,8 @@ public class CsvWriter {
         while (entryIterator.hasNext()) {
             Entry<Path, List<Path>> entry = entryIterator.next();
             Path directory = entry.getKey();
-            String directoryError = validateAllResult.getDirectoryValidationResults().get(directory).getError();
-            printer.printRecord(directory.toString(), null, null, Objects.isNull(directoryError), directoryError);
+
+            writeDirectorySummary(printer, directory, validateAllResult);
 
             for (Path filepath : entry.getValue()) {
                 writeFile(printer, filepath, validateAllResult.getImageValidationResults().get(filepath), columns);
@@ -69,6 +98,29 @@ public class CsvWriter {
         }
     }
 
+    private static void writeDirectorySummary(CSVPrinter printer, Path directory, ValidateAllResult validateAllResult) throws IOException {
+        String directoryError = validateAllResult.getDirectoryValidationResults().get(directory).getError();
+
+        // write directory validation result
+        printer.printRecord(
+            directory.getFileName(), // heading
+            "Target vs. Actual", // subheading
+            validateAllResult.getFilesByDirectory().get(directory).size(), // direcotry name
+            validateAllResult
+                .getFilesByDirectory()
+                .get(directory)
+                .stream()
+                .filter(p -> validateAllResult.getImageValidationResults().get(p).getImageRuleEvaluationResult().getErrors().isEmpty())
+                .count(), // file name
+            Objects.isNull(directoryError), // directory passed validation
+            null, // file passed validation
+            directoryError, // validation error
+            null, // validation warning
+            directory.toString(), // path
+            null // checksum
+        );
+    }
+
     private static void writeFile(
         CSVPrinter printer,
         Path filepath,
@@ -77,12 +129,16 @@ public class CsvWriter {
     ) throws IOException {
         Stream<String> line = Stream.concat(
             Stream.of(
-                (String) null, // directory name
-                filepath.getFileName().toString(),
-                imageValidationResult.getChecksum(),
-                imageValidationResult.getImageRuleEvaluationResult().getErrors().isEmpty() ? "true" : "false",
-                imageValidationResult.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse(""),
-                imageValidationResult.getImageRuleEvaluationResult().getWarnings().stream().findFirst().orElse("")
+                null, // heading
+                null, // subheading
+                filepath.getParent().getFileName().toString(), // directory name
+                filepath.getFileName().toString(), // file name
+                (String) null, // directory passed validation
+                imageValidationResult.getImageRuleEvaluationResult().getErrors().isEmpty() ? "true" : "false", // file passed validation
+                imageValidationResult.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse(""), // validation error
+                imageValidationResult.getImageRuleEvaluationResult().getWarnings().stream().findFirst().orElse(""), // validation warning
+                filepath.toString(), // file path
+                imageValidationResult.getChecksum() // checksum
             ),
             columns
                 .stream()

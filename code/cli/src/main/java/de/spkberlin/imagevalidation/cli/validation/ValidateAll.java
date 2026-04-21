@@ -154,4 +154,46 @@ public class ValidateAll {
         }
         return true;
     }
+
+    /**
+     * Return the total number of images that were validated, independent of the validation success.
+     *
+     * @param result the validation results for all directories and images
+     * @return the total count of images
+     */
+    public static Integer countOverallImages(ValidateAllResult result) {
+        return result.getFilesByDirectory().values().stream().mapToInt(List::size).sum();
+    }
+
+    /**
+     * Return the total number of valid images.
+     *
+     * @param result the validation results for all directories and images
+     * @return the total count of valid images
+     */
+    public static Long countValidImages(ValidateAllResult result) {
+        return result
+            .getImageValidationResults()
+            .values()
+            .stream()
+            .filter(r -> r.getImageRuleEvaluationResult().getErrors().isEmpty())
+            .count();
+    }
+
+    /**
+     * Return the first validation error of any directory.
+     *
+     * @param result the validation results for all directories and images
+     * @return the first validation error of any directory
+     */
+    public static String getFirstValidationError(ValidateAllResult result) {
+        return result
+            .getDirectoryValidationResults()
+            .values()
+            .stream()
+            .map(r -> r.getError())
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
+    }
 }

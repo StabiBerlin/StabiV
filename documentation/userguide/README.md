@@ -66,7 +66,7 @@ The `input` section specifies which directories and files will be processed, and
 
 You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative file paths are resolved relative to the location of the configuration file.
 
-If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories are only processed if the directory path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the "tif" extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/*` matches any files or subdirectories, and thus, subdirectories are also validated.
+If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the "tif" extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated.
 
 Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 

@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +43,7 @@ public class FileUtils {
             logger.warn("no files to validate");
         }
 
-        Map<Path, List<Path>> filesByDirectory = FileUtils.mapFilesByDirectory(resolvedFiles);
-
-        return filesByDirectory;
+        return FileUtils.filterParentDirectoriesWithoutFiles(FileUtils.mapFilesByDirectory(resolvedFiles));
     }
 
     /**
@@ -70,5 +70,24 @@ public class FileUtils {
             }
         }
         return filesByDirectory;
+    }
+
+    /**
+     * Filter directories that do not contain any files but are parent directories of other directories.
+     *
+     * @param filesByDirectory the map of directories and their files
+     */
+    public static Map<Path, List<Path>> filterParentDirectoriesWithoutFiles(Map<Path, List<Path>> filesByDirectory) {
+        Set<Path> parentDirectories = filesByDirectory
+            .keySet()
+            .stream()
+            .map(p -> p.getParent())
+            .collect(Collectors.toSet());
+
+        return filesByDirectory
+            .entrySet()
+            .stream()
+            .filter(e -> !(e.getValue().isEmpty() && parentDirectories.contains(e.getKey())))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (entryLeft, entryRight) -> entryLeft, TreeMap::new));
     }
 }

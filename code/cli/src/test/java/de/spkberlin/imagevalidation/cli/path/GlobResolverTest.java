@@ -180,4 +180,44 @@ public class GlobResolverTest {
         assertFalse(matched.contains(fileC));
         assertTrue(matched.contains(tempDir));
     }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX, OS.WINDOWS })
+    public void testResolvePatternMatchedSubdirectoryExactly() throws IOException {
+        Path subdirectory = tempDir.resolve("subdirectory");
+        Files.createDirectory(subdirectory);
+        Path fileA = Files.createFile(subdirectory.resolve("fileA.tif"));
+        Path fileB = Files.createFile(subdirectory.resolve("fileB.tif"));
+        Path fileC = Files.createFile(subdirectory.resolve("fileC.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(
+            new GlobPattern(GlobResolver.joinGlobPattern(Pair.of(tempDir, "*directory")), tempDir)
+        );
+
+        assertFalse(matched.contains(fileA));
+        assertFalse(matched.contains(fileB));
+        assertFalse(matched.contains(fileC));
+        assertTrue(matched.contains(subdirectory));
+        assertFalse(matched.contains(tempDir));
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX, OS.WINDOWS })
+    public void testResolvePatternMatchedSubdirectoryWithFiles() throws IOException {
+        Path subdirectory = tempDir.resolve("subdirectory");
+        Files.createDirectory(subdirectory);
+        Path fileA = Files.createFile(subdirectory.resolve("fileA.tif"));
+        Path fileB = Files.createFile(subdirectory.resolve("fileB.tif"));
+        Path fileC = Files.createFile(subdirectory.resolve("fileC.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(
+            new GlobPattern(GlobResolver.joinGlobPattern(Pair.of(tempDir, "*directory**")), tempDir)
+        );
+
+        assertTrue(matched.contains(fileA));
+        assertTrue(matched.contains(fileB));
+        assertTrue(matched.contains(fileC));
+        assertTrue(matched.contains(subdirectory));
+        assertFalse(matched.contains(tempDir));
+    }
 }
