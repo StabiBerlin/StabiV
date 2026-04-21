@@ -41,7 +41,7 @@ public class DirectoryConsistencyValidation {
                     Object extractedProperty = JsonPath.read(result.getProperties(), consistencyCondition.getProperty());
                     allValues.add(objectMapper.writeValueAsString(extractedProperty));
                 } catch (PathNotFoundException e) {
-                    logger.error("path '{}' not found in extracted properties", consistencyCondition);
+                    logger.trace("path '{}' not found in extracted properties", consistencyCondition.getProperty());
                     return String.format("consistent property '%s' not found in image '%s'", consistencyCondition.getLabel(), filepath);
                 }
             }
