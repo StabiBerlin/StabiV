@@ -46,6 +46,6 @@ RUN apt-get update && \
 
 WORKDIR /root/workspace
 
-COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.4.0-SNAPSHOT.jar /root/build/main.jar
+COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.4.0.jar /root/build/main.jar
 
 ENTRYPOINT ["java", "-jar", "/root/build/main.jar"]
