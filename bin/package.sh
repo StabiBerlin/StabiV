@@ -4,4 +4,4 @@ cd "$(dirname "$0")"
 cd ../code/parent
 
 # mvn package
-mvn package
+mvn package -Dcli
