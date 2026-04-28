@@ -43,7 +43,7 @@ public class JHoveExtractor implements Extractor {
                 jhove.getModuleMap().put(module.getName().toLowerCase(), module);
             }
         } catch (JhoveException e) {
-            throw new RuntimeException("failed initialize JHove", e);
+            throw new RuntimeException("failed to initialize JHove", e);
         }
     }
 
@@ -54,6 +54,10 @@ public class JHoveExtractor implements Extractor {
      * @return the extracted property tree
      */
     public ExtractionResult extractProperties(Path filepath) throws ExtractionError {
+        if (!filepath.toFile().exists()) {
+            throw new ExtractionError(String.format("cannot parse file '%s' because it does not exist", filepath.toString()));
+        }
+
         try {
             RepInfo info = new RepInfo(filepath.toString());
             identifier.identify(filepath.toFile(), info, null, false, true);
