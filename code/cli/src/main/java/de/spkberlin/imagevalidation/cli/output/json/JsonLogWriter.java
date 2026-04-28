@@ -1,10 +1,10 @@
 package de.spkberlin.imagevalidation.cli.output.json;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.spkberlin.imagevalidation.cli.validation.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Objects;
@@ -19,39 +19,29 @@ public class JsonLogWriter {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    @JsonPropertyOrder({ "time", "type", "path", "checksum", "validation", "error", "warning" })
-    private static record LogEntry(
-        String time,
-        String type,
-        String path,
-        String checksum,
-        String validation,
-        String error,
-        String warning
-    ) {}
-
     /**
      * Write a JSON log entry to stdout summarizing the validation result for a single image file.
      *
      * @param result the image validation result for one image file
+     * @param stdout the stdout print writer to write json messages to
      */
-    public static void writeFileValidationLog(ImageValidationResult result) {
+    public static void writeFileValidationLog(ImageValidationResult result, PrintWriter stdout) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
             Boolean passed = result.getImageRuleEvaluationResult().getErrors().isEmpty();
 
-            LogEntry entry = new LogEntry(
+            JsonLogEntry entry = new JsonLogEntry(
                 time,
-                "file",
+                JsonLogEntry.FILE_TYPE,
                 result.getFilePath().toString(),
                 result.getChecksum(),
-                passed ? "success" : "failed",
+                passed ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
                 result.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse(null),
                 result.getImageRuleEvaluationResult().getWarnings().stream().findFirst().orElse(null)
             );
 
-            System.out.println(mapper.writeValueAsString(entry));
-            System.out.flush();
+            stdout.println(mapper.writeValueAsString(entry));
+            stdout.flush();
         } catch (IOException e) {
             logger.error("exception writing image validation result as json to stdout");
         }
@@ -61,23 +51,24 @@ public class JsonLogWriter {
      * Write a JSON log entry to stdout summarizing the validation result for a single directory.
      *
      * @param result the validation result for a single image directory
+     * @param stdout the stdout print writer to write json messages to
      */
-    public static void writeDirectoryValidationLog(DirectoryValidationResult result) {
+    public static void writeDirectoryValidationLog(DirectoryValidationResult result, PrintWriter stdout) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
 
-            LogEntry entry = new LogEntry(
+            JsonLogEntry entry = new JsonLogEntry(
                 time,
-                "directory",
+                JsonLogEntry.DIRECTORY_TYPE,
                 result.getDirectory().toString(),
                 null,
-                Objects.isNull(result.getError()) ? "success" : "failed",
+                Objects.isNull(result.getError()) ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
                 result.getError(),
                 null
             );
 
-            System.out.println(mapper.writeValueAsString(entry));
-            System.out.flush();
+            stdout.println(mapper.writeValueAsString(entry));
+            stdout.flush();
         } catch (IOException e) {
             logger.error("exception writing directory validation result as json to stdout");
         }

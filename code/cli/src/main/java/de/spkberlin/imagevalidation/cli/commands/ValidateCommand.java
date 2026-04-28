@@ -26,8 +26,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Spec;
 
 @Command(
     name = "validate",
@@ -62,6 +64,9 @@ public class ValidateCommand implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(ValidateCommand.class);
 
     private static final String CWD = System.getProperty("user.dir");
+
+    @Spec
+    CommandSpec spec;
 
     @Mixin
     private CommonOptions commonOptions;
@@ -330,7 +335,7 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogMode(config.getOutput().getLogging().getJson());
         Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
 
-        ValidateAllResult result = ValidateAll.validateAll(config);
+        ValidateAllResult result = ValidateAll.validateAll(config, spec.commandLine().getOut());
 
         ConfigurationPath csvPath = config.getOutput().getCsv().getPath();
         if (Objects.nonNull(csvPath)) {

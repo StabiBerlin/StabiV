@@ -4,6 +4,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +26,10 @@ public class ValidateAll {
      * Validate all files and directories given a full configuration of the CLI.
      *
      * @param config the full configuration for validating a set of image directories and files
+     * @param stdout the stdout print writer to write json messages to
      * @return the validation result for all directories and images
      */
-    public static ValidateAllResult validateAll(ConfigurationRoot config) {
+    public static ValidateAllResult validateAll(ConfigurationRoot config, PrintWriter stdout) {
         logger.debug("initialize {} threads for parallel image validation", config.getProcessing().getThreads());
         ExecutorService pool = Executors.newFixedThreadPool(config.getProcessing().getThreads());
 
@@ -38,7 +40,7 @@ public class ValidateAll {
 
             for (Entry<Path, List<Path>> entry : filesByDirectory.entrySet()) {
                 Path directory = entry.getKey();
-                DirectoryValidationResult directoryResult = validateDirectory(entry.getKey(), entry.getValue(), config, pool);
+                DirectoryValidationResult directoryResult = validateDirectory(entry.getKey(), entry.getValue(), config, pool, stdout);
                 directoryValidationResults.put(directory, directoryResult);
                 allImageValidationResults.putAll(directoryResult.getImageResults());
             }
@@ -66,6 +68,7 @@ public class ValidateAll {
      * @param filepaths the image files inside this directory to be validated
      * @param config the full configuration
      * @param pool an already initialized thread pool
+     * @param stdout the stdout print writer to write json messages to
      * @return validation results for the directory and all images
      * @throws ExecutionException in case there is an error while executing a validation task
      * @throws InterruptedException in case execution is interrupted
@@ -74,7 +77,8 @@ public class ValidateAll {
         Path directory,
         List<Path> filepaths,
         ConfigurationRoot config,
-        ExecutorService pool
+        ExecutorService pool,
+        PrintWriter stdout
     ) throws IOException, ExecutionException, InterruptedException {
         logger.info("process directory '{}'", directory);
 
@@ -85,7 +89,7 @@ public class ValidateAll {
             ImageValidationResult result = resultFuture.get();
 
             if (config.getOutput().getLogging().getJson()) {
-                JsonLogWriter.writeFileValidationLog(result);
+                JsonLogWriter.writeFileValidationLog(result, stdout);
             }
 
             Path filepath = result.getFilePath();
@@ -102,7 +106,7 @@ public class ValidateAll {
         );
 
         if (config.getOutput().getLogging().getJson()) {
-            JsonLogWriter.writeDirectoryValidationLog(directoryResult);
+            JsonLogWriter.writeDirectoryValidationLog(directoryResult, stdout);
         }
 
         return directoryResult;

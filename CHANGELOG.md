@@ -7,6 +7,7 @@ Improvements
 - Consider that no files were found a failed validation
 - Catch any processing error as validation error when processing an image
 - Add basic automated tests for extract and validate CLI commands
+- Add automated tests for Spk-Berlin example configuration checking json output
 - Add automated tests for ExifTool extractor module
 
 Fixes
