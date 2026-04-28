@@ -20,8 +20,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Spec;
 
 @Command(
     name = "extract",
@@ -39,11 +41,25 @@ import picocli.CommandLine.Parameters;
 
     Extract a subsection of properties for a file using the JHove module:%n
       ${COMMAND-FULL-NAME} --extractor=jhove --property="$..NisoImageMetadata" /path/to/example.tif
-    """
+    """,
+    exitCodeOnExecutionException = 1,
+    exitCodeOnInvalidInput = 2,
+    exitCodeOnSuccess = 0,
+    exitCodeOnUsageHelp = 0,
+    exitCodeOnVersionHelp = 0,
+    exitCodeListHeading = "%n@|bold Exit Codes|@%n%n",
+    exitCodeList = {
+        "0:successful extraction of images properties without any errors",
+        "1:generic program error, extraction of images properties failed",
+        "2:an unknown CLI option or invalid parameter was specified",
+    }
 )
 public class ExtractCommand implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractCommand.class);
+
+    @Spec
+    CommandSpec spec;
 
     @Mixin
     private CommonOptions commonOptions;
@@ -144,10 +160,9 @@ public class ExtractCommand implements Callable<Integer> {
             }
         }
 
-        System.out.println(PropertiesSerializer.serializeAsPrettyJson(outputProperties));
-
+        spec.commandLine().getOut().println(PropertiesSerializer.serializeAsPrettyJson(outputProperties));
         logger.info("done extracting properties");
 
-        return 0;
+        return Objects.nonNull(outputProperties) ? 0 : 1;
     }
 }

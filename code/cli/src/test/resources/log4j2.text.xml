@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="https://logging.apache.org/xml/ns"
+               xsi:schemaLocation="
+                       https://logging.apache.org/xml/ns
+                       https://logging.apache.org/xml/ns/log4j-config-2.xsd">
+
+  <Loggers>
+    <Logger name="de.spkberlin" level="INFO"/>
+    <Root level="WARN">
+      <AppenderRef ref="CONSOLE_OUT"/>
+    </Root>
+  </Loggers>
+
+</Configuration>

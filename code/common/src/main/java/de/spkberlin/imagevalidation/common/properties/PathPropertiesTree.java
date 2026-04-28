@@ -23,8 +23,9 @@ public class PathPropertiesTree {
      *
      * @param properties the set of path properties
      * @return the object tree of maps, lists and strings
+     * @throws IllegalArgumentException in case object tree cannot be build from properties
      */
-    public static Map<String, Object> buildTreeFromPaths(Set<PathProperty> properties) {
+    public static Map<String, Object> buildTreeFromPaths(Set<PathProperty> properties) throws IllegalArgumentException {
         Map<String, Object> tree = new HashMap<>();
 
         for (PathProperty property : properties) {
@@ -34,7 +35,7 @@ public class PathPropertiesTree {
         return tree;
     }
 
-    private static void insertProperty(Map<String, Object> tree, List<String> path, String value) {
+    private static void insertProperty(Map<String, Object> tree, List<String> path, String value) throws IllegalArgumentException {
         if (ARRAY_PATTERN.matcher(path.getFirst()).matches()) {
             insertArrayProperty(tree, path, value);
         } else {
@@ -42,7 +43,7 @@ public class PathPropertiesTree {
         }
     }
 
-    private static void insertMapProperty(Map<String, Object> tree, List<String> path, String value) {
+    private static void insertMapProperty(Map<String, Object> tree, List<String> path, String value) throws IllegalArgumentException {
         String pathPart = path.getFirst();
         if (path.size() == 1) {
             // this is the last path element
@@ -52,7 +53,7 @@ public class PathPropertiesTree {
             if (!tree.containsKey(pathPart)) {
                 tree.put(pathPart, new HashMap<>());
             } else if (!(tree.get(pathPart) instanceof Map)) {
-                throw new RuntimeException(
+                throw new IllegalArgumentException(
                     String.format(
                         "cannot insert subproperty '%s' for property that was previously defined as something other than an map",
                         pathPart
@@ -67,7 +68,7 @@ public class PathPropertiesTree {
         }
     }
 
-    private static void insertArrayProperty(Map<String, Object> tree, List<String> path, String value) {
+    private static void insertArrayProperty(Map<String, Object> tree, List<String> path, String value) throws IllegalArgumentException {
         Matcher arrayMatcher = ARRAY_PATTERN.matcher(path.getFirst());
         arrayMatcher.matches();
         String pathPart = arrayMatcher.group(1);
@@ -76,7 +77,7 @@ public class PathPropertiesTree {
         if (!tree.containsKey(pathPart)) {
             tree.put(pathPart, new ArrayList<>());
         } else if (!(tree.get(pathPart) instanceof List)) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                 "cannot insert array element into property that was previously defined as something other than an array"
             );
         }
