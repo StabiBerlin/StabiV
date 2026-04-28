@@ -188,21 +188,4 @@ public class ValidateAll {
             .filter(r -> r.getImageRuleEvaluationResult().getErrors().isEmpty())
             .count();
     }
-
-    /**
-     * Return the first validation error of any directory.
-     *
-     * @param result the validation results for all directories and images
-     * @return the first validation error of any directory
-     */
-    public static String getFirstValidationError(ValidateAllResult result) {
-        return result
-            .getDirectoryValidationResults()
-            .values()
-            .stream()
-            .map(r -> r.getError())
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(null);
-    }
 }
