@@ -136,6 +136,11 @@ public class ValidateAll {
      * @return true if all were valid
      */
     public static boolean isOverallValid(ValidateAllResult result) {
+        // no files is considered invalid
+        if (result.getFilesByDirectory().isEmpty()) {
+            return false;
+        }
+
         // check all directory results
         for (DirectoryValidationResult directoryResult : result.getDirectoryValidationResults().values()) {
             if (Objects.nonNull(directoryResult.getError())) {
