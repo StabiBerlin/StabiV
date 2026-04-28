@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,13 @@ public class DirectoryConsistencyValidation {
             for (Entry<Path, ExtractionResult> entry : extractionResults.entrySet()) {
                 Path filepath = entry.getKey();
                 ExtractionResult result = entry.getValue();
+                if (Objects.isNull(result)) {
+                    return String.format(
+                        "consistent property '%s' could not be extracted for image '%s'",
+                        consistencyCondition.getLabel(),
+                        filepath
+                    );
+                }
                 try {
                     Object extractedProperty = JsonPath.read(result.getProperties(), consistencyCondition.getProperty());
                     allValues.add(objectMapper.writeValueAsString(extractedProperty));

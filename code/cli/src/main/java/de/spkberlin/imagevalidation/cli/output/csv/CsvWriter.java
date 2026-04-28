@@ -5,6 +5,7 @@ import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
+import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -140,9 +141,7 @@ public class CsvWriter {
                 filepath.toString(), // file path
                 imageValidationResult.getChecksum() // checksum
             ),
-            columns
-                .stream()
-                .map(column -> extractPropertyOrNull(column.getProperty(), imageValidationResult.getExtractionResult().getProperties()))
+            columns.stream().map(column -> extractPropertyOrNull(column.getProperty(), imageValidationResult.getExtractionResult()))
         );
 
         printer.printRecord(line);
@@ -152,9 +151,12 @@ public class CsvWriter {
         printer.printRecord(Stream.concat(Stream.of(COLUMN_HEADER), columns.stream().map(c -> c.getLabel())));
     }
 
-    private static String extractPropertyOrNull(String propertyPath, Map<String, Object> properties) {
+    private static String extractPropertyOrNull(String propertyPath, ExtractionResult extractionResult) {
+        if (Objects.isNull(extractionResult) || Objects.isNull(extractionResult.getProperties())) {
+            return "";
+        }
         try {
-            Object property = JsonPath.read(properties, propertyPath);
+            Object property = JsonPath.read(extractionResult.getProperties(), propertyPath);
             return PropertiesSerializer.toPrettyString(property);
         } catch (PathNotFoundException e) {
             return "";
