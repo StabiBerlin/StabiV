@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.5.0 - 2026-04-29
+
+Improvements
+
+- Catch any processing error as validation error when processing an image
+- Add automated tests for ExifTool extractor module
+
+Fixes
+
+- Fix ExifTool parsing error if the same property exists without and with a trailing number, e.g. `VignettingCorr`, `VignettingCorr2`
+
 ## v0.4.0 - 2026-04-21
 
 New Features

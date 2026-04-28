@@ -9,6 +9,7 @@ import de.spkberlin.imagevalidation.common.validation.images.rules.ImageRuleEval
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +43,42 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
 
     @Override
     public ImageValidationResult call() throws Exception {
-        ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
-        ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
-        String checksum = ChecksumUtil.calculate(filepath, checksumAlgorithm);
-        return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
+        logger.trace("start validating image at {}", filepath);
+        try {
+            ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
+            try {
+                ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
+                try {
+                    String checksum = ChecksumUtil.calculate(filepath, checksumAlgorithm);
+                    return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
+                } catch (Exception e) {
+                    logger.error("calculation of checksum failed with exception", e);
+                    return new ImageValidationResult(filepath, imageValidationResult, extractionResult, null);
+                }
+            } catch (Exception e) {
+                logger.error("evaluation of images rules failed with exception", e);
+                return new ImageValidationResult(
+                    filepath,
+                    new ImageRuleEvaluationResult(
+                        Collections.singletonList("exception during evaluation of image properties"),
+                        Collections.emptyList()
+                    ),
+                    extractionResult,
+                    null
+                );
+            }
+        } catch (Exception e) {
+            logger.error("extraction of image properties failed with exception", e);
+            return new ImageValidationResult(
+                filepath,
+                new ImageRuleEvaluationResult(
+                    Collections.singletonList("exception during extraction of image properties"),
+                    Collections.emptyList()
+                ),
+                null,
+                null
+            );
+        }
     }
 
     /**

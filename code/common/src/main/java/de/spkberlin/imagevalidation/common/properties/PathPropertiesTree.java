@@ -13,11 +13,12 @@ import java.util.regex.Pattern;
 public class PathPropertiesTree {
 
     private static final Pattern ARRAY_PATTERN = Pattern.compile("(.+)\\[(\\d+)]");
+    private static final String HIERARCHY_SEPARATOR = "/";
 
     /**
      * Constructor an object tree of maps, lists and strings from a set of pairs of property path and value.
      *
-     * <p>Property paths need to be specified as a simplified JSON path, e.g. "property/subproperty/array[0]/something". Hierarchy levels
+     * <p>Property paths need to be specified as a simplified JSON path, e.g. "property.subproperty.array[0].something". Hierarchy levels
      * are encoded as slash and array indices are referenced via brackets. Property values are simple strings.
      *
      * @param properties the set of path properties
@@ -27,7 +28,7 @@ public class PathPropertiesTree {
         Map<String, Object> tree = new HashMap<>();
 
         for (PathProperty property : properties) {
-            insertProperty(tree, Arrays.asList(property.getPath().split("/")), property.getValue());
+            insertProperty(tree, Arrays.asList(property.getPath().split(HIERARCHY_SEPARATOR)), property.getValue());
         }
 
         return tree;
@@ -51,7 +52,12 @@ public class PathPropertiesTree {
             if (!tree.containsKey(pathPart)) {
                 tree.put(pathPart, new HashMap<>());
             } else if (!(tree.get(pathPart) instanceof Map)) {
-                new RuntimeException("cannot insert subproperty for property that was previously defined as something other than an map");
+                throw new RuntimeException(
+                    String.format(
+                        "cannot insert subproperty '%s' for property that was previously defined as something other than an map",
+                        pathPart
+                    )
+                );
             }
 
             @SuppressWarnings("unchecked")
@@ -70,7 +76,9 @@ public class PathPropertiesTree {
         if (!tree.containsKey(pathPart)) {
             tree.put(pathPart, new ArrayList<>());
         } else if (!(tree.get(pathPart) instanceof List)) {
-            new RuntimeException("cannot insert array element into property that was previously defined as something other than an array");
+            throw new RuntimeException(
+                "cannot insert array element into property that was previously defined as something other than an array"
+            );
         }
 
         @SuppressWarnings("unchecked")
