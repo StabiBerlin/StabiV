@@ -4,15 +4,21 @@
 
 Improvements
 
-- Consider that no files were found a failed validation
+- Consider that the overall validation has failed if no files were found
 - Catch any processing error as validation error when processing an image
 - Add basic automated tests for extract and validate CLI commands
-- Add automated tests for Spk-Berlin example configuration checking json output
+- Add automated tests for image rules
+- Add automated tests for spk-berlin example configuration and check json output
 - Add automated tests for ExifTool extractor module
 
 Fixes
 
 - Fix ExifTool parsing error if the same property exists without and with a trailing number, e.g. `VignettingCorr`, `VignettingCorr2`
+
+Known Issues
+
+- The `move_directories.sh` script is not yet documented
+- The spk-berlin example configuration file doesn't check the name of the ICC profile
 
 ## v0.4.0 - 2026-04-21
 
