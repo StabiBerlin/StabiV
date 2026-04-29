@@ -26,8 +26,9 @@ validation:
           - BlackIsZero
 
 output:
-  csv:
-    path: output.csv
+  report:
+    csvPath: output.csv
+    excelPath: output.xlsx
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed

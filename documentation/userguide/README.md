@@ -185,7 +185,7 @@ Configuration files consists of the following main YAML sections:
 - `processing` - general processiong options
 - `extraction` - options about which extractor module to apply
 - `validation` - options about how images and directories are validated
-- `output` - options about logging and the CSV report
+- `output` - options about logging and the validation report
 
 Each section is described in detail as follows.
 
@@ -608,7 +608,7 @@ The `output` section contains the following subsections:
 
 - `checksum` - whether to generate checksum files for each valid directory
 - `logging` - options to control logging
-- `csv` - options related to the CSV report
+- `report` - options related to the validation report
 
 #### Checksum Files
 
@@ -652,11 +652,12 @@ output:
     lineFormat: ${checksum} *${filename}
 ```
 
-#### CSV Report
+#### Validation Report
 
-The CSV report can be configured based on two options:
+The validation report can be generated as CSV and Excel file with the following options:
 
-- `path` - the file path that is used to write the CSV report
+- `csvPath` - the file path that is used to write the validation report as CSV file
+- `excelPath` - the file path that is used to write the validation report as Excel file
 - `columns` - the list of additional property columns added to CSV report
 
 A relative file path is resolved relative to the location of the configuration file.
@@ -671,8 +672,9 @@ For example:
 ```YAML
 output:
 
-  csv:
-    path: output.csv
+  report:
+    csvPath: output.csv
+    excelPath: output.xlsx
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed
@@ -682,13 +684,14 @@ output:
         property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
 ```
 
-Default configuration (no CSV report):
+Default configuration (no CSV or Excel report):
 
 ```YAML
 output:
 
-  csv:
-    path:
+  report:
+    csvPath:
+    excelPath:
     columns:
 ```
 

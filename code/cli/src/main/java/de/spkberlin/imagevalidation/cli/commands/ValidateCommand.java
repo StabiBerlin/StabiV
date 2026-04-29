@@ -8,10 +8,14 @@ import de.spkberlin.imagevalidation.cli.configuration.ConfigurationValidator;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationWriter;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
-import de.spkberlin.imagevalidation.cli.output.csv.CsvWriter;
+import de.spkberlin.imagevalidation.cli.output.report.CsvWriter;
+import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
+import de.spkberlin.imagevalidation.cli.output.report.ReportCell;
+import de.spkberlin.imagevalidation.cli.output.report.ReportGenerator;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
@@ -21,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
@@ -244,12 +249,16 @@ public class ValidateCommand implements Callable<Integer> {
         @Option(names = { "--csv" }, description = "CSV output file")
         String csvOutputFilepath;
 
+        /** The filepath to the generated CSV file. */
+        @Option(names = { "--excel" }, description = "Excel output file")
+        String excelOutputFilepath;
+
         @Option(
-            names = { "--csvColumn" },
+            names = { "--reportColumn" },
             arity = "1",
             paramLabel = "COLUMN",
             description = """
-            Include an image property as column in the csv output file.
+            Include an image property as additional column in the validation report.
 
             Columns need to be specified in the format `"LABEL/PROPERTY"`.
 
@@ -262,7 +271,7 @@ public class ValidateCommand implements Callable<Integer> {
             A label can be any text.
             """
         )
-        List<String> csvColumns = Collections.emptyList();
+        List<String> reportColumns = Collections.emptyList();
 
         /** Wether to use json based log output. */
         @Option(names = { "--json" }, description = "print validation results in JSON format to stdout (and other log messages to stderr)")
@@ -336,14 +345,31 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
 
         ValidateAllResult result = ValidateAll.validateAll(config, spec.commandLine().getOut());
+        writeReport(result, config.getOutput());
+        return ValidateAll.isOverallValid(result) ? 0 : 3;
+    }
 
-        ConfigurationPath csvPath = config.getOutput().getCsv().getPath();
+    /**
+     * Generate and write the report as CSV and Excel files if configured.
+     *
+     * @param result the validation result for all directories and files
+     * @param config the output section of the configuration
+     * @throws IOException in case writing the report fails
+     */
+    public void writeReport(ValidateAllResult result, ConfigurationOutputSection config) throws IOException {
+        List<List<ReportCell>> report = ReportGenerator.generateReport(result, config.getReport().getColumns());
+
+        ConfigurationPath csvPath = config.getReport().getCsvPath();
         if (Objects.nonNull(csvPath)) {
             Path resolvedCsvPath = csvPath.getBaseDirectory().resolve(csvPath.getPath()).normalize();
-            CsvWriter.writeReport(resolvedCsvPath, result, config.getOutput().getCsv().getColumns());
+            CsvWriter.writeReport(resolvedCsvPath, report);
         }
 
-        return ValidateAll.isOverallValid(result) ? 0 : 3;
+        ConfigurationPath excelPath = config.getReport().getExcelPath();
+        if (Objects.nonNull(excelPath)) {
+            Path resolvedExcelPath = excelPath.getBaseDirectory().resolve(excelPath.getPath()).normalize();
+            ExcelWriter.writeReport(resolvedExcelPath, report);
+        }
     }
 
     /**
@@ -391,7 +417,8 @@ public class ValidateCommand implements Callable<Integer> {
             configPath,
             cwd,
             outputOptions.csvOutputFilepath,
-            outputOptions.csvColumns,
+            outputOptions.excelOutputFilepath,
+            outputOptions.reportColumns,
             outputOptions.checksumFilename,
             outputOptions.jsonLogging,
             verbosity

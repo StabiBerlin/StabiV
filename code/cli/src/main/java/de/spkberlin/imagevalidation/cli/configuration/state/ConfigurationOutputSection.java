@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 public class ConfigurationOutputSection {
 
     @Valid
-    private ConfigurationCsvSection csv;
+    private ConfigurationReportSection report;
 
     @Valid
     private ConfigurationLoggingSection logging;
@@ -17,17 +17,17 @@ public class ConfigurationOutputSection {
      * Initialize ConfigurationOutputSection.
      */
     public ConfigurationOutputSection() {
-        csv = new ConfigurationCsvSection();
+        report = new ConfigurationReportSection();
         logging = new ConfigurationLoggingSection();
         checksum = new ConfigurationOutputChecksumSection();
     }
 
-    public ConfigurationCsvSection getCsv() {
-        return this.csv;
+    public ConfigurationReportSection getReport() {
+        return this.report;
     }
 
-    public void setCsv(ConfigurationCsvSection csv) {
-        this.csv = csv;
+    public void setReport(ConfigurationReportSection csv) {
+        this.report = csv;
     }
 
     public ConfigurationLoggingSection getLogging() {

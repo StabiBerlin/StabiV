@@ -4,7 +4,8 @@ input:
   excludes:
     - "config.yaml"
     - "output.csv"
-    - ".~lock.output.csv#"
+    - "output.xlsx"
+    - ".~lock*"
     - "**.sha1"
     - "**.gitignore"
 
@@ -514,8 +515,9 @@ output:
   checksum:
     filename: ${directory}.sha1
     lineFormat: ${checksum} *${filename}
-  csv:
-    path: output.csv
+  report:
+    csvPath: output.csv
+    excelPath: output.xlsx
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed

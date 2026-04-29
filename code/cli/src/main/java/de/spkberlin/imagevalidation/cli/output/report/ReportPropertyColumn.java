@@ -1,15 +1,15 @@
-package de.spkberlin.imagevalidation.cli.output.csv;
+package de.spkberlin.imagevalidation.cli.output.report;
 
-public class CsvPropertyColumn {
+public class ReportPropertyColumn {
 
     private String label;
     private String property;
 
-    public CsvPropertyColumn() {
+    public ReportPropertyColumn() {
         // empty
     }
 
-    public CsvPropertyColumn(String label, String path) {
+    public ReportPropertyColumn(String label, String path) {
         this.label = label;
         this.property = path;
     }

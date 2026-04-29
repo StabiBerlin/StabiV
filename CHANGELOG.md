@@ -2,6 +2,14 @@
 
 ## v0.5.0 - 2026-04-29
 
+New Features
+
+- Validation reports can be generated both as CSV and Excel (xlsx) files.
+
+Breaking Changes
+
+- The configuration section `csv` was renamed into `report` with sub-options `csvPath` and `excelPath`.
+
 Improvements
 
 - Consider that the overall validation has failed if no files were found

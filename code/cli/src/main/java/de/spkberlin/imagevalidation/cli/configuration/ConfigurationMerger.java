@@ -1,6 +1,5 @@
 package de.spkberlin.imagevalidation.cli.configuration;
 
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExtractionSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
@@ -9,12 +8,13 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputC
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationProcessingSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationReportSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
-import de.spkberlin.imagevalidation.cli.output.csv.CsvPropertyColumn;
+import de.spkberlin.imagevalidation.cli.output.report.ReportPropertyColumn;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
@@ -242,6 +242,8 @@ public class ConfigurationMerger {
      * @param configFilePath the path to the configuration file
      * @param cwd the current working directory
      * @param csvPath the csv output path specified with CLI option
+     * @param excelPath the excel output path specified with CLI option
+     * @param reportColumns add list of additional property columns as provided by CLI option
      * @param checksumFilename the filename template for the checksum files provided via CLI option
      * @param json whether json output should be generated specified with CLI option
      * @param verbosity logging verbositry specified with CLI option
@@ -251,7 +253,8 @@ public class ConfigurationMerger {
         Path configFilePath,
         Path cwd,
         String csvPath,
-        List<String> csvColumns,
+        String excelPath,
+        List<String> reportColumns,
         String checksumFilename,
         Boolean json,
         ConfigurationLoggingVerbosityType verbosity
@@ -261,35 +264,8 @@ public class ConfigurationMerger {
             config.setOutput(new ConfigurationOutputSection());
         }
 
-        // make sure csv section exists
-        if (Objects.isNull(config.getOutput().getCsv())) {
-            config.getOutput().setCsv(new ConfigurationCsvSection());
-        }
-
-        // overwrite csv path from cli
-        if (Objects.nonNull(csvPath)) {
-            config.getOutput().getCsv().setPath(new ConfigurationPath(csvPath, cwd));
-        } else if (Objects.nonNull(config.getOutput().getCsv().getPath())) {
-            mergeConfigurationPath(config.getOutput().getCsv().getPath(), configFilePath, cwd);
-        }
-
-        // add csv columns
-        if (Objects.isNull(config.getOutput().getCsv().getColumns())) {
-            config.getOutput().getCsv().setColumns(new ArrayList<>());
-        }
-        List<CsvPropertyColumn> additionalColumns = csvColumns
-            .stream()
-            .map(c -> getCsvPropertyColumnFromCommandLineOption(c))
-            .toList();
-        config.getOutput().getCsv().getColumns().addAll(additionalColumns);
-
-        // make sure checksum section exists
-        if (Objects.isNull(config.getOutput().getChecksum())) {
-            config.getOutput().setChecksum(new ConfigurationOutputChecksumSection());
-        }
-        if (Objects.nonNull(checksumFilename)) {
-            config.getOutput().getChecksum().setFilename(checksumFilename);
-        }
+        mergeOutputReportSection(config.getOutput(), configFilePath, cwd, csvPath, excelPath, reportColumns);
+        mergeOutputChecksumSection(config.getOutput(), checksumFilename);
 
         // overwrite json output
         if (Objects.isNull(config.getOutput().getLogging())) {
@@ -305,13 +281,61 @@ public class ConfigurationMerger {
         }
     }
 
-    private static CsvPropertyColumn getCsvPropertyColumnFromCommandLineOption(String columnText) {
+    private static void mergeOutputReportSection(
+        ConfigurationOutputSection config,
+        Path configFilePath,
+        Path cwd,
+        String csvPath,
+        String excelPath,
+        List<String> reportColumns
+    ) {
+        // make sure csv section exists
+        if (Objects.isNull(config.getReport())) {
+            config.setReport(new ConfigurationReportSection());
+        }
+
+        // overwrite csv path from cli
+        if (Objects.nonNull(csvPath)) {
+            config.getReport().setCsvPath(new ConfigurationPath(csvPath, cwd));
+        } else if (Objects.nonNull(config.getReport().getCsvPath())) {
+            mergeConfigurationPath(config.getReport().getCsvPath(), configFilePath, cwd);
+        }
+
+        // overwrite excel path from cli
+        if (Objects.nonNull(excelPath)) {
+            config.getReport().setExcelPath(new ConfigurationPath(excelPath, cwd));
+        } else if (Objects.nonNull(config.getReport().getExcelPath())) {
+            mergeConfigurationPath(config.getReport().getExcelPath(), configFilePath, cwd);
+        }
+
+        // add csv columns
+        if (Objects.isNull(config.getReport().getColumns())) {
+            config.getReport().setColumns(new ArrayList<>());
+        }
+        List<ReportPropertyColumn> additionalColumns = reportColumns
+            .stream()
+            .map(c -> getReportPropertyColumnFromCommandLineOption(c))
+            .toList();
+        config.getReport().getColumns().addAll(additionalColumns);
+    }
+
+    private static void mergeOutputChecksumSection(ConfigurationOutputSection config, String checksumFilename) {
+        // make sure checksum section exists
+        if (Objects.isNull(config.getChecksum())) {
+            config.setChecksum(new ConfigurationOutputChecksumSection());
+        }
+        if (Objects.nonNull(checksumFilename)) {
+            config.getChecksum().setFilename(checksumFilename);
+        }
+    }
+
+    private static ReportPropertyColumn getReportPropertyColumnFromCommandLineOption(String columnText) {
         String[] columnTextSplit = columnText.split("/", 2);
         if (columnTextSplit.length != 2) {
             throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by /", columnText));
         }
 
-        return new CsvPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
+        return new ReportPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
     }
 
     private static void mergeConfigurationPaths(
