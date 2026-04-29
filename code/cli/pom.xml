@@ -300,7 +300,9 @@
                         <include>**</include>
                       </includes>
                       <excludes>
-                        <exclude>**/output.csv</exclude>
+                        <exclude>**/*.csv</exclude>
+                        <exclude>**/*.xlsx</exclude>
+                        <exclude>**/*.sha1</exclude>
                       </excludes>
                     </fileSet>
                     <fileSet>
@@ -418,7 +420,9 @@
                         <include>**</include>
                       </includes>
                       <excludes>
-                        <exclude>**/output.csv</exclude>
+                        <exclude>**/*.csv</exclude>
+                        <exclude>**/*.xlsx</exclude>
+                        <exclude>**/*.sha1</exclude>
                       </excludes>
                     </fileSet>
                     <fileSet>
