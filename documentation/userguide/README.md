@@ -18,7 +18,8 @@ This document is structured into the following sections:
   - [Validation Section](#validation-section)
   - [Output Section](#output-section)
 - [General Processing Steps](#general-processing-steps)
-- [Json Output Mode](#json-output-mode)
+- [JSON Output Mode](#json-output-mode)
+  - [Move Files Depending on Validation Success](#move-files-depending-on-validation-success)
 - [Exit Codes](#exit-codes)
 
 ## Getting Started
@@ -32,7 +33,7 @@ Once installed and running, the only difference between Windows and Linux is how
 
 ## Fundamentals
 
-This sections describes two important concepts that are required to succesfully define validation rules: JSONPath and the YAML file format.
+This section describes two important concepts that are required to successfully define validation rules: JSONPath and the YAML file format.
 
 ### JSONPath
 
@@ -44,7 +45,7 @@ JSON and JSONPath are not inventions of this tool but universal standards, see [
 
 If you have worked with XML before, then you may compare JSONPath with XPath. Both XPath and JSONPath serve the same purpose. Examples on how XPath compares to JSONPath can be found [here](https://datatracker.ietf.org/doc/html/rfc9535#tbl-xpath-equivalents).
 
-A JSONPath is an expression that selects how hierarchical properties are navigated. Lets assume that an image file contains two subimages: one thumbnail and one full resolution image. The following property hierarchy is extracted from the image (formatted as a JSON document):
+A JSONPath is an expression that selects how hierarchical properties are navigated. Let's assume that an image file contains two sub-images: one thumbnail and one full resolution image. The following property hierarchy is extracted from the image (formatted as a JSON document):
 
 ```JSON
 {
@@ -69,14 +70,14 @@ You can navigate the property hierarchy by combining the following operators int
 
 - `$` - references the root level of the hierarchy
 - `.` - navigates one level down in the hierarchy based on the property name that is written after the dot
-- `..` - scans the hierarchy for all properties with the same name that is written after boths dots
+- `..` - scans the hierarchy for all properties with the same name that is written after both dots
 - `[i]` - references the i-th element in a list of properties
 
 For example:
 
 - `$` - does not navigate at all, but represents the full hierarchy
 - `$.TIFF` - navigates to the hierarchy level `TIFF` and all its subproperties
-- `$.TIFF.IFD` - navigates to to the list of IFDs of the TIF file
+- `$.TIFF.IFD` - navigates to the list of IFDs of the TIF file
 - `$.TIFF.IFD[0]` - navigates to the first IFD of the TIF file
 - `$.TIFF.IFD[0].SubfileType` - selects the property `SubfileType` of the first IFD of the TIF
 - `$..SubfileType` - selects any `SubfileType` properties in the hierarchy
@@ -111,7 +112,7 @@ property:
   another: something
 ```
 
-The property `subproperty` is considered a subproperty of `property`, because it is slightly shiftet to right with two spaces. The same is true for `another`, which is also considered a subproperty of `property`. In contrast, in the following YAML document, property `another` is no longer considered a subproperty of `property`.
+The property `subproperty` is considered a subproperty of `property`, because it is slightly shifted to right with two spaces. The same is true for `another`, which is also considered a subproperty of `property`. In contrast, in the following YAML document, property `another` is no longer considered a subproperty of `property`.
 
 ```YAML
 property:
@@ -136,7 +137,7 @@ This document models the property `property` as a list instead of a section cont
 }
 ```
 
-The Image Validation CLI configuration file uses these lists whenver a configuration options accepts an arbitrary amount of something, e.g. the list of image validation rules, or the list of directories that are supposed to be validated.
+The Image Validation CLI configuration file uses these lists whenever a configuration options accepts an arbitrary amount of something, e.g. the list of image validation rules, or the list of directories that are supposed to be validated.
 
 Lists may not only contain specific values, but also subproperties:
 
@@ -173,7 +174,7 @@ If there are issues in a YAML configuration file, detailed error messages are pr
 
 The Image Validation CLI can be configured via a separate configuration file as well as command line options. Command line options usually extend options from a configuration file, unless only one specific value is allowed for this option. For example, the list of included files and directories from a configuration file is extended by additional files or directories provided via command line options. In contrast, the configuration file option to specify the output location of the CSV report is overwritten by the command line option `--csv`, because only one value is allowed for this option.
 
-A detailed description of all command line options can be found inside the separate "cli" documentation (HTML files), or by adding the `--help` option when starting the Image Validation CLI. Both of these descriptions are the same.
+A detailed description of all command line options can be found inside the separate `cli` documentation (HTML files), or by adding the `--help` option when starting the Image Validation CLI. Both of these descriptions are the same.
 
 ## Configuration File Options
 
@@ -182,7 +183,7 @@ The Image Validation CLI can be configured with a single configuration file in [
 Configuration files consists of the following main YAML sections:
 
 - `input` - options to decide which images and directories need to be validated
-- `processing` - general processiong options
+- `processing` - general processing options
 - `extraction` - options about which extractor module to apply
 - `validation` - options about how images and directories are validated
 - `output` - options about logging and the validation report
@@ -195,7 +196,7 @@ The `input` section specifies which directories and files will be processed, and
 
 You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative file paths are resolved relative to the location of the configuration file.
 
-If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the "tif" extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated.
+If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated.
 
 Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 
@@ -228,7 +229,7 @@ input:
     - path: "subdirectory/*.tif"
 ```
 
-This distinction is used by the tool to differentiate how relative paths are resolved in case they are provided as CLI argument or from a configuration file. When providing a relative filepaths via CLI argument, the `baseDirectory` defaults to the current working directory. When defining configuration file options, the `baseDirectory` defaults to the directory that contains the configuration file.
+This distinction is used by the tool to differentiate how relative paths are resolved in case they are provided as CLI argument or from a configuration file. When providing a relative filepath via CLI argument, the `baseDirectory` defaults to the current working directory. When defining configuration file options, the `baseDirectory` defaults to the directory that contains the configuration file.
 
 By default, no files are included or excluded, which corresponds to the following empty configuration:
 
@@ -529,9 +530,9 @@ In order to specify a property deviation rule, you need to define the following 
 
 Then, a property deviation condition consists of the following options:
 
-- `aggregate`: the method of aggregation, e.g. `average` or `median`, optional (default is `average`)
-- `maxDeviation`: the maximum deviation as absolute number or percentage, mandatory
-- `inPercent`: whether the maximum deviation is provided as absolute number or percentage, optional (default is `false`)
+- `aggregate` - the method of aggregation, e.g. `average` or `median`, optional (default is `average`)
+- `maxDeviation` - the maximum deviation as absolute number or percentage, mandatory
+- `inPercent` - whether the maximum deviation is provided as absolute number or percentage, optional (default is `false`)
 
 An example configuration would be:
 
@@ -558,7 +559,7 @@ In addition, you may define property deviation rules for specific slices of imag
 - `reversed` - whether slice indexes are counted in ascending or descending order
 - `condition` - the property deviation condition (same as above)
 
-The `from` and `to` indexes do not refer to the number extracted from filenames via a regular expression as defined for the consecutivness check. Instead, the index is determined based on the lexicographical order of filenames, e.g.:
+The `from` and `to` indexes do not refer to the number extracted from filenames via a regular expression as defined for the consecutiveness check. Instead, the index is determined based on the lexicographical order of filenames, e.g.:
 
 - `a.tif` - index 1
 - `ba.tif` - index 2
@@ -588,11 +589,11 @@ validation:
               inPercent: false
 ```
 
-Additional slice conditions are evaluate within a slice. Meaning, the average is calculated within the slice. The width of the first 3 images could deviate from all other images by any amount. However, within the first 3 images, neither of them may deviate more than 10 pixels from their average.
+Additional slice conditions are evaluated within a slice. Meaning, the average is calculated within the slice. The width of the first 3 images could deviate from all other images by any amount. However, within the first 3 images, neither of them may deviate more than 10 pixels from their average.
 
-Consequently, the default deviation condition does not apply to the images of the slice any more. In this case, the default condition would only be applied to images 4, 5, 6, and so on. Also, the average that is used to calculate deviations would also only be calculated for these non-slice images.
+Consequently, the default deviation condition does not apply to the images of the slice anymore. In this case, the default condition would only be applied to images 4, 5, 6, and so on. Also, the average that is used to calculate deviations would also only be calculated for these non-slice images.
 
-By default, no property deviations are checked. The following configuratio is used:
+By default, no property deviations are checked. The following configuration is used:
 
 ```YAML
 validation:
@@ -612,7 +613,7 @@ The `output` section contains the following subsections:
 
 #### Checksum Files
 
-The checksum section allows configuring whether a checksum file is generated if a directory is considered valid. The checksum file contains checksums for every image file of the directory. Checksums are calculated based on the algorith defined via the configuration option `checksum` in configuration section `processing`.
+The checksum section allows configuring whether a checksum file is generated if a directory is considered valid. The checksum file contains checksums for every image file of the directory. Checksums are calculated based on the algorithm defined via the configuration option `checksum` in configuration section `processing`.
 
 The following options can be specified to influence how checksum files are generated:
 
@@ -621,16 +622,16 @@ The following options can be specified to influence how checksum files are gener
 
 Filename templates may use the following substitution variables to generate filenames:
 
-- `directory` - the name of the directory tat was successfully validated
+- `directory` - the name of the directory that was successfully validated
 
-Variables may be referenced via the sytnax `${variable}`. For example, the filename template `${directory}.sha1` generates filenames that consist of the directory name followed by the file extension `.sha1`.
+Variables may be referenced via the syntax `${variable}`. For example, the filename template `${directory}.sha1` generates filenames that consist of the directory name followed by the file extension `.sha1`.
 
-Line format templates may use the following substition variables:
+Line format templates may use the following substitution variables:
 
 - `checksum` - the actual checksum of the image file
 - `filename` the filename of the image file
 
-For example, the line format `${checksum} *${filename}` generates lines that first print the checksum of the image file, followed by a space and asterisk character, follwed by the filename of the image file.
+For example, the line format `${checksum} *${filename}` generates lines that first print the checksum of the image file, followed by a space and asterisk character, followed by the filename of the image file.
 
 An example configuration may look like this:
 
@@ -747,7 +748,7 @@ The "validate" command of the Image Validation CLI works by following these gene
 
 ## JSON Output Mode
 
-In order to postprocess validation results the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
+In order to post-process validation results the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
 
 The JSON output mode generates one JSON document per line of output. Each JSON document follows the same structure and consists of the following properties:
 
@@ -759,13 +760,13 @@ The JSON output mode generates one JSON document per line of output. Each JSON d
 - `error` - either `null` or an error message describing the cause of validation failure
 - `warning` - either `null` or a warning message describing images validation rules with severity level "warning" that did not pass
 
-For example, succesful images will be reported as:
+For example, successful images will be reported as:
 
 ```JSON
 {"time":"2026-04-13 15:42:55.151","type":"file","path":"/path/to/valid.tif","checksum":"04baa2eb55625d139b56ea00d6e8f82e0d01462d","validation":"success","error":null,"warning":null}
 ```
 
-Succesful directories will be reported as:
+Successful directories will be reported as:
 
 ```JSON
 {"time":"2026-04-13 15:42:54.276","type":"directory","path":"/path/to/valid/directory","checksum":null,"validation":"success","error":null,"warning":null}
@@ -783,9 +784,40 @@ Directories that fail validation are reported as:
 {"time":"2026-04-13 15:42:54.912","type":"directory","path":"/path/to/invalid/directory","checksum":null,"validation":"failed","error":"at least one image has a validation error","warning":null}
 ```
 
+### Move Files Depending on Validation Success
+
+Based on the JSON output mode, it is possible to automate various tasks, e.g., to send an e-mail in case of validation errors. For Linux, there is one example script `move_directories.sh` in the `scripts` directory, which demonstrates how image directories can be moved to success or failure directories depending on the individual validation result of each directory.
+
+The `move_directories.sh` script depends on the following options that need to be adjusted in the script itself:
+
+- `SPK_IV_CLI_COMMAND` - the actual image validation command that is executed
+- `RSYNC_OPTIONS` - options for the `rsync` command that determines how files are copied or moved, see [man page](https://linux.die.net/man/1/rsync)
+- `SOURCE_BASE_DIRECTORY` - the base directory of the source files that will being copied or moved
+- `SUCCESS_TARGET` - the target directory for image directories that were successfully validated
+- `FAILURE_TARGET` - the target directory for image directories that failed validation
+
+The `SOURCE_BASE_DIRECTORY` determines the starting point at which the directory hierarchy is preserved. For example, copying a directory `/path/to/base/with/subdirectory` with the base directory `/path/to/base` will copy `subdirectory` but also create a parent directory `with` at the target location.
+
+After editing these options, you can start the `move_directories.sh` script by providing any image validation CLI options to it, for example:
+
+```
+bash move_directories.sh -v --config ../examples/spk-berlin/config.yaml
+```
+
+Note that, by default, the CLI command `validate` and JSON output option `--json` are added by the script itself.
+
+Then, the script follows these steps:
+
+1. Execute image validation CLI with provided command line arguments
+2. Parse each JSON output line and extract information
+3. If validation results were provided for a directory
+   - determine whether validation was successful or not from the JSON output
+   - call `rsync` with either the `SUCCESS_TARGET` or `FAILURE_TARGET` directory
+4. Repeat until image validation CLI is done
+
 ## Exit Codes
 
-The "validate" command returns special exit codes depending on whether validation for all images and directories was succesful or not:
+The "validate" command returns special exit codes depending on whether validation for all images and directories was successful or not:
 
 - `0` - successful validation of all images and directories without any errors
 - `1` - generic program error, validation was aborted

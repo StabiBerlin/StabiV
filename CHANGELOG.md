@@ -5,12 +5,13 @@
 New Features
 
 - Validation reports can be generated both as CSV and Excel (xlsx) files.
+- Added short description of the `move_directories.sh` to the user guide.
 
 Breaking Changes
 
 - The configuration section `csv` was renamed into `report` with sub-options `csvPath` and `excelPath`.
 
-Improvements
+Backend Improvements
 
 - Consider that the overall validation has failed if no files were found
 - Catch any processing error as validation error when processing an image

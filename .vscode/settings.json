@@ -10,8 +10,12 @@
   "java.checkstyle.configuration": "${workspaceFolder}/code/parent/src/main/resources/checkstyle.xml",
   "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
     "exiftool",
+    "i-th",
+    "ifds",
     "jhove",
     "jsonpath",
+    "jsonpaths",
+    "redhat",
     "spk-berlin"
   ]
 }
