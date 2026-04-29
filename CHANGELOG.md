@@ -5,7 +5,7 @@
 New Features
 
 - Validation reports can be generated both as CSV and Excel (xlsx) files.
-- Added short description of the `move_directories.sh` to the user guide.
+- Added short description of the `move_directories.sh` script to the user guide.
 
 Breaking Changes
 
@@ -17,7 +17,7 @@ Backend Improvements
 - Catch any processing error as validation error when processing an image
 - Add basic automated tests for extract and validate CLI commands
 - Add automated tests for image rules
-- Add automated tests for spk-berlin example configuration and check json output
+- Add automated tests for spk-berlin example configuration and check JSON output
 - Add automated tests for ExifTool extractor module
 
 Fixes
