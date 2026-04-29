@@ -3,4 +3,4 @@
 cd "$(dirname "$0")"
 cd ../code/parent
 
-mvn verify
+mvn verify -Dcli
