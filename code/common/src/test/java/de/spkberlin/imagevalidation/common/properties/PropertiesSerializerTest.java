@@ -57,7 +57,8 @@ public class PropertiesSerializerTest {
               },
               "propertyB" : [ "value1", "value2" ]
             }
-            """.trim(),
+            """.trim()
+                .replace("\n", System.lineSeparator()),
             PropertiesSerializer.serializeAsPrettyJson(properties)
         );
     }

@@ -197,7 +197,6 @@
             </goals>
             <phase>process-classes</phase>
             <configuration>
-              <sourceHighlighter>coderay</sourceHighlighter>
               <backend>html5</backend>
               <attributes>
                 <linkcss>false</linkcss>
