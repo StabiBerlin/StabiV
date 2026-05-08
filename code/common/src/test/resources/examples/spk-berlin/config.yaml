@@ -31,6 +31,7 @@ validation:
       - label: ImageWidth
         property: $.exiftool.TIFF.IFD[0].ImageWidth
         condition:
+          severity: warning
           aggregate: average
           maxDeviation: 10
           inPercent: false
@@ -39,6 +40,7 @@ validation:
             to: 3
             reversed: false
             condition:
+              severity: error
               aggregate: average
               maxDeviation: 10
               inPercent: false
@@ -46,6 +48,7 @@ validation:
             to: 3
             reversed: true
             condition:
+              severity: error
               aggregate: average
               maxDeviation: 10
               inPercent: false
@@ -54,6 +57,7 @@ validation:
       - label: ImageHeight
         property: $.exiftool.TIFF.IFD[0].ImageHeight
         condition:
+          severity: warning
           aggregate: average
           maxDeviation: 10
           inPercent: false
@@ -62,6 +66,7 @@ validation:
             to: 3
             reversed: false
             condition:
+              severity: error
               aggregate: average
               maxDeviation: 10
               inPercent: false
@@ -69,6 +74,7 @@ validation:
             to: 3
             reversed: true
             condition:
+              severity: error
               aggregate: average
               maxDeviation: 10
               inPercent: false
