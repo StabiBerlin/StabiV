@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.Comment;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -13,23 +13,29 @@ import org.apache.poi.ss.usermodel.DataValidationConstraint;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelCellWriter {
 
-    private Workbook workbook;
+    private XSSFWorkbook workbook;
     private Sheet mainSheet;
     private Sheet listSheet;
     private DataValidationHelper validationHelper;
     private AtomicInteger listIndex;
-    private CellStyle warningStyle;
-    private CellStyle errorStyle;
+
+    private XSSFCellStyle defaultStyle;
+    private XSSFCellStyle headerStyle;
+    private XSSFCellStyle warningStyle;
+    private XSSFCellStyle errorStyle;
 
     /**
      * Initialize this cell writer for a workbook and sheet.
@@ -37,7 +43,7 @@ public class ExcelCellWriter {
      * @param workbook the workbook
      * @param mainSheet the sheet
      */
-    public ExcelCellWriter(Workbook workbook, Sheet mainSheet) {
+    public ExcelCellWriter(XSSFWorkbook workbook, Sheet mainSheet) {
         this.workbook = workbook;
         this.mainSheet = mainSheet;
 
@@ -46,13 +52,24 @@ public class ExcelCellWriter {
         this.listIndex = new AtomicInteger(0);
         this.validationHelper = mainSheet.getDataValidationHelper();
 
-        this.warningStyle = workbook.createCellStyle();
+        this.defaultStyle = createBaseCellStyle(workbook);
+
+        this.headerStyle = createBaseCellStyle(workbook);
+        Font boldFont = workbook.createFont();
+        boldFont.setBold(true);
+        this.headerStyle.setFont(boldFont);
+
+        this.warningStyle = createBaseCellStyle(workbook);
         this.warningStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         this.warningStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        this.errorStyle = workbook.createCellStyle();
+        this.errorStyle = createBaseCellStyle(workbook);
         this.errorStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode("#FF7D55"), null));
         this.errorStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        this.errorStyle.setTopBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
+        this.errorStyle.setBottomBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
+        this.errorStyle.setLeftBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
+        this.errorStyle.setRightBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
     }
 
     /**
@@ -77,6 +94,12 @@ public class ExcelCellWriter {
             cell.setCellStyle(errorStyle);
         } else if (ReportCellHighlightType.warning.equals(reportCell.getHighlightType())) {
             cell.setCellStyle(warningStyle);
+        } else {
+            if (cell.getRowIndex() == 0) {
+                cell.setCellStyle(headerStyle);
+            } else {
+                cell.setCellStyle(defaultStyle);
+            }
         }
     }
 
@@ -122,5 +145,18 @@ public class ExcelCellWriter {
             );
             listIndex.incrementAndGet();
         }
+    }
+
+    private static XSSFCellStyle createBaseCellStyle(XSSFWorkbook workbook) {
+        XSSFCellStyle style = workbook.createCellStyle();
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setTopBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setLeftBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setRightBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        return style;
     }
 }

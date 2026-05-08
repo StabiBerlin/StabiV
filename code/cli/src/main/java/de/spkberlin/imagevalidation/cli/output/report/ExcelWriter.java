@@ -7,7 +7,6 @@ import java.util.List;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -25,12 +24,13 @@ public class ExcelWriter {
      */
     public static void writeReport(Path outputPath, List<List<ReportCell>> report) throws IOException {
         logger.info("write excel output file '{}'", outputPath);
-        Workbook workbook = new XSSFWorkbook();
+        XSSFWorkbook workbook = new XSSFWorkbook();
         Sheet mainSheet = workbook.createSheet("Report");
         ExcelCellWriter cellWriter = new ExcelCellWriter(workbook, mainSheet);
 
         int maxColumnId = 0;
         int rowId = 0;
+        int lastEmptyRowId = 0;
         for (List<ReportCell> reportRow : report) {
             Row row = mainSheet.createRow(rowId);
             int columnId = 0;
@@ -39,6 +39,20 @@ public class ExcelWriter {
                 Cell cell = row.createCell(columnId);
                 cellWriter.writeCell(cell, reportCell);
                 maxColumnId = Math.max(columnId, maxColumnId);
+                columnId += 1;
+            }
+
+            if (reportRow.isEmpty()) {
+                if (lastEmptyRowId > 0 && rowId - lastEmptyRowId > 2) {
+                    mainSheet.groupRow(lastEmptyRowId + 2, rowId - 1);
+                }
+                lastEmptyRowId = rowId;
+            }
+
+            // fill with empty cells
+            while (columnId <= maxColumnId) {
+                Cell cell = row.createCell(columnId);
+                cellWriter.writeCell(cell, ReportCell.empty());
                 columnId += 1;
             }
 
