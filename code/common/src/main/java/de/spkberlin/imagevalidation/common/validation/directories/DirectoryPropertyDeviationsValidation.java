@@ -39,6 +39,12 @@ public class DirectoryPropertyDeviationsValidation {
         Collection<DirectoryPropertyDeviationsRule> deviationEntries,
         Map<Path, ExtractionResult> extractionResults
     ) {
+        if (deviationEntries.isEmpty()) {
+            return new DirectoryPropertyDeviationsResult(
+                extractionResults.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, v -> Collections.emptyList()))
+            );
+        }
+
         return new DirectoryPropertyDeviationsResult(
             deviationEntries
                 .stream()

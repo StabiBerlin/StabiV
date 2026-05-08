@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,38 +45,25 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     @Override
     public ImageValidationResult call() throws Exception {
         logger.trace("start validating image at {}", filepath);
+        ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
         try {
-            ExtractionResult extractionResult = extractImageProperties(filepath, extractors);
+            ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
             try {
-                ImageRuleEvaluationResult imageValidationResult = evaluateImageRules(filepath, extractionResult, rules);
-                try {
-                    String checksum = ChecksumUtil.calculate(filepath, checksumAlgorithm);
-                    return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
-                } catch (Exception e) {
-                    logger.error("calculation of checksum failed with exception", e);
-                    return new ImageValidationResult(filepath, imageValidationResult, extractionResult, null);
-                }
+                String checksum = ChecksumUtil.calculate(filepath, checksumAlgorithm);
+                return new ImageValidationResult(filepath, imageValidationResult, extractionResult, checksum);
             } catch (Exception e) {
-                logger.error("evaluation of images rules failed with exception", e);
-                return new ImageValidationResult(
-                    filepath,
-                    new ImageRuleEvaluationResult(
-                        Collections.singletonList("exception during evaluation of image properties"),
-                        Collections.emptyList()
-                    ),
-                    extractionResult,
-                    null
-                );
+                logger.error("calculation of checksum failed with exception", e);
+                return new ImageValidationResult(filepath, imageValidationResult, extractionResult, null);
             }
         } catch (Exception e) {
-            logger.error("extraction of image properties failed with exception", e);
+            logger.error("evaluation of images rules failed with exception", e);
             return new ImageValidationResult(
                 filepath,
                 new ImageRuleEvaluationResult(
-                    Collections.singletonList("exception during extraction of image properties"),
+                    Collections.singletonList("exception during evaluation of image properties"),
                     Collections.emptyList()
                 ),
-                null,
+                extractionResult,
                 null
             );
         }
@@ -91,10 +79,13 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     public static ExtractionResult extractImageProperties(Path filepath, List<ExtractorType> extractors) {
         Map<ExtractorType, ExtractionResult> resultsByExtractor = new HashMap<>();
         for (ExtractorType extratorType : extractors) {
-            logger.debug("apply extractor {}", extratorType);
-            resultsByExtractor.put(extratorType, Extraction.getImplementation(extratorType).extractProperties(filepath));
+            try {
+                logger.debug("apply extractor {}", extratorType);
+                resultsByExtractor.put(extratorType, Extraction.getImplementation(extratorType).extractProperties(filepath));
+            } catch (Exception e) {
+                logger.error(String.format("extractor '%s' failed with exception", extratorType), e);
+            }
         }
-
         return mergeExtractionResults(resultsByExtractor);
     }
 
@@ -107,7 +98,11 @@ public class ImageValidationRunner implements Callable<ImageValidationResult> {
     public static ExtractionResult mergeExtractionResults(Map<ExtractorType, ExtractionResult> results) {
         Map<String, Object> mergedProperties = new HashMap<>();
         for (Entry<ExtractorType, ExtractionResult> entry : results.entrySet()) {
-            mergedProperties.put(entry.getKey().name(), entry.getValue().getProperties());
+            if (Objects.nonNull(entry.getValue())) {
+                mergedProperties.put(entry.getKey().name(), entry.getValue().getProperties());
+            } else {
+                logger.error("extractor '%s' returned 'null' as extraction result", entry.getKey());
+            }
         }
         return new ExtractionResult(mergedProperties);
     }
