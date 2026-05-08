@@ -5,9 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -29,25 +26,18 @@ public class ExcelWriter {
     public static void writeReport(Path outputPath, List<List<ReportCell>> report) throws IOException {
         logger.info("write excel output file '{}'", outputPath);
         Workbook workbook = new XSSFWorkbook();
-        CellStyle yellowStyle = workbook.createCellStyle();
-        yellowStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        yellowStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Sheet mainSheet = workbook.createSheet("Report");
+        ExcelCellWriter cellWriter = new ExcelCellWriter(workbook, mainSheet);
 
-        Sheet sheet = workbook.createSheet("Report");
         int maxColumnId = 0;
-
         int rowId = 0;
         for (List<ReportCell> reportRow : report) {
-            Row row = sheet.createRow(rowId);
+            Row row = mainSheet.createRow(rowId);
             int columnId = 0;
 
             for (ReportCell reportCell : reportRow) {
                 Cell cell = row.createCell(columnId);
-                cell.setCellValue(reportCell.getText());
-                if (reportCell.isHighlighted()) {
-                    cell.setCellStyle(yellowStyle);
-                }
-
+                cellWriter.writeCell(cell, reportCell);
                 maxColumnId = Math.max(columnId, maxColumnId);
                 columnId += 1;
             }
@@ -55,8 +45,8 @@ public class ExcelWriter {
             rowId += 1;
         }
 
-        autoFitColumns(sheet, maxColumnId + 1, 512);
-        addTableFilters(sheet, rowId + 1, maxColumnId + 1);
+        autoFitColumns(mainSheet, maxColumnId + 1, 512);
+        addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
 
         try (FileOutputStream out = new FileOutputStream(outputPath.toFile())) {
             workbook.write(out);

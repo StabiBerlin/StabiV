@@ -9,9 +9,10 @@ import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRu
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeNotCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeOrCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
+import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleEvaluationResult;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,11 +66,11 @@ public class ImageRuleEvaluator {
         for (Object contextObject : contextObjects) {
             String conditionError = evaluateCondition(rule.getCondition(), contextObject);
             if (Objects.nonNull(conditionError)) {
-                if (ImageRuleSeverityType.error.equals(rule.getSeverity())) {
+                if (ValidationSeverityType.error.equals(rule.getSeverity())) {
                     logger.debug("validation error '{}'", rule.getMessage());
                     logger.trace("validation error details: {}", conditionError);
                     errors.add(rule.getMessage());
-                } else if (ImageRuleSeverityType.warning.equals(rule.getSeverity())) {
+                } else if (ValidationSeverityType.warning.equals(rule.getSeverity())) {
                     logger.debug("validation warning: '{}'", rule.getMessage());
                     logger.trace("validation warning details: {}", conditionError);
                     warnings.add(rule.getMessage());

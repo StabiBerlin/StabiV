@@ -20,9 +20,9 @@ import de.spkberlin.imagevalidation.common.validation.directories.state.Director
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSeverityType;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -229,7 +229,7 @@ public class ConfigurationMerger {
         ImageRule rule = new ImageRule();
         rule.setContext("$");
         rule.setMessage(String.format("command line rule '%s' must be fulfilled", imageRuleText));
-        rule.setSeverity(ImageRuleSeverityType.error);
+        rule.setSeverity(ValidationSeverityType.error);
         rule.setCondition(condition);
 
         return rule;

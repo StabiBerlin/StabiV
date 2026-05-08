@@ -1,25 +1,30 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsResult;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class DirectoryValidationResult {
 
     private Path directory;
     private Map<Path, ImageValidationResult> imageResults;
-    private String error;
+    private DirectoryPropertyDeviationsResult propertyDeviationsResult;
+    private List<String> errors;
+    private List<String> warnings;
 
     /**
      * Initialize a directory validation result.
      *
      * @param directory the path to the directory
      * @param imageResults all image validation results of all image files inside this directory
-     * @param error an error message if a directory is not valid
      */
-    public DirectoryValidationResult(Path directory, Map<Path, ImageValidationResult> imageResults, String error) {
+    public DirectoryValidationResult(Path directory, Map<Path, ImageValidationResult> imageResults) {
         this.directory = directory;
         this.imageResults = imageResults;
-        this.error = error;
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
     }
 
     public Path getDirectory() {
@@ -30,12 +35,20 @@ public class DirectoryValidationResult {
         this.directory = directory;
     }
 
-    public String getError() {
-        return this.error;
+    public List<String> getErrors() {
+        return this.errors;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
+    }
+
+    public List<String> getWarnings() {
+        return this.warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
     }
 
     public Map<Path, ImageValidationResult> getImageResults() {
@@ -44,5 +57,13 @@ public class DirectoryValidationResult {
 
     public void setImageResults(Map<Path, ImageValidationResult> imageResults) {
         this.imageResults = imageResults;
+    }
+
+    public DirectoryPropertyDeviationsResult getPropertyDeviationsResult() {
+        return this.propertyDeviationsResult;
+    }
+
+    public void setPropertyDeviationsResult(DirectoryPropertyDeviationsResult propertyDeviationsResult) {
+        this.propertyDeviationsResult = propertyDeviationsResult;
     }
 }

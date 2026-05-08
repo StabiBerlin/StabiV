@@ -147,7 +147,7 @@ public class ValidateAll {
 
         // check all directory results
         for (DirectoryValidationResult directoryResult : result.getDirectoryValidationResults().values()) {
-            if (Objects.nonNull(directoryResult.getError())) {
+            if (!directoryResult.getErrors().isEmpty()) {
                 return false;
             }
         }

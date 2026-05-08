@@ -4,8 +4,11 @@ import com.jayway.jsonpath.JsonPath;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsImageResult;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsResult;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsSliceEntry;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,12 +16,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DirectoryPropertyDeviationsValidation {
+
+    private static final Logger logger = LoggerFactory.getLogger(DirectoryPropertyDeviationsValidation.class);
 
     /**
      * Check all property deviation rules given extracted properties for images of a directory.
@@ -27,17 +35,17 @@ public class DirectoryPropertyDeviationsValidation {
      * @param extractionResults extracted properties for images of a directory
      * @return an error message, or null if successful
      */
-    public static String evaluatePropertyDeviations(
+    public static DirectoryPropertyDeviationsResult evaluatePropertyDeviations(
         Collection<DirectoryPropertyDeviationsRule> deviationEntries,
         Map<Path, ExtractionResult> extractionResults
     ) {
-        for (DirectoryPropertyDeviationsRule entry : deviationEntries) {
-            String error = evaluatePropertyDeviationEntry(entry, extractionResults);
-            if (Objects.nonNull(error)) {
-                return error;
-            }
-        }
-        return null;
+        return new DirectoryPropertyDeviationsResult(
+            deviationEntries
+                .stream()
+                .map(entry -> evaluatePropertyDeviationEntry(entry, extractionResults))
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())))
+        );
     }
 
     /**
@@ -47,34 +55,30 @@ public class DirectoryPropertyDeviationsValidation {
      * @param extractionResults extracted propeties for images of a directory
      * @return an error message, or null if successful
      */
-    public static String evaluatePropertyDeviationEntry(
+    public static Map<Path, DirectoryPropertyDeviationsImageResult> evaluatePropertyDeviationEntry(
         DirectoryPropertyDeviationsRule deviationEntry,
         Map<Path, ExtractionResult> extractionResults
     ) {
-        Map<Path, Double> propertyValues = findNumberProperties(deviationEntry.getProperty(), extractionResults);
+        Map<Path, Optional<Double>> propertyValues = findNumberProperties(deviationEntry.getProperty(), extractionResults);
 
         Set<Path> checkedImages = new HashSet<>();
-        String slicesError = checkPropertyDeviationsAdditionalSlices(
+        Map<Path, DirectoryPropertyDeviationsImageResult> slicesResults = checkPropertyDeviationsAdditionalSlices(
             propertyValues,
             deviationEntry.getAdditionalSlices(),
             deviationEntry.getLabel(),
             checkedImages
         );
-        if (Objects.nonNull(slicesError)) {
-            return slicesError;
-        }
 
-        String conditionError = checkDefaultPropertyDeviations(
+        Map<Path, DirectoryPropertyDeviationsImageResult> otherResults = checkDefaultPropertyDeviations(
             propertyValues,
             checkedImages,
             deviationEntry.getCondition(),
             deviationEntry.getLabel()
         );
-        if (Objects.nonNull(conditionError)) {
-            return conditionError;
-        }
 
-        return null;
+        return Stream.of(slicesResults, otherResults)
+            .flatMap(m -> m.entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (keyA, keyB) -> keyA));
     }
 
     /**
@@ -84,11 +88,14 @@ public class DirectoryPropertyDeviationsValidation {
      * @param aggregateType the aggregation type (e.g. average or median)
      * @return the aggregate of all numbers
      */
-    public static Double calculateNumberAggregate(Collection<Double> values, DirectoryPropertyDeviationsAggregateType aggregateType) {
+    public static Double calculateNumberAggregate(
+        Collection<Optional<Double>> values,
+        DirectoryPropertyDeviationsAggregateType aggregateType
+    ) {
         if (DirectoryPropertyDeviationsAggregateType.average.equals(aggregateType)) {
-            return values.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            return values.stream().filter(Optional::isPresent).map(Optional::get).mapToDouble(Double::doubleValue).average().orElse(0.0);
         } else if (DirectoryPropertyDeviationsAggregateType.median.equals(aggregateType)) {
-            List<Double> sorted = values.stream().sorted().toList();
+            List<Double> sorted = values.stream().filter(Optional::isPresent).map(Optional::get).sorted().toList();
             if (sorted.size() == 0) {
                 return 0.0;
             }
@@ -98,53 +105,102 @@ public class DirectoryPropertyDeviationsValidation {
     }
 
     /**
-     * Check that property values do not deviate more than a maximum allowed deviation from their aggregate.
+     * Check that property values do not deviate more than a maximum allowed deviation from their aggregate for all images of a slice.
      *
-     * @param propertyValues the property values to check
+     * @param propertyValues the property values to check for each image of a slice
      * @param aggregateType the aggregation type (e.g. average or median)
      * @param maxDeviation the maximum allowed deviation
      * @param inPercent whether the maximum allowed deviation should be interpreted as percent
      * @param propertyLabel the label of the property that is checked
-     * @return an error message, or null if successful
+     * @return an result object (with error or warning message) for each image of the slice
      */
-    public static String checkMaxDeviation(
-        Map<Path, Double> propertyValues,
+    public static Map<Path, DirectoryPropertyDeviationsImageResult> checkMaxDeviationForSlice(
+        Map<Path, Optional<Double>> propertyValues,
         DirectoryPropertyDeviationsAggregateType aggregateType,
         Double maxDeviation,
         Boolean inPercent,
-        String propertyLabel
+        String propertyLabel,
+        ValidationSeverityType severity
     ) {
         double aggregate = calculateNumberAggregate(propertyValues.values(), aggregateType);
-        for (Entry<Path, Double> entry : propertyValues.entrySet()) {
-            Path imagePath = entry.getKey();
-            Double value = entry.getValue();
-            if (inPercent) {
-                double deviationInPercent = (Math.abs(value - aggregate) / aggregate) * 100.0;
-                if (deviationInPercent > maxDeviation) {
-                    return String.format(
-                        "image '%s' deviates for property '%s' by %.1f percent from %s of %.1f",
-                        imagePath.getFileName(),
+        return propertyValues
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, e ->
+                    checkMaxDeviationsForImage(
+                        e.getKey(),
+                        aggregate,
+                        e.getValue(),
+                        aggregateType,
+                        maxDeviation,
+                        inPercent,
+                        propertyLabel,
+                        severity
+                    )
+                )
+            );
+    }
+
+    /**
+     * Check that property value do not deviate more than a maximum allowed deviation from their aggregate for a single image.
+     *
+     * @param imagePath the path to the image file
+     * @param aggregate the aggregate value to compare to
+     * @param value the extracted value for the image
+     * @param aggregateType the aggregation type (e.g. average or median)
+     * @param maxDeviation the maximum allowed deviation
+     * @param inPercent whether the maximum allowed deviation should be interpreted as percent
+     * @param propertyLabel the label of the property that is checked
+     * @return an result object with an error or warning message for the image
+     */
+    public static DirectoryPropertyDeviationsImageResult checkMaxDeviationsForImage(
+        Path imagePath,
+        Double aggregate,
+        Optional<Double> value,
+        DirectoryPropertyDeviationsAggregateType aggregateType,
+        Double maxDeviation,
+        Boolean inPercent,
+        String propertyLabel,
+        ValidationSeverityType severity
+    ) {
+        if (!value.isPresent() || Objects.isNull(value.get())) {
+            return new DirectoryPropertyDeviationsImageResult(
+                String.format("could not extract property '%s' when checking maximum deviation", propertyLabel),
+                severity
+            );
+        }
+        if (inPercent) {
+            double deviationInPercent = (Math.abs(value.get() - aggregate) / aggregate) * 100.0;
+            if (deviationInPercent > maxDeviation) {
+                return new DirectoryPropertyDeviationsImageResult(
+                    String.format(
+                        "property '%s' deviates by %.1f percent from %s of %.1f",
                         propertyLabel,
                         deviationInPercent,
                         aggregateType.name(),
                         aggregate
-                    );
-                }
-            } else {
-                double absoluteDeviation = Math.abs(value - aggregate);
-                if (absoluteDeviation > maxDeviation) {
-                    return String.format(
-                        "image '%s' deviates for property '%s' by %.1f from %s of %.1f",
-                        imagePath.getFileName(),
+                    ),
+                    severity
+                );
+            }
+        } else {
+            double absoluteDeviation = Math.abs(value.get() - aggregate);
+            if (absoluteDeviation > maxDeviation) {
+                return new DirectoryPropertyDeviationsImageResult(
+                    String.format(
+                        "property '%s' deviates by %.1f from %s of %.1f",
                         propertyLabel,
                         absoluteDeviation,
                         aggregateType.name(),
                         aggregate
-                    );
-                }
+                    ),
+                    severity
+                );
             }
         }
-        return null;
+
+        return new DirectoryPropertyDeviationsImageResult();
     }
 
     /**
@@ -159,8 +215,8 @@ public class DirectoryPropertyDeviationsValidation {
      * @param reversed if false, indexes are interpreted from the beginning of the file list, otherwise from the back
      * @return property values for images filtered by slice parameters
      */
-    public static Map<Path, Double> getRelevantValuesForSlice(
-        Map<Path, Double> propertyValues,
+    public static Map<Path, Optional<Double>> getRelevantValuesForSlice(
+        Map<Path, Optional<Double>> propertyValues,
         Integer from,
         Integer to,
         Boolean reversed
@@ -196,34 +252,32 @@ public class DirectoryPropertyDeviationsValidation {
      * @param checkedImages a set of filepaths that is modified to contain images that were checked based on the slice
      * @return an error message, or null if successful
      */
-    public static String checkPropertyDeviationsForSlice(
-        Map<Path, Double> propertyValues,
+    public static Map<Path, DirectoryPropertyDeviationsImageResult> checkPropertyDeviationsForSlice(
+        Map<Path, Optional<Double>> propertyValues,
         DirectoryPropertyDeviationsSliceEntry sliceEntry,
         String propertyLabel,
         Set<Path> checkedImages
     ) {
-        Map<Path, Double> relevantValues = getRelevantValuesForSlice(
+        Map<Path, Optional<Double>> relevantValues = getRelevantValuesForSlice(
             propertyValues,
             sliceEntry.getFrom(),
             sliceEntry.getTo(),
             sliceEntry.isReversed()
         );
 
-        String error = checkMaxDeviation(
+        Map<Path, DirectoryPropertyDeviationsImageResult> results = checkMaxDeviationForSlice(
             relevantValues,
             sliceEntry.getCondition().getAggregate(),
             sliceEntry.getCondition().getMaxDeviation(),
             sliceEntry.getCondition().isInPercent(),
-            propertyLabel
+            propertyLabel,
+            sliceEntry.getCondition().getSeverity()
         );
-        if (Objects.nonNull(error)) {
-            return error;
-        }
 
         // remember which images have been checked based on sequence entries
         checkedImages.addAll(relevantValues.keySet());
 
-        return null;
+        return results;
     }
 
     /**
@@ -235,19 +289,17 @@ public class DirectoryPropertyDeviationsValidation {
      * @param checkedImages a set of filepaths that is modified to contain images that were checked based on all slices
      * @return an error message, or null if successful
      */
-    public static String checkPropertyDeviationsAdditionalSlices(
-        Map<Path, Double> propertyValues,
+    public static Map<Path, DirectoryPropertyDeviationsImageResult> checkPropertyDeviationsAdditionalSlices(
+        Map<Path, Optional<Double>> propertyValues,
         List<DirectoryPropertyDeviationsSliceEntry> sliceEntries,
         String propertyLabel,
         Set<Path> checkedImages
     ) {
-        for (DirectoryPropertyDeviationsSliceEntry sliceEntry : sliceEntries) {
-            String sliceError = checkPropertyDeviationsForSlice(propertyValues, sliceEntry, propertyLabel, checkedImages);
-            if (Objects.nonNull(sliceError)) {
-                return sliceError;
-            }
-        }
-        return null;
+        return sliceEntries
+            .stream()
+            .map(sliceEntry -> checkPropertyDeviationsForSlice(propertyValues, sliceEntry, propertyLabel, checkedImages))
+            .flatMap(results -> results.entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (keyA, keyB) -> keyA));
     }
 
     /**
@@ -259,30 +311,28 @@ public class DirectoryPropertyDeviationsValidation {
      * @param propertyLabel the label of the property being checked
      * @return an error message, or null if successful
      */
-    public static String checkDefaultPropertyDeviations(
-        Map<Path, Double> propertyValues,
+    public static Map<Path, DirectoryPropertyDeviationsImageResult> checkDefaultPropertyDeviations(
+        Map<Path, Optional<Double>> propertyValues,
         Set<Path> alreadyCheckedImages,
         DirectoryPropertyDeviationsCondition condition,
         String propertyLabel
     ) {
-        Map<Path, Double> relevantValues = propertyValues
+        Map<Path, Optional<Double>> relevantValues = propertyValues
             .entrySet()
             .stream()
             .filter(e -> !alreadyCheckedImages.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        String error = checkMaxDeviation(
+        Map<Path, DirectoryPropertyDeviationsImageResult> results = checkMaxDeviationForSlice(
             relevantValues,
             condition.getAggregate(),
             condition.getMaxDeviation(),
             condition.isInPercent(),
-            propertyLabel
+            propertyLabel,
+            condition.getSeverity()
         );
-        if (Objects.nonNull(error)) {
-            return error;
-        }
 
-        return null;
+        return results;
     }
 
     /**
@@ -292,10 +342,44 @@ public class DirectoryPropertyDeviationsValidation {
      * @param extractionResults the extraction result for every file
      * @return a map of property values for each file
      */
-    public static Map<Path, Double> findNumberProperties(String property, Map<Path, ExtractionResult> extractionResults) {
+    public static Map<Path, Optional<Double>> findNumberProperties(String property, Map<Path, ExtractionResult> extractionResults) {
         return extractionResults
             .entrySet()
             .stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> Double.parseDouble(JsonPath.read(e.getValue().getProperties(), property))));
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, entry -> {
+                    try {
+                        return Optional.of(Double.parseDouble(JsonPath.read(entry.getValue().getProperties(), property)));
+                    } catch (Exception e) {
+                        logger.debug("could not parse number property '{}' when checking property deviations due to '{}'", property, e);
+                        return Optional.empty();
+                    }
+                })
+            );
+    }
+
+    /**
+     * Return the first property deviation error from all results when checking a full directory for all deviation rules.
+     *
+     * @param result the result object containing all image results for a full directory
+     * @return the first error message or null of none is found
+     */
+    public static String getFirstMessageOfType(DirectoryPropertyDeviationsResult result, ValidationSeverityType type) {
+        return result
+            .getImageResults()
+            .entrySet()
+            .stream()
+            .map(entry ->
+                entry
+                    .getValue()
+                    .stream()
+                    .filter(r -> type.equals(r.getSeverity()))
+                    .map(r -> String.format("%s for image '%s'", r.getMessage(), entry.getKey().getFileName()))
+                    .findFirst()
+                    .orElse(null)
+            )
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 }

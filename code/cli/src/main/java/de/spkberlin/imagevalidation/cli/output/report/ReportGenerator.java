@@ -7,7 +7,11 @@ import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsImageResult;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsResult;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -25,8 +29,7 @@ public class ReportGenerator {
         "File Name",
         "Directory Passed Validation",
         "File Passed Validation",
-        "Validation Error",
-        "Validation Warning",
+        "Validation Error or Warning",
         "Path",
         "Checksum"
     );
@@ -62,8 +65,7 @@ public class ReportGenerator {
                 validFiles.toString(), // file name
                 allValid.toString(), // directory passed validation
                 allValid.toString(), // file passed validation
-                null, // validation error
-                null, // validation warning
+                null, // validation error or warning
                 null, // path
                 null // checksum
             ).map(ReportCell::of),
@@ -83,7 +85,19 @@ public class ReportGenerator {
                         entry
                             .getValue()
                             .stream()
-                            .flatMap(filepath -> writeFile(filepath, validateAllResult.getImageValidationResults().get(filepath), columns))
+                            .flatMap(filepath ->
+                                writeFile(
+                                    filepath,
+                                    validateAllResult.getImageValidationResults().get(filepath),
+                                    validateAllResult
+                                        .getDirectoryValidationResults()
+                                        .get(filepath.getParent())
+                                        .getPropertyDeviationsResult()
+                                        .getImageResults()
+                                        .get(filepath),
+                                    columns
+                                )
+                            )
                     ),
                     Stream.of(Stream.empty())
                 );
@@ -91,7 +105,8 @@ public class ReportGenerator {
     }
 
     private static Stream<Stream<ReportCell>> writeDirectorySummary(Path directory, ValidateAllResult validateAllResult) {
-        String directoryError = validateAllResult.getDirectoryValidationResults().get(directory).getError();
+        List<String> directoryErrors = validateAllResult.getDirectoryValidationResults().get(directory).getErrors();
+        List<String> directoryWarnings = validateAllResult.getDirectoryValidationResults().get(directory).getWarnings();
         long validImageCount = validateAllResult
             .getFilesByDirectory()
             .get(directory)
@@ -106,10 +121,9 @@ public class ReportGenerator {
                 ReportCell.of("Target vs. Actual"), // subheading
                 ReportCell.of(String.valueOf(validateAllResult.getFilesByDirectory().get(directory).size())), // direcotry name
                 ReportCell.of(String.valueOf(validImageCount)), // file name
-                ReportCell.of(String.valueOf(Objects.isNull(directoryError)), Objects.nonNull(directoryError)), // directory passed
+                ReportCell.of(directoryErrors.isEmpty()), // directory passed
                 ReportCell.empty(), // file passed validation
-                ReportCell.of(directoryError, Objects.nonNull(directoryError) && !directoryError.isBlank()), // validation error
-                ReportCell.empty(), // validation warning
+                ReportCell.of(directoryErrors, directoryWarnings), // validation error or warning
                 ReportCell.of(directory.toString()), // path
                 ReportCell.empty() // checksum
             )
@@ -119,11 +133,19 @@ public class ReportGenerator {
     private static Stream<Stream<ReportCell>> writeFile(
         Path filepath,
         ImageValidationResult imageValidationResult,
+        List<DirectoryPropertyDeviationsImageResult> propertyDeviationResults,
         List<ReportPropertyColumn> columns
     ) {
         Boolean passedValidation = imageValidationResult.getImageRuleEvaluationResult().getErrors().isEmpty();
-        String validationError = imageValidationResult.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse("");
-        String validationWarning = imageValidationResult.getImageRuleEvaluationResult().getWarnings().stream().findFirst().orElse("");
+        List<String> validationErrors = imageValidationResult.getImageRuleEvaluationResult().getErrors();
+        List<String> validationWarnings = imageValidationResult.getImageRuleEvaluationResult().getWarnings();
+        List<String> propertyDeviationErrors = propertyDeviationResults
+            .stream()
+            .filter(r -> ValidationSeverityType.error.equals(r.getSeverity()))
+            .map(r -> r.getMessage())
+            .toList();
+
+        List<String> allErrors = Stream.of(validationErrors, propertyDeviationErrors).flatMap(List::stream).toList();
 
         return Stream.concat(
             Stream.of(
@@ -134,9 +156,8 @@ public class ReportGenerator {
                         ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
                         ReportCell.of(filepath.getFileName().toString()), // file name
                         ReportCell.empty(), // directory passed validation
-                        ReportCell.of(String.valueOf(passedValidation), !passedValidation), // file passed validation
-                        ReportCell.of(validationError, !validationError.isBlank()), // validation error
-                        ReportCell.of(validationWarning), // validation warning
+                        ReportCell.of(passedValidation), // file passed validation
+                        ReportCell.of(allErrors, validationWarnings), // validation error or warning
                         ReportCell.of(filepath.toString()), // file path
                         ReportCell.of(imageValidationResult.getChecksum()) // checksum
                     ),

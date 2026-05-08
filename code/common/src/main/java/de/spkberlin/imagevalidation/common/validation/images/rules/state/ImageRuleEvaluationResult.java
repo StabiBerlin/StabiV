@@ -1,4 +1,4 @@
-package de.spkberlin.imagevalidation.common.validation.images.rules;
+package de.spkberlin.imagevalidation.common.validation.images.rules.state;
 
 import java.util.List;
 

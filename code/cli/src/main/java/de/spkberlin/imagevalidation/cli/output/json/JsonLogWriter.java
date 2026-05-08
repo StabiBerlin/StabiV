@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +61,8 @@ public class JsonLogWriter {
                 JsonLogEntry.DIRECTORY_TYPE,
                 result.getDirectory().toString(),
                 null,
-                Objects.isNull(result.getError()) ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
-                result.getError(),
+                result.getErrors().isEmpty() ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
+                result.getErrors().stream().findFirst().orElse(""),
                 null
             );
 

@@ -1,0 +1,126 @@
+package de.spkberlin.imagevalidation.cli.output.report;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+
+public class ExcelCellWriter {
+
+    private Workbook workbook;
+    private Sheet mainSheet;
+    private Sheet listSheet;
+    private DataValidationHelper validationHelper;
+    private AtomicInteger listIndex;
+    private CellStyle warningStyle;
+    private CellStyle errorStyle;
+
+    /**
+     * Initialize this cell writer for a workbook and sheet.
+     *
+     * @param workbook the workbook
+     * @param mainSheet the sheet
+     */
+    public ExcelCellWriter(Workbook workbook, Sheet mainSheet) {
+        this.workbook = workbook;
+        this.mainSheet = mainSheet;
+
+        this.listSheet = workbook.createSheet("Lists");
+        this.workbook.setSheetHidden(workbook.getSheetIndex(listSheet), true);
+        this.listIndex = new AtomicInteger(0);
+        this.validationHelper = mainSheet.getDataValidationHelper();
+
+        this.warningStyle = workbook.createCellStyle();
+        this.warningStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        this.warningStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        this.errorStyle = workbook.createCellStyle();
+        this.errorStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode("#FF7D55"), null));
+        this.errorStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    }
+
+    /**
+     * Write the value for a single cell of the report.
+     *
+     * @param cell the sheet cell that is written
+     * @param reportCell the report cell containing validation information
+     */
+    public void writeCell(Cell cell, ReportCell reportCell) {
+        // write value
+        if (ReportCellValueType.text.equals(reportCell.getValueType())) {
+            cell.setCellValue(reportCell.getText());
+        } else if (ReportCellValueType.integer.equals(reportCell.getValueType())) {
+            cell.setCellValue(reportCell.getInteger());
+        } else if (ReportCellValueType.list.equals(reportCell.getValueType())) {
+            addListAsConstraint(workbook, mainSheet, listSheet, validationHelper, cell, reportCell.getList(), listIndex);
+            cell.setCellValue(reportCell.getList().stream().findFirst().orElse(""));
+        }
+
+        // apply color
+        if (ReportCellHighlightType.error.equals(reportCell.getHighlightType())) {
+            cell.setCellStyle(errorStyle);
+        } else if (ReportCellHighlightType.warning.equals(reportCell.getHighlightType())) {
+            cell.setCellStyle(warningStyle);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static void addListAsNote(CreationHelper creationHelper, Drawing<?> drawing, Cell cell, List<String> list) {
+        if (list.size() > 1) {
+            ClientAnchor anchor = creationHelper.createClientAnchor();
+            anchor.setCol1(cell.getColumnIndex());
+            anchor.setCol2(cell.getColumnIndex());
+            anchor.setRow1(cell.getRowIndex());
+            anchor.setRow2(cell.getRowIndex());
+
+            Comment comment = drawing.createCellComment(anchor);
+            comment.setString(creationHelper.createRichTextString(list.stream().collect(Collectors.joining("\n\n"))));
+            comment.setAuthor("System");
+
+            cell.setCellComment(comment);
+        }
+    }
+
+    private static void addListAsConstraint(
+        Workbook workbook,
+        Sheet mainSheet,
+        Sheet listSheet,
+        DataValidationHelper validationHelper,
+        Cell cell,
+        List<String> list,
+        AtomicInteger listIndex
+    ) {
+        if (list.size() > 1) {
+            for (int i = 0; i < list.size(); i++) {
+                Row row = Objects.isNull(listSheet.getRow(i)) ? listSheet.createRow(i) : listSheet.getRow(i);
+                row.createCell(listIndex.get()).setCellValue(list.get(i));
+            }
+            String columnName = CellReference.convertNumToColString(listIndex.get());
+            String formula = String.format("Lists!$%s$1:$%s$%d", columnName, columnName, list.size());
+            DataValidationConstraint constraint = validationHelper.createFormulaListConstraint(formula);
+            mainSheet.addValidationData(
+                validationHelper.createValidation(
+                    constraint,
+                    new CellRangeAddressList(cell.getRowIndex(), cell.getRowIndex(), cell.getColumnIndex(), cell.getColumnIndex())
+                )
+            );
+            listIndex.incrementAndGet();
+        }
+    }
+}

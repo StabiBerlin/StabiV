@@ -8,7 +8,9 @@ import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConse
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryConsistencyValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryPropertyDeviationsValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsResult;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -38,54 +40,96 @@ public class DirectoryValidation {
         Map<Path, ImageValidationResult> imageValidationResults,
         ConfigurationOutputChecksumSection checksumConfig
     ) throws IOException {
+        DirectoryValidationResult result = new DirectoryValidationResult(directory, imageValidationResults);
+
         if (imageValidationResults.isEmpty()) {
             logger.info("validation of directory '{}' failed because it does not contain images", directory);
-            return new DirectoryValidationResult(directory, imageValidationResults, String.format("directory does not contain any images"));
+            result.getErrors().add(String.format("directory does not contain any images"));
         }
 
         String allImagesValidError = evaluateAllImagesAreValid(imageValidationResults);
         if (Objects.nonNull(allImagesValidError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allImagesValidError);
-            return new DirectoryValidationResult(directory, imageValidationResults, allImagesValidError);
+            result.getErrors().add(allImagesValidError);
         }
 
+        checkPropertiesAreConsistent(directory, consistentProperties, result);
+        checkConsecutiveness(directory, consecutiveNumbering, result);
+        checkPropertyDeviations(directory, propertyDeviations, result);
+
+        if (result.getErrors().isEmpty()) {
+            logger.info("validation of directory '{}' was successful", directory);
+            ChecksumFileWriter.writeFile(
+                directory,
+                checksumConfig.getFilename(),
+                checksumConfig.getLineFormat(),
+                mapToChecksums(imageValidationResults)
+            );
+        }
+        return result;
+    }
+
+    private static void checkPropertiesAreConsistent(
+        Path directory,
+        List<DirectoryConsistencyCondition> consistentProperties,
+        DirectoryValidationResult result
+    ) throws IOException {
         String allPropertiesConsistentError = DirectoryConsistencyValidation.evaluateAllPropertiesAreConsistent(
             consistentProperties,
-            mapToExtractionResults(imageValidationResults)
+            mapToExtractionResults(result.getImageResults())
         );
         if (Objects.nonNull(allPropertiesConsistentError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, allPropertiesConsistentError);
-            return new DirectoryValidationResult(directory, imageValidationResults, allPropertiesConsistentError);
+            result.getErrors().add(allPropertiesConsistentError);
         }
+    }
 
+    private static void checkConsecutiveness(
+        Path directory,
+        ConfigurationValidationConsecutiveNumbering consecutiveNumbering,
+        DirectoryValidationResult result
+    ) {
         String consecutivenessError = DirectoryConsecutivenessValidation.evaluateConsecutiveness(
             consecutiveNumbering.getFilenameRegExp(),
             consecutiveNumbering.getNumberMatchGroup(),
             consecutiveNumbering.getStartNumber(),
-            imageValidationResults.keySet()
+            result.getImageResults().keySet()
         );
         if (Objects.nonNull(consecutivenessError)) {
             logger.info("validation of directory '{}' failed due to '{}'", directory, consecutivenessError);
-            return new DirectoryValidationResult(directory, imageValidationResults, consecutivenessError);
+            result.getErrors().add(consecutivenessError);
+        }
+    }
+
+    private static void checkPropertyDeviations(
+        Path directory,
+        List<DirectoryPropertyDeviationsRule> propertyDeviations,
+        DirectoryValidationResult result
+    ) {
+        DirectoryPropertyDeviationsResult propertyDeviationsResult = DirectoryPropertyDeviationsValidation.evaluatePropertyDeviations(
+            propertyDeviations,
+            mapToExtractionResults(result.getImageResults())
+        );
+
+        String propertyDeviationsWarning = DirectoryPropertyDeviationsValidation.getFirstMessageOfType(
+            propertyDeviationsResult,
+            ValidationSeverityType.warning
+        );
+        if (Objects.nonNull(propertyDeviationsWarning)) {
+            logger.info("property deviations check for directory '{}' has warning '{}'", directory, propertyDeviationsWarning);
+            result.getWarnings().add(propertyDeviationsWarning);
         }
 
-        String propertyDeviationsError = DirectoryPropertyDeviationsValidation.evaluatePropertyDeviations(
-            propertyDeviations,
-            mapToExtractionResults(imageValidationResults)
+        String propertyDeviationsError = DirectoryPropertyDeviationsValidation.getFirstMessageOfType(
+            propertyDeviationsResult,
+            ValidationSeverityType.error
         );
         if (Objects.nonNull(propertyDeviationsError)) {
-            logger.info("validation of directory '{}' failed due to '{}'", directory, propertyDeviationsError);
-            return new DirectoryValidationResult(directory, imageValidationResults, propertyDeviationsError);
+            logger.info("property deviations check for directory '{}' failed due to '{}'", directory, propertyDeviationsError);
+            result.getErrors().add(propertyDeviationsError);
         }
 
-        logger.info("validation of directory '{}' was successful", directory);
-        ChecksumFileWriter.writeFile(
-            directory,
-            checksumConfig.getFilename(),
-            checksumConfig.getLineFormat(),
-            mapToChecksums(imageValidationResults)
-        );
-        return new DirectoryValidationResult(directory, imageValidationResults, null);
+        result.setPropertyDeviationsResult(propertyDeviationsResult);
     }
 
     private static String evaluateAllImagesAreValid(Map<Path, ImageValidationResult> imageValidationResults) {
