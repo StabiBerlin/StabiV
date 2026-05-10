@@ -1,6 +1,6 @@
 package de.spkberlin.imagevalidation.common.validation.images.rules.state;
 
-import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
@@ -12,7 +12,7 @@ public class ImageRule {
     private ImageRuleCondition condition;
 
     @Valid
-    private ValidationSeverityType severity;
+    private ValidationFailureSeverity severity;
 
     @NotBlank
     private String message;
@@ -45,11 +45,11 @@ public class ImageRule {
         this.message = message;
     }
 
-    public ValidationSeverityType getSeverity() {
+    public ValidationFailureSeverity getSeverity() {
         return this.severity;
     }
 
-    public void setSeverity(ValidationSeverityType severity) {
+    public void setSeverity(ValidationFailureSeverity severity) {
         this.severity = severity;
     }
 }

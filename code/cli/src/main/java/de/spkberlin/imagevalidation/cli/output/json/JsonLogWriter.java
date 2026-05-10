@@ -1,8 +1,11 @@
 package de.spkberlin.imagevalidation.cli.output.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.spkberlin.imagevalidation.cli.validation.DirectoryValidationResult;
-import de.spkberlin.imagevalidation.cli.validation.ImageValidationResult;
+import de.spkberlin.imagevalidation.common.validation.directories.DirectoryValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
+import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
+import de.spkberlin.imagevalidation.common.validation.images.ImageValidationRunnerResult;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -27,7 +30,7 @@ public class JsonLogWriter {
     public static void writeFileValidationLog(ImageValidationResult result, PrintWriter stdout) {
         try {
             String time = new SimpleDateFormat(DATE_FORMAT).format(Calendar.getInstance().getTime());
-            Boolean passed = result.getImageRuleEvaluationResult().getErrors().isEmpty();
+            Boolean passed = ImageValidation.isImageValid(result);
 
             JsonLogEntry entry = new JsonLogEntry(
                 time,
@@ -35,8 +38,8 @@ public class JsonLogWriter {
                 result.getFilePath().toString(),
                 result.getChecksum(),
                 passed ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
-                result.getImageRuleEvaluationResult().getErrors().stream().findFirst().orElse(null),
-                result.getImageRuleEvaluationResult().getWarnings().stream().findFirst().orElse(null)
+                ImageValidation.getFirstError(result),
+                ImageValidation.getFirstWarning(result)
             );
 
             stdout.println(mapper.writeValueAsString(entry));
@@ -61,9 +64,9 @@ public class JsonLogWriter {
                 JsonLogEntry.DIRECTORY_TYPE,
                 result.getDirectory().toString(),
                 null,
-                result.getErrors().isEmpty() ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
-                result.getErrors().stream().findFirst().orElse(""),
-                null
+                DirectoryValidation.isDirectoryValid(result) ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
+                DirectoryValidation.getFirstError(result),
+                DirectoryValidation.getFirstWarning(result)
             );
 
             stdout.println(mapper.writeValueAsString(entry));

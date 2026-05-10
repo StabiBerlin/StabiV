@@ -239,7 +239,7 @@ public class ExiftoolExtractor implements Extractor {
             .stream()
             .filter(e -> {
                 List<Integer> sorted = e.getValue().stream().filter(Objects::nonNull).sorted().toList();
-                boolean isConsecutive = Objects.isNull(NumberConsecutiveness.check(sorted, 0));
+                boolean isConsecutive = NumberConsecutiveness.findGaps(sorted, 0).isEmpty();
                 return !e.getValue().contains(null) && isConsecutive;
             })
             .map(e -> e.getKey())

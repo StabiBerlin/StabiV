@@ -1,8 +1,8 @@
-package de.spkberlin.imagevalidation.cli.configuration.state;
+package de.spkberlin.imagevalidation.common.validation.directories.state;
 
 import jakarta.validation.constraints.Min;
 
-public class ConfigurationValidationConsecutiveNumbering {
+public class DirectoryConsecutiveNumberingCondition {
 
     private String filenameRegExp;
 
@@ -12,12 +12,12 @@ public class ConfigurationValidationConsecutiveNumbering {
     @Min(0)
     private Integer startNumber;
 
-    public ConfigurationValidationConsecutiveNumbering() {
+    public DirectoryConsecutiveNumberingCondition() {
         this.numberMatchGroup = 1;
         this.startNumber = 1;
     }
 
-    public ConfigurationValidationConsecutiveNumbering(String filenameRegExp) {
+    public DirectoryConsecutiveNumberingCondition(String filenameRegExp) {
         this();
         this.filenameRegExp = filenameRegExp;
     }

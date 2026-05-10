@@ -10,11 +10,11 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationProcessingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationReportSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationConsecutiveNumbering;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.report.ReportPropertyColumn;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
@@ -22,7 +22,7 @@ import de.spkberlin.imagevalidation.common.validation.directories.state.Director
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
-import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,14 +152,14 @@ public class ConfigurationMerger {
         }
         // make sure consecutive numbering exists
         if (Objects.isNull(config.getValidation().getDirectoryRules().getConsecutiveNumbering())) {
-            config.getValidation().getDirectoryRules().setConsecutiveNumbering(new ConfigurationValidationConsecutiveNumbering());
+            config.getValidation().getDirectoryRules().setConsecutiveNumbering(new DirectoryConsecutiveNumberingCondition());
         }
         // set consecutive number check if CLI options is provided
         if (Objects.nonNull(consecutiveNumberingFilenameRegExp)) {
             config
                 .getValidation()
                 .getDirectoryRules()
-                .setConsecutiveNumbering(new ConfigurationValidationConsecutiveNumbering(consecutiveNumberingFilenameRegExp));
+                .setConsecutiveNumbering(new DirectoryConsecutiveNumberingCondition(consecutiveNumberingFilenameRegExp));
         }
         // make sure property deviations list exists
         if (Objects.isNull(config.getValidation().getDirectoryRules().getPropertyDeviations())) {
@@ -229,7 +229,7 @@ public class ConfigurationMerger {
         ImageRule rule = new ImageRule();
         rule.setContext("$");
         rule.setMessage(String.format("command line rule '%s' must be fulfilled", imageRuleText));
-        rule.setSeverity(ValidationSeverityType.error);
+        rule.setSeverity(ValidationFailureSeverity.error);
         rule.setCondition(condition);
 
         return rule;

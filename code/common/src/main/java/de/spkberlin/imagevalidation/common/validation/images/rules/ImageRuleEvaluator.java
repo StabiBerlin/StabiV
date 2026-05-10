@@ -9,10 +9,10 @@ import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRu
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeNotCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeOrCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleEvaluationResult;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
 import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
-import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,21 +33,15 @@ public class ImageRuleEvaluator {
      *
      * @param rules the list of image rules
      * @param properties the property object extracted from the image
-     * @return a result object containing potential validation errors and warnings
+     * @return a list of result objects containing validation errors and warnings for each rule
      * @throws IOException in case rule evaluation fails
      */
-    public static ImageRuleEvaluationResult evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
+    public static List<ValidationResult> evaluateRules(List<ImageRule> rules, Object properties) throws IOException {
         logger.trace("evaluate rules for the following properties:\n\n{}\n", PropertiesSerializer.serializeAsPrettyJson(properties));
-        List<String> errors = new ArrayList<>();
-        List<String> warnings = new ArrayList<>();
-
-        for (ImageRule rule : rules) {
-            ImageRuleEvaluationResult result = evaluateRule(rule, properties);
-            errors.addAll(result.getErrors());
-            warnings.addAll(result.getWarnings());
-        }
-
-        return new ImageRuleEvaluationResult(errors, warnings);
+        return rules
+            .stream()
+            .map(r -> evaluateRule(r, properties))
+            .toList();
     }
 
     /**
@@ -55,9 +49,9 @@ public class ImageRuleEvaluator {
      *
      * @param rule the image rule to check
      * @param properties the property object extracted from the image
-     * @return a result object containing potential validation errors and warnings
+     * @return a result object containing validation errors and warnings
      */
-    public static ImageRuleEvaluationResult evaluateRule(ImageRule rule, Object properties) {
+    public static ValidationResult evaluateRule(ImageRule rule, Object properties) {
         logger.trace("evalute rule '{}'", Objects.nonNull(rule.getMessage()) ? rule.getMessage() : rule.getSeverity());
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -66,18 +60,18 @@ public class ImageRuleEvaluator {
         for (Object contextObject : contextObjects) {
             String conditionError = evaluateCondition(rule.getCondition(), contextObject);
             if (Objects.nonNull(conditionError)) {
-                if (ValidationSeverityType.error.equals(rule.getSeverity())) {
+                if (ValidationFailureSeverity.error.equals(rule.getSeverity())) {
                     logger.debug("validation error '{}'", rule.getMessage());
                     logger.trace("validation error details: {}", conditionError);
                     errors.add(rule.getMessage());
-                } else if (ValidationSeverityType.warning.equals(rule.getSeverity())) {
+                } else if (ValidationFailureSeverity.warning.equals(rule.getSeverity())) {
                     logger.debug("validation warning: '{}'", rule.getMessage());
                     logger.trace("validation warning details: {}", conditionError);
                     warnings.add(rule.getMessage());
                 }
             }
         }
-        return new ImageRuleEvaluationResult(errors, warnings);
+        return ValidationResult.of(errors, warnings);
     }
 
     /**

@@ -1,5 +1,6 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import jakarta.validation.Valid;
@@ -11,7 +12,7 @@ public class ConfigurationValidationDirectoryRules {
     private List<@Valid DirectoryConsistencyCondition> consistentProperties;
 
     @Valid
-    private ConfigurationValidationConsecutiveNumbering consecutiveNumbering;
+    private DirectoryConsecutiveNumberingCondition consecutiveNumbering;
 
     private List<@Valid DirectoryPropertyDeviationsRule> propertyDeviations;
 
@@ -27,11 +28,11 @@ public class ConfigurationValidationDirectoryRules {
         this.consistentProperties = consistentProperties;
     }
 
-    public ConfigurationValidationConsecutiveNumbering getConsecutiveNumbering() {
+    public DirectoryConsecutiveNumberingCondition getConsecutiveNumbering() {
         return consecutiveNumbering;
     }
 
-    public void setConsecutiveNumbering(ConfigurationValidationConsecutiveNumbering consecutiveNumbering) {
+    public void setConsecutiveNumbering(DirectoryConsecutiveNumberingCondition consecutiveNumbering) {
         this.consecutiveNumbering = consecutiveNumbering;
     }
 

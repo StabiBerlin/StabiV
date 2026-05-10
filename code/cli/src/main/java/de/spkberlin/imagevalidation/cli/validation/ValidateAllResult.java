@@ -1,5 +1,7 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;

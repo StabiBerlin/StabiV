@@ -1,8 +1,14 @@
 package de.spkberlin.imagevalidation.cli.validation;
 
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorList;
+import de.spkberlin.imagevalidation.cli.output.checksum.ChecksumFileWriter;
 import de.spkberlin.imagevalidation.cli.output.json.JsonLogWriter;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
+import de.spkberlin.imagevalidation.common.validation.directories.DirectoryValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
+import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -10,11 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,75 +67,55 @@ public class ValidateAll {
     }
 
     /**
-     * Validate all files of a single directory given a full configuration and an already initialized thread pool.
+     * Validate a single directory.
      *
-     * @param directory the directory to be validated
-     * @param filepaths the image files inside this directory to be validated
-     * @param config the full configuration
-     * @param pool an already initialized thread pool
-     * @param stdout the stdout print writer to write json messages to
-     * @return validation results for the directory and all images
-     * @throws ExecutionException in case there is an error while executing a validation task
-     * @throws InterruptedException in case execution is interrupted
+     * @param directory the directory filepath
+     * @param files all image filepaths within that directory
+     * @param config the global cli configuration
+     * @param pool the executor pool
+     * @param stdout the stdout printer
+     * @return a directory validation result for the directory
      */
     public static DirectoryValidationResult validateDirectory(
         Path directory,
-        List<Path> filepaths,
+        List<Path> files,
         ConfigurationRoot config,
         ExecutorService pool,
         PrintWriter stdout
     ) throws IOException, ExecutionException, InterruptedException {
-        logger.info("process directory '{}'", directory);
-
-        Map<Path, ImageValidationResult> imageValidationResultsByDirectory = new HashMap<>();
-        List<Future<ImageValidationResult>> resultFutures = pool.invokeAll(createImageValidationTasks(filepaths, config));
-
-        for (Future<ImageValidationResult> resultFuture : resultFutures) {
-            ImageValidationResult result = resultFuture.get();
-
-            if (config.getOutput().getLogging().getJson()) {
-                JsonLogWriter.writeFileValidationLog(result, stdout);
-            }
-
-            Path filepath = result.getFilePath();
-            imageValidationResultsByDirectory.put(filepath, result);
-        }
-
         DirectoryValidationResult directoryResult = DirectoryValidation.validate(
             directory,
+            files,
+            new ExtractorList(config.getExtraction().getModules()),
+            config.getValidation().getImageRules(),
             config.getValidation().getDirectoryRules().getConsistentProperties(),
             config.getValidation().getDirectoryRules().getConsecutiveNumbering(),
             config.getValidation().getDirectoryRules().getPropertyDeviations(),
-            imageValidationResultsByDirectory,
-            config.getOutput().getChecksum()
+            config.getProcessing().getChecksumAlgorithm(),
+            pool
         );
+
+        if (config.getOutput().getLogging().getJson()) {
+            for (ImageValidationResult imageResult : directoryResult.getImageResults().values()) {
+                JsonLogWriter.writeFileValidationLog(imageResult, stdout);
+            }
+        }
+
+        if (directoryResult.getDirectoryResult().getErrors().isEmpty()) {
+            logger.info("validation of directory '{}' was successful", directory);
+            ChecksumFileWriter.writeFile(
+                directory,
+                config.getOutput().getChecksum().getFilename(),
+                config.getOutput().getChecksum().getLineFormat(),
+                mapToChecksums(directoryResult)
+            );
+        }
 
         if (config.getOutput().getLogging().getJson()) {
             JsonLogWriter.writeDirectoryValidationLog(directoryResult, stdout);
         }
 
         return directoryResult;
-    }
-
-    /**
-     * Create image validation tasks to be run in parallel from a pool of processing threads.
-     *
-     * @param filepaths the filepaths of images to be validated
-     * @param config the full configuration of the CLI
-     * @return a list of image validation tasks to be queued for execution
-     */
-    public static List<ImageValidationRunner> createImageValidationTasks(List<Path> filepaths, ConfigurationRoot config) {
-        return filepaths
-            .stream()
-            .map(filepath ->
-                new ImageValidationRunner(
-                    filepath,
-                    config.getExtraction().getModules(),
-                    config.getValidation().getImageRules(),
-                    config.getProcessing().getChecksumAlgorithm()
-                )
-            )
-            .toList();
     }
 
     /**
@@ -147,17 +132,14 @@ public class ValidateAll {
 
         // check all directory results
         for (DirectoryValidationResult directoryResult : result.getDirectoryValidationResults().values()) {
-            if (!directoryResult.getErrors().isEmpty()) {
+            if (!DirectoryValidation.isDirectoryValid(directoryResult)) {
                 return false;
             }
         }
 
         // check all image results
         for (ImageValidationResult imageResult : result.getImageValidationResults().values()) {
-            if (
-                Objects.nonNull(imageResult.getImageRuleEvaluationResult().getErrors()) &&
-                imageResult.getImageRuleEvaluationResult().getErrors().size() > 0
-            ) {
+            if (!ImageValidation.isImageValid(imageResult)) {
                 return false;
             }
         }
@@ -181,11 +163,10 @@ public class ValidateAll {
      * @return the total count of valid images
      */
     public static Long countValidImages(ValidateAllResult result) {
-        return result
-            .getImageValidationResults()
-            .values()
-            .stream()
-            .filter(r -> r.getImageRuleEvaluationResult().getErrors().isEmpty())
-            .count();
+        return result.getImageValidationResults().values().stream().filter(ImageValidation::isImageValid).count();
+    }
+
+    private static Map<Path, String> mapToChecksums(DirectoryValidationResult result) {
+        return result.getImageResults().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getChecksum()));
     }
 }

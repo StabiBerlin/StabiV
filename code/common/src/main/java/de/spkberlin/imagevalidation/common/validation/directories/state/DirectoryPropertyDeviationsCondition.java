@@ -1,6 +1,6 @@
 package de.spkberlin.imagevalidation.common.validation.directories.state;
 
-import de.spkberlin.imagevalidation.common.validation.state.ValidationSeverityType;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -16,14 +16,14 @@ public class DirectoryPropertyDeviationsCondition {
     private Boolean inPercent;
 
     @Valid
-    private ValidationSeverityType severity;
+    private ValidationFailureSeverity severity;
 
     /**
      * Initialize property deviations condition with default values.
      */
     public DirectoryPropertyDeviationsCondition() {
         this.inPercent = false;
-        this.severity = ValidationSeverityType.error;
+        this.severity = ValidationFailureSeverity.error;
     }
 
     /**
@@ -67,11 +67,11 @@ public class DirectoryPropertyDeviationsCondition {
         this.aggregate = aggregate;
     }
 
-    public ValidationSeverityType getSeverity() {
+    public ValidationFailureSeverity getSeverity() {
         return this.severity;
     }
 
-    public void setSeverity(ValidationSeverityType severity) {
+    public void setSeverity(ValidationFailureSeverity severity) {
         this.severity = severity;
     }
 }

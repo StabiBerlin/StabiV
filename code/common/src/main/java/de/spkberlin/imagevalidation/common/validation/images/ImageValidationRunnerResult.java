@@ -1,13 +1,14 @@
-package de.spkberlin.imagevalidation.cli.validation;
+package de.spkberlin.imagevalidation.common.validation.images;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleEvaluationResult;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.nio.file.Path;
+import java.util.List;
 
-public class ImageValidationResult {
+public class ImageValidationRunnerResult {
 
     private Path filepath;
-    private ImageRuleEvaluationResult imageRuleEvaluationResult;
+    private List<ValidationResult> imageRuleEvaluationResults;
     private ExtractionResult extractionResult;
     private String checksum;
 
@@ -15,19 +16,19 @@ public class ImageValidationResult {
      * Initialize new image validation result.
      *
      * @param filepath the filepath to the image that was validated
-     * @param imageRuleEvaluationResult the validation result of checking image rules
+     * @param imageRuleEvaluationResults the validation results for each image rule
      * @param extractionResult the extracted image properties for all extractors
      * @param checksum the image file checksum
      */
-    public ImageValidationResult(
+    public ImageValidationRunnerResult(
         Path filepath,
-        ImageRuleEvaluationResult imageRuleEvaluationResult,
         ExtractionResult extractionResult,
+        List<ValidationResult> imageRuleEvaluationResults,
         String checksum
     ) {
         this.filepath = filepath;
-        this.imageRuleEvaluationResult = imageRuleEvaluationResult;
         this.extractionResult = extractionResult;
+        this.imageRuleEvaluationResults = imageRuleEvaluationResults;
         this.checksum = checksum;
     }
 
@@ -35,8 +36,8 @@ public class ImageValidationResult {
         return filepath;
     }
 
-    public ImageRuleEvaluationResult getImageRuleEvaluationResult() {
-        return imageRuleEvaluationResult;
+    public List<ValidationResult> getImageRuleEvaluationResults() {
+        return imageRuleEvaluationResults;
     }
 
     public ExtractionResult getExtractionResult() {
