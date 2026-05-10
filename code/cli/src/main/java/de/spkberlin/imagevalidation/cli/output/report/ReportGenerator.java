@@ -22,15 +22,12 @@ public class ReportGenerator {
     private static final Logger logger = LoggerFactory.getLogger(ReportGenerator.class);
 
     private static List<String> COLUMN_HEADER = List.of(
-        "Heading",
-        "Subheading",
+        "Path",
         "Directory Name",
-        "File Name",
+        "File Name / Total Images",
         "Directory Passed Validation",
         "File Passed Validation",
-        "Validation Error or Warning",
-        "Path",
-        "Checksum"
+        "Validation Error / Warning"
     );
 
     /**
@@ -39,40 +36,35 @@ public class ReportGenerator {
      * @param validateAllResult validation results for all files and directories
      * @param propertyColumns additional properties to include in the CSV file
      */
-    public static List<List<ReportCell>> generateReport(ValidateAllResult validateAllResult, List<ReportPropertyColumn> propertyColumns) {
+    public static List<ReportRow> generateReport(ValidateAllResult validateAllResult, List<ReportPropertyColumn> propertyColumns) {
         logger.info("generate report");
-
         return Stream.concat(
             generateHeader(propertyColumns),
             Stream.concat(writeSummaryLine(validateAllResult), writeDirectories(validateAllResult, propertyColumns))
-        )
-            .map(s -> s.toList())
-            .toList();
+        ).toList();
     }
 
-    private static Stream<Stream<ReportCell>> writeSummaryLine(ValidateAllResult validateAllResult) {
+    private static Stream<ReportRow> writeSummaryLine(ValidateAllResult validateAllResult) {
         Boolean allValid = ValidateAll.isOverallValid(validateAllResult);
         Integer totalFiles = ValidateAll.countOverallImages(validateAllResult);
-        Long validFiles = ValidateAll.countValidImages(validateAllResult);
+        ReportCellHighlightType highlightType = allValid ? ReportCellHighlightType.none : ReportCellHighlightType.error;
 
         return Stream.of(
-            Stream.empty(), // empty record for spacing
-            Stream.of(
-                "Overall Result", // heading
-                "Target vs. Actual", // subheading
-                totalFiles.toString(), // directory name
-                validFiles.toString(), // file name
-                allValid.toString(), // directory passed validation
-                allValid.toString(), // file passed validation
-                null, // validation error or warning
-                null, // path
-                null // checksum
-            ).map(ReportCell::of),
-            Stream.empty() // empty record for spacing
+            ReportRow.ofSummary(
+                Stream.of(
+                    ReportCell.empty(), // path
+                    ReportCell.of("Overall Result"), // directory name
+                    ReportCell.of(totalFiles), // file name / total images
+                    ReportCell.of(allValid, highlightType), // directory passed validation
+                    ReportCell.of(allValid, highlightType), // file passed validation
+                    ReportCell.empty() // validation error or warning
+                ).toList()
+            ),
+            ReportRow.empty() // empty record for spacing
         );
     }
 
-    private static Stream<Stream<ReportCell>> writeDirectories(ValidateAllResult validateAllResult, List<ReportPropertyColumn> columns) {
+    private static Stream<ReportRow> writeDirectories(ValidateAllResult validateAllResult, List<ReportPropertyColumn> columns) {
         return validateAllResult
             .getFilesByDirectory()
             .entrySet()
@@ -86,35 +78,35 @@ public class ReportGenerator {
                             .stream()
                             .flatMap(filepath -> writeFile(filepath, validateAllResult.getImageValidationResults().get(filepath), columns))
                     ),
-                    Stream.of(Stream.empty())
+                    Stream.of(ReportRow.empty())
                 );
             });
     }
 
-    private static Stream<Stream<ReportCell>> writeDirectorySummary(Path directory, ValidateAllResult validateAllResult) {
+    private static Stream<ReportRow> writeDirectorySummary(Path directory, ValidateAllResult validateAllResult) {
         DirectoryValidationResult directoryResult = validateAllResult.getDirectoryValidationResults().get(directory);
         boolean passedValidation = DirectoryValidation.isDirectoryValid(directoryResult);
         List<String> directoryErrors = directoryResult.getDirectoryResult().getErrors();
         List<String> directoryWarnings = directoryResult.getDirectoryResult().getWarnings();
-        Long validImageCount = DirectoryValidation.countValidImageForDirectory(directoryResult);
+        ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(directoryErrors, directoryWarnings);
 
         // write directory validation result
         return Stream.of(
-            Stream.of(
-                ReportCell.of(directory.getFileName().toString()), // heading
-                ReportCell.of("Target vs. Actual"), // subheading
-                ReportCell.of(String.valueOf(validateAllResult.getFilesByDirectory().get(directory).size())), // direcotry name
-                ReportCell.of(String.valueOf(validImageCount)), // file name
-                ReportCell.of(passedValidation), // directory passed
-                ReportCell.empty(), // file passed validation
-                ReportCell.of(directoryErrors, directoryWarnings), // validation error or warning
-                ReportCell.of(directory.toString()), // path
-                ReportCell.empty() // checksum
+            ReportRow.ofDirectory(
+                Stream.of(
+                    ReportCell.of(directory.toString()), // path
+                    ReportCell.of(directory.getFileName().toString(), highlightType), // directory name
+                    ReportCell.of(directoryResult.getImageResults().size(), highlightType), // file name / total images
+                    ReportCell.of(passedValidation, highlightType), // directory passed
+                    ReportCell.empty(highlightType),
+                    ReportCell.of(directoryErrors, directoryWarnings) // validation error or warning
+                ).toList(),
+                passedValidation
             )
         );
     }
 
-    private static Stream<Stream<ReportCell>> writeFile(
+    private static Stream<ReportRow> writeFile(
         Path filepath,
         ImageValidationResult imageValidationResult,
         List<ReportPropertyColumn> columns
@@ -122,35 +114,44 @@ public class ReportGenerator {
         Boolean passedValidation = ImageValidation.isImageValid(imageValidationResult);
         List<String> validationErrors = ImageValidation.getAllErrors(imageValidationResult);
         List<String> validationWarnings = ImageValidation.getAllWarnings(imageValidationResult);
+        ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(validationErrors, validationWarnings);
 
-        return Stream.concat(
-            Stream.of(
+        return Stream.of(
+            ReportRow.ofImage(
                 Stream.concat(
-                    Stream.of(
-                        ReportCell.empty(), // heading
-                        ReportCell.empty(), // subheading
-                        ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
-                        ReportCell.of(filepath.getFileName().toString()), // file name
-                        ReportCell.empty(), // directory passed validation
-                        ReportCell.of(passedValidation), // file passed validation
-                        ReportCell.of(validationErrors, validationWarnings), // validation error or warning
-                        ReportCell.of(filepath.toString()), // file path
-                        ReportCell.of(imageValidationResult.getChecksum()) // checksum
+                    Stream.concat(
+                        Stream.of(
+                            ReportCell.of(filepath.toString()), // path
+                            ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
+                            ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
+                            ReportCell.empty(highlightType), // directory passed validation
+                            ReportCell.of(passedValidation, highlightType), // file passed validation
+                            ReportCell.of(validationErrors, validationWarnings) // validation error or warning
+                        ),
+                        columns
+                            .stream()
+                            .map(column ->
+                                ReportCell.of(extractPropertyOrNull(column.getProperty(), imageValidationResult.getExtractionResult()))
+                            )
                     ),
-                    columns
-                        .stream()
-                        .map(column ->
-                            ReportCell.of(extractPropertyOrNull(column.getProperty(), imageValidationResult.getExtractionResult()))
-                        )
-                )
-            ),
-            Stream.empty()
+                    Stream.of(ReportCell.of(imageValidationResult.getChecksum())) // checksum
+                ).toList(),
+                passedValidation
+            )
         );
     }
 
-    private static Stream<Stream<ReportCell>> generateHeader(List<ReportPropertyColumn> propertyColumns) {
+    private static Stream<ReportRow> generateHeader(List<ReportPropertyColumn> propertyColumns) {
         return Stream.of(
-            Stream.concat(COLUMN_HEADER.stream().map(ReportCell::of), propertyColumns.stream().map(c -> ReportCell.of(c.getLabel())))
+            ReportRow.ofHeader(
+                Stream.concat(
+                    Stream.concat(
+                        COLUMN_HEADER.stream().map(ReportCell::of),
+                        propertyColumns.stream().map(c -> ReportCell.of(c.getLabel()))
+                    ),
+                    Stream.of(ReportCell.of("Checksum"))
+                ).toList()
+            )
         );
     }
 

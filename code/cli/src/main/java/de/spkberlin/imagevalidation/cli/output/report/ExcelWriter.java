@@ -22,7 +22,7 @@ public class ExcelWriter {
      * @param outputPath the path to the file that is generated
      * @throws IOException in case writing fails
      */
-    public static void writeReport(Path outputPath, List<List<ReportCell>> report) throws IOException {
+    public static void writeReport(Path outputPath, List<ReportRow> report) throws IOException {
         logger.info("write excel output file '{}'", outputPath);
         XSSFWorkbook workbook = new XSSFWorkbook();
         Sheet mainSheet = workbook.createSheet("Report");
@@ -30,23 +30,16 @@ public class ExcelWriter {
 
         int maxColumnId = 0;
         int rowId = 0;
-        int lastEmptyRowId = 0;
-        for (List<ReportCell> reportRow : report) {
+
+        for (ReportRow reportRow : report) {
             Row row = mainSheet.createRow(rowId);
             int columnId = 0;
 
-            for (ReportCell reportCell : reportRow) {
+            for (ReportCell reportCell : reportRow.getCells()) {
                 Cell cell = row.createCell(columnId);
                 cellWriter.writeCell(cell, reportCell);
                 maxColumnId = Math.max(columnId, maxColumnId);
                 columnId += 1;
-            }
-
-            if (reportRow.isEmpty()) {
-                if (lastEmptyRowId > 0 && rowId - lastEmptyRowId > 2) {
-                    mainSheet.groupRow(lastEmptyRowId + 2, rowId - 1);
-                }
-                lastEmptyRowId = rowId;
             }
 
             // fill with empty cells
@@ -59,8 +52,12 @@ public class ExcelWriter {
             rowId += 1;
         }
 
+        groupImageRows(report, mainSheet);
         autoFitColumns(mainSheet, maxColumnId + 1, 512);
         addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
+
+        mainSheet.createFreezePane(6, 2);
+        mainSheet.setColumnHidden(0, true);
 
         try (FileOutputStream out = new FileOutputStream(outputPath.toFile())) {
             workbook.write(out);
@@ -91,6 +88,28 @@ public class ExcelWriter {
             sheet.autoSizeColumn(i);
             int currentWidth = sheet.getColumnWidth(i);
             sheet.setColumnWidth(i, currentWidth + padding);
+        }
+    }
+
+    private static void groupImageRows(List<ReportRow> report, Sheet sheet) {
+        int rowId = 0;
+        int startImageRowId = 0;
+        Boolean lastDirectoryValid = true;
+        ReportRowType lastRowType = ReportRowType.header;
+
+        for (ReportRow reportRow : report) {
+            if (ReportRowType.directory.equals(reportRow.getType())) {
+                lastDirectoryValid = reportRow.isValid();
+            }
+            if (!ReportRowType.image.equals(lastRowType) && ReportRowType.image.equals(reportRow.getType())) {
+                startImageRowId = rowId;
+            }
+            if (ReportRowType.image.equals(lastRowType) && !ReportRowType.image.equals(reportRow.getType())) {
+                sheet.groupRow(startImageRowId, rowId - 1);
+                sheet.setRowGroupCollapsed(startImageRowId, lastDirectoryValid);
+            }
+            lastRowType = reportRow.getType();
+            rowId += 1;
         }
     }
 }

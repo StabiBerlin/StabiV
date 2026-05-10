@@ -55,6 +55,8 @@ public class ExcelCellWriter {
         this.defaultStyle = createBaseCellStyle(workbook);
 
         this.headerStyle = createBaseCellStyle(workbook);
+        this.headerStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode("#DDDDDD"), null));
+        this.headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Font boldFont = workbook.createFont();
         boldFont.setBold(true);
         this.headerStyle.setFont(boldFont);

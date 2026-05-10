@@ -38,24 +38,35 @@ public class ReportCell {
         return new ReportCell(ReportCellValueType.empty, ReportCellHighlightType.none, null, null, null);
     }
 
+    public static ReportCell empty(ReportCellHighlightType highlightType) {
+        return new ReportCell(ReportCellValueType.empty, highlightType, null, null, null);
+    }
+
     public static ReportCell of(String text) {
         return new ReportCell(ReportCellValueType.text, ReportCellHighlightType.none, null, text, null);
+    }
+
+    public static ReportCell of(String text, ReportCellHighlightType highlightType) {
+        return new ReportCell(ReportCellValueType.text, highlightType, null, text, null);
+    }
+
+    public static ReportCell of(Integer count) {
+        return new ReportCell(ReportCellValueType.integer, ReportCellHighlightType.none, count, null, null);
+    }
+
+    public static ReportCell of(Integer count, ReportCellHighlightType highlightType) {
+        return new ReportCell(ReportCellValueType.integer, highlightType, count, null, null);
     }
 
     /**
      * Creates a report cell for a single boolean describing whether the validation was successful or not.
      *
      * @param passed whether the validation of directory or file passed
+     * @param highlightType the type of highlighting this cell
      * @return the report cell containing "true" or "false"
      */
-    public static ReportCell of(Boolean passed) {
-        return new ReportCell(
-            ReportCellValueType.text,
-            !passed ? ReportCellHighlightType.error : ReportCellHighlightType.none,
-            null,
-            String.valueOf(passed),
-            null
-        );
+    public static ReportCell of(Boolean passed, ReportCellHighlightType highlightType) {
+        return new ReportCell(ReportCellValueType.text, highlightType, null, String.valueOf(passed), null);
     }
 
     /**
@@ -68,11 +79,7 @@ public class ReportCell {
     public static ReportCell of(List<String> errors, List<String> warnings) {
         return new ReportCell(
             ReportCellValueType.list,
-            !errors.isEmpty()
-                ? ReportCellHighlightType.error
-                : !warnings.isEmpty()
-                    ? ReportCellHighlightType.warning
-                    : ReportCellHighlightType.none,
+            ReportCellHighlightType.fromErrorsAndWarnings(errors, warnings),
             null,
             null,
             Stream.concat(errors.stream(), warnings.stream()).toList()

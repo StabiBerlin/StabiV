@@ -19,11 +19,11 @@ public class CsvWriter {
      * @param outputPath output filepath of the CSV file
      * @param report the report to write
      */
-    public static void writeReport(Path outputPath, List<List<ReportCell>> report) {
+    public static void writeReport(Path outputPath, List<ReportRow> report) {
         logger.info("write csv output file '{}'", outputPath);
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputPath.toFile()), CSVFormat.EXCEL)) {
-            for (List<ReportCell> reportRow : report) {
-                printer.printRecord(reportRow.stream().map(ReportCell::getText));
+            for (ReportRow reportRow : report) {
+                printer.printRecord(reportRow.getCells().stream().map(ReportCell::getText));
             }
         } catch (IOException e) {
             logger.error("exception while writing CSV report", e);

@@ -16,6 +16,7 @@ import de.spkberlin.imagevalidation.cli.output.report.CsvWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ReportCell;
 import de.spkberlin.imagevalidation.cli.output.report.ReportGenerator;
+import de.spkberlin.imagevalidation.cli.output.report.ReportRow;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
@@ -356,7 +357,7 @@ public class ValidateCommand implements Callable<Integer> {
      * @throws IOException in case writing the report fails
      */
     public void writeReport(ValidateAllResult result, ConfigurationOutputSection config) throws IOException {
-        List<List<ReportCell>> report = ReportGenerator.generateReport(result, config.getReport().getColumns());
+        List<ReportRow> report = ReportGenerator.generateReport(result, config.getReport().getColumns());
 
         ConfigurationPath csvPath = config.getReport().getCsvPath();
         if (Objects.nonNull(csvPath)) {
