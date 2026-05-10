@@ -15,14 +15,29 @@ public class ValidationResult {
         this.warnings = Collections.unmodifiableList(warnings);
     }
 
+    /**
+     * Create a validation result representing validation success (no errors or warnings).
+     *
+     * @return the validation result
+     */
     public static ValidationResult fromSuccess() {
         return new ValidationResult(Collections.emptyList(), Collections.emptyList());
     }
 
+    /**
+     * Create a validation result with specific errors and warnings.
+     *
+     * @return the validation result
+     */
     public static ValidationResult of(List<String> errors, List<String> warnings) {
         return new ValidationResult(errors, warnings);
     }
 
+    /**
+     * Create a validation result by combining a collection of other validation results, merging all errors and warnings.
+     *
+     * @return the validation result
+     */
     public static ValidationResult of(Collection<ValidationResult> results) {
         return new ValidationResult(
             results.stream().map(ValidationResult::getErrors).flatMap(List::stream).toList(),
@@ -30,13 +45,11 @@ public class ValidationResult {
         );
     }
 
-    public static ValidationResult ofFirst(Collection<ValidationResult> results) {
-        return new ValidationResult(
-            results.stream().map(ValidationResult::getErrors).flatMap(List::stream).findFirst().stream().toList(),
-            results.stream().map(ValidationResult::getWarnings).flatMap(List::stream).findFirst().stream().toList()
-        );
-    }
-
+    /**
+     * Create a validation result from a single message with a specific severity level (error or warning).
+     *
+     * @return the validation result
+     */
     public static ValidationResult of(String message, ValidationFailureSeverity severity) {
         if (ValidationFailureSeverity.error.equals(severity)) {
             return ValidationResult.fromError(message);
@@ -45,6 +58,23 @@ public class ValidationResult {
         }
     }
 
+    /**
+     * Create a validation result from a collection of other validation results only considering the first error and first warning.
+     *
+     * @return the validation result
+     */
+    public static ValidationResult ofFirst(Collection<ValidationResult> results) {
+        return new ValidationResult(
+            results.stream().map(ValidationResult::getErrors).flatMap(List::stream).findFirst().stream().toList(),
+            results.stream().map(ValidationResult::getWarnings).flatMap(List::stream).findFirst().stream().toList()
+        );
+    }
+
+    /**
+     * Create a validation result for a single error message.
+     *
+     * @return the validation result
+     */
     public static ValidationResult fromError(String message) {
         if (Objects.nonNull(message) && !message.isBlank()) {
             return new ValidationResult(Collections.singletonList(message), Collections.emptyList());
@@ -52,6 +82,11 @@ public class ValidationResult {
         return ValidationResult.fromSuccess();
     }
 
+    /**
+     * Create a validation result for a single warning message.
+     *
+     * @return the validation result
+     */
     public static ValidationResult fromWarning(String message) {
         if (Objects.nonNull(message) && !message.isBlank()) {
             return new ValidationResult(Collections.emptyList(), Collections.singletonList(message));

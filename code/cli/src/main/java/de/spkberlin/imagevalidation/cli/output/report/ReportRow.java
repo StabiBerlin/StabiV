@@ -11,6 +11,13 @@ public class ReportRow {
 
     private Boolean valid;
 
+    /**
+     * Create a report row from a list of cells, a type and whether the row corresponds to a valid or invalid directory or image.
+     *
+     * @param cells the row cells
+     * @param type the row type
+     * @param valid whether the row corresponds to a valid or invalid directory or image
+     */
     public ReportRow(List<ReportCell> cells, ReportRowType type, Boolean valid) {
         this.cells = cells;
         this.type = type;
