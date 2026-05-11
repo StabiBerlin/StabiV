@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.cli.output.report;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class ReportCell {
@@ -54,8 +55,18 @@ public class ReportCell {
         return new ReportCell(ReportCellValueType.integer, ReportCellHighlightType.none, count, null, null);
     }
 
+    /**
+     * Create a report cell for a single integer.
+     *
+     * @param count the integer (or null, if none)
+     * @param highlightType the highlight type for this cell
+     * @return the report cell
+     */
     public static ReportCell of(Integer count, ReportCellHighlightType highlightType) {
-        return new ReportCell(ReportCellValueType.integer, highlightType, count, null, null);
+        if (Objects.nonNull(count)) {
+            return new ReportCell(ReportCellValueType.integer, highlightType, count, null, null);
+        }
+        return ReportCell.empty(highlightType);
     }
 
     /**

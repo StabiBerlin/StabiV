@@ -68,7 +68,7 @@ public class ExcelWriter {
         addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
         // hideValidImagesByDefault(mainSheet, report);
 
-        mainSheet.createFreezePane(6, 2);
+        mainSheet.createFreezePane(7, 2);
         mainSheet.setColumnHidden(0, true);
 
         try (FileOutputStream out = new FileOutputStream(outputPath.toFile())) {

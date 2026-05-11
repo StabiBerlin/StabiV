@@ -36,7 +36,8 @@ public class ReportGenerator {
         "File Name / Total Images",
         "Directory Passed Validation",
         "File Passed Validation",
-        "Validation Error / Warning"
+        "Validation Errors / Warnings",
+        "#"
     );
 
     /**
@@ -73,7 +74,8 @@ public class ReportGenerator {
                     ReportCell.of(totalFiles), // file name / total images
                     ReportCell.of(allValid, highlightType), // directory passed validation
                     ReportCell.of(allValid, highlightType), // file passed validation
-                    ReportCell.empty() // validation error or warning
+                    ReportCell.empty(), // validation error or warning
+                    ReportCell.empty() // error count
                 ).toList()
             ),
             ReportRow.empty() // empty record for spacing
@@ -116,6 +118,7 @@ public class ReportGenerator {
         List<String> directoryErrors = directoryResult.getDirectoryResult().getErrors();
         List<String> directoryWarnings = directoryResult.getDirectoryResult().getWarnings();
         ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(directoryErrors, directoryWarnings);
+        int errorWarningCount = directoryErrors.size() + directoryWarnings.size();
 
         // write directory validation result
         return Stream.of(
@@ -126,7 +129,8 @@ public class ReportGenerator {
                     ReportCell.of(directoryResult.getImageResults().size(), highlightType), // file name / total images
                     ReportCell.of(passedValidation, highlightType), // directory passed
                     ReportCell.empty(highlightType),
-                    ReportCell.of(directoryErrors, directoryWarnings) // validation error or warning
+                    ReportCell.of(directoryErrors, directoryWarnings), // validation error or warning
+                    ReportCell.of(errorWarningCount > 0 ? errorWarningCount : null, highlightType)
                 ).toList(),
                 passedValidation
             )
@@ -147,6 +151,7 @@ public class ReportGenerator {
             imageRules,
             imageValidationResult
         );
+        int errorWarningCount = validationErrors.size() + validationWarnings.size();
 
         return Stream.of(
             ReportRow.ofImage(
@@ -158,7 +163,8 @@ public class ReportGenerator {
                             ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
                             ReportCell.empty(highlightType), // directory passed validation
                             ReportCell.of(passedValidation, highlightType), // file passed validation
-                            ReportCell.of(validationErrors, validationWarnings) // validation error or warning
+                            ReportCell.of(validationErrors, validationWarnings), // validation error or warning
+                            ReportCell.of(errorWarningCount > 0 ? errorWarningCount : null, highlightType)
                         ),
                         propertyColumnKeys
                             .stream()
