@@ -1,15 +1,20 @@
-package de.spkberlin.imagevalidation.cli.output.report;
+package de.spkberlin.imagevalidation.common.validation.state;
 
-public class ReportPropertyColumn {
+import jakarta.validation.constraints.NotBlank;
 
+public class ValidationReportColumn {
+
+    @NotBlank
     private String label;
+
+    @NotBlank
     private String property;
 
-    public ReportPropertyColumn() {
+    public ValidationReportColumn() {
         // empty
     }
 
-    public ReportPropertyColumn(String label, String path) {
+    public ValidationReportColumn(String label, String path) {
         this.label = label;
         this.property = path;
     }

@@ -8,7 +8,6 @@ import de.spkberlin.imagevalidation.cli.configuration.ConfigurationValidator;
 import de.spkberlin.imagevalidation.cli.configuration.ConfigurationWriter;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationOutputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
@@ -344,7 +343,7 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
 
         ValidateAllResult result = ValidateAll.validateAll(config, spec.commandLine().getOut());
-        writeReport(result, config.getOutput());
+        writeReport(result, config);
         return ValidateAll.isOverallValid(result) ? 0 : 3;
     }
 
@@ -352,19 +351,23 @@ public class ValidateCommand implements Callable<Integer> {
      * Generate and write the report as CSV and Excel files if configured.
      *
      * @param result the validation result for all directories and files
-     * @param config the output section of the configuration
+     * @param config the configuration
      * @throws IOException in case writing the report fails
      */
-    public void writeReport(ValidateAllResult result, ConfigurationOutputSection config) throws IOException {
-        List<ReportRow> report = ReportGenerator.generateReport(result, config.getReport().getColumns());
+    public void writeReport(ValidateAllResult result, ConfigurationRoot config) throws IOException {
+        List<ReportRow> report = ReportGenerator.generateReport(
+            result,
+            config.getValidation().getImageRules(),
+            config.getOutput().getReport().getColumns()
+        );
 
-        ConfigurationPath csvPath = config.getReport().getCsvPath();
+        ConfigurationPath csvPath = config.getOutput().getReport().getCsvPath();
         if (Objects.nonNull(csvPath)) {
             Path resolvedCsvPath = csvPath.getBaseDirectory().resolve(csvPath.getPath()).normalize();
             CsvWriter.writeReport(resolvedCsvPath, report);
         }
 
-        ConfigurationPath excelPath = config.getReport().getExcelPath();
+        ConfigurationPath excelPath = config.getOutput().getReport().getExcelPath();
         if (Objects.nonNull(excelPath)) {
             Path resolvedExcelPath = excelPath.getBaseDirectory().resolve(excelPath.getPath()).normalize();
             ExcelWriter.writeReport(resolvedExcelPath, report);

@@ -1,8 +1,11 @@
-package de.spkberlin.imagevalidation.common.validation.images.rules.state;
+package de.spkberlin.imagevalidation.common.validation.images.state;
 
 import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImageRule {
 
@@ -17,8 +20,10 @@ public class ImageRule {
     @NotBlank
     private String message;
 
+    private List<@Valid ValidationReportColumn> reportColumns;
+
     public ImageRule() {
-        //
+        reportColumns = new ArrayList<>();
     }
 
     public String getContext() {
@@ -51,5 +56,13 @@ public class ImageRule {
 
     public void setSeverity(ValidationFailureSeverity severity) {
         this.severity = severity;
+    }
+
+    public List<ValidationReportColumn> getReportColumns() {
+        return this.reportColumns;
+    }
+
+    public void setReportColumns(List<ValidationReportColumn> reportColumns) {
+        this.reportColumns = reportColumns;
     }
 }

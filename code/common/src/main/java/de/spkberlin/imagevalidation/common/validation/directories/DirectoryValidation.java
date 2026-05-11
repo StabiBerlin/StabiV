@@ -10,7 +10,7 @@ import de.spkberlin.imagevalidation.common.validation.directories.state.Director
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidationRunner;
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidationRunnerResult;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRule;
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.io.IOException;

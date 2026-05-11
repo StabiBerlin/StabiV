@@ -13,16 +13,16 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
-import de.spkberlin.imagevalidation.cli.output.report.ReportPropertyColumn;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleConditionOperatorType;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -312,7 +312,7 @@ public class ConfigurationMerger {
         if (Objects.isNull(config.getReport().getColumns())) {
             config.getReport().setColumns(new ArrayList<>());
         }
-        List<ReportPropertyColumn> additionalColumns = reportColumns
+        List<ValidationReportColumn> additionalColumns = reportColumns
             .stream()
             .map(c -> getReportPropertyColumnFromCommandLineOption(c))
             .toList();
@@ -329,13 +329,13 @@ public class ConfigurationMerger {
         }
     }
 
-    private static ReportPropertyColumn getReportPropertyColumnFromCommandLineOption(String columnText) {
+    private static ValidationReportColumn getReportPropertyColumnFromCommandLineOption(String columnText) {
         String[] columnTextSplit = columnText.split("/", 2);
         if (columnTextSplit.length != 2) {
             throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by /", columnText));
         }
 
-        return new ReportPropertyColumn(columnTextSplit[0], columnTextSplit[1]);
+        return new ValidationReportColumn(columnTextSplit[0], columnTextSplit[1]);
     }
 
     private static void mergeConfigurationPaths(

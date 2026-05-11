@@ -3,8 +3,7 @@ package de.spkberlin.imagevalidation.common.validation.images;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import de.spkberlin.imagevalidation.common.validation.images.rules.ImageRuleEvaluator;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleConditionOperatorType;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

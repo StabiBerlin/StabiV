@@ -9,10 +9,19 @@ import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRule;
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumnKey;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +43,20 @@ public class ReportGenerator {
      * Generate the validation report.
      *
      * @param validateAllResult validation results for all files and directories
-     * @param propertyColumns additional properties to include in the CSV file
+     * @param imageRules the image rule configuration used to match rule validation results with property columns
+     * @param extraPropertyColumns additional properties to include in the CSV file
      */
-    public static List<ReportRow> generateReport(ValidateAllResult validateAllResult, List<ReportPropertyColumn> propertyColumns) {
+    public static List<ReportRow> generateReport(
+        ValidateAllResult validateAllResult,
+        List<ImageRule> imageRules,
+        List<ValidationReportColumn> extraPropertyColumns
+    ) {
         logger.info("generate report");
+        List<ValidationReportColumnKey> propertyColumnKeys = findAllReportColumns(imageRules, extraPropertyColumns);
+
         return Stream.concat(
-            generateHeader(propertyColumns),
-            Stream.concat(writeSummaryLine(validateAllResult), writeDirectories(validateAllResult, propertyColumns))
+            generateHeader(propertyColumnKeys),
+            Stream.concat(writeSummaryLine(validateAllResult), writeDirectories(validateAllResult, propertyColumnKeys, imageRules))
         ).toList();
     }
 
@@ -64,7 +80,11 @@ public class ReportGenerator {
         );
     }
 
-    private static Stream<ReportRow> writeDirectories(ValidateAllResult validateAllResult, List<ReportPropertyColumn> columns) {
+    private static Stream<ReportRow> writeDirectories(
+        ValidateAllResult validateAllResult,
+        List<ValidationReportColumnKey> propertyColumnKeys,
+        List<ImageRule> imageRules
+    ) {
         return validateAllResult
             .getFilesByDirectory()
             .entrySet()
@@ -76,7 +96,14 @@ public class ReportGenerator {
                         entry
                             .getValue()
                             .stream()
-                            .flatMap(filepath -> writeFile(filepath, validateAllResult.getImageValidationResults().get(filepath), columns))
+                            .flatMap(filepath ->
+                                writeFile(
+                                    filepath,
+                                    validateAllResult.getImageValidationResults().get(filepath),
+                                    propertyColumnKeys,
+                                    imageRules
+                                )
+                            )
                     ),
                     Stream.of(ReportRow.empty())
                 );
@@ -109,12 +136,17 @@ public class ReportGenerator {
     private static Stream<ReportRow> writeFile(
         Path filepath,
         ImageValidationResult imageValidationResult,
-        List<ReportPropertyColumn> columns
+        List<ValidationReportColumnKey> propertyColumnKeys,
+        List<ImageRule> imageRules
     ) {
         Boolean passedValidation = ImageValidation.isImageValid(imageValidationResult);
         List<String> validationErrors = ImageValidation.getAllErrors(imageValidationResult);
         List<String> validationWarnings = ImageValidation.getAllWarnings(imageValidationResult);
         ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(validationErrors, validationWarnings);
+        Map<ValidationReportColumnKey, ValidationResult> columnResults = getReportColumnsWithValidationResult(
+            imageRules,
+            imageValidationResult
+        );
 
         return Stream.of(
             ReportRow.ofImage(
@@ -128,10 +160,15 @@ public class ReportGenerator {
                             ReportCell.of(passedValidation, highlightType), // file passed validation
                             ReportCell.of(validationErrors, validationWarnings) // validation error or warning
                         ),
-                        columns
+                        propertyColumnKeys
                             .stream()
-                            .map(column ->
-                                ReportCell.of(extractPropertyOrNull(column.getProperty(), imageValidationResult.getExtractionResult()))
+                            .map(propertyColumnKey ->
+                                ReportCell.of(
+                                    extractPropertyOrNull(propertyColumnKey.property(), imageValidationResult.getExtractionResult()),
+                                    ReportCellHighlightType.fromValidationResult(
+                                        columnResults.getOrDefault(propertyColumnKey, ValidationResult.fromSuccess())
+                                    )
+                                )
                             )
                     ),
                     Stream.of(ReportCell.of(imageValidationResult.getChecksum())) // checksum
@@ -141,13 +178,13 @@ public class ReportGenerator {
         );
     }
 
-    private static Stream<ReportRow> generateHeader(List<ReportPropertyColumn> propertyColumns) {
+    private static Stream<ReportRow> generateHeader(List<ValidationReportColumnKey> propertyColumnKeys) {
         return Stream.of(
             ReportRow.ofHeader(
                 Stream.concat(
                     Stream.concat(
                         COLUMN_HEADER.stream().map(ReportCell::of),
-                        propertyColumns.stream().map(c -> ReportCell.of(c.getLabel()))
+                        propertyColumnKeys.stream().map(c -> ReportCell.of(c.label()))
                     ),
                     Stream.of(ReportCell.of("Checksum"))
                 ).toList()
@@ -165,5 +202,51 @@ public class ReportGenerator {
         } catch (PathNotFoundException e) {
             return "";
         }
+    }
+
+    private static List<ValidationReportColumnKey> findAllReportColumns(List<ImageRule> rules, List<ValidationReportColumn> extraColumns) {
+        Set<ValidationReportColumnKey> keySet = new LinkedHashSet<>();
+
+        for (ImageRule rule : rules) {
+            for (ValidationReportColumn column : rule.getReportColumns()) {
+                keySet.add(ValidationReportColumnKey.of(column));
+            }
+        }
+
+        for (ValidationReportColumn column : extraColumns) {
+            keySet.add(ValidationReportColumnKey.of(column));
+        }
+
+        return new ArrayList<>(keySet);
+    }
+
+    private static Map<ValidationReportColumnKey, ValidationResult> getReportColumnsWithValidationResult(
+        List<ImageRule> rules,
+        ImageValidationResult imageValidationResult
+    ) {
+        List<ValidationResult> ruleResults = imageValidationResult.getImageRuleEvaluationResults();
+        if (rules.size() != ruleResults.size()) {
+            throw new IllegalArgumentException("number of rules does not match number of rule validation results");
+        }
+
+        Map<ValidationReportColumnKey, ValidationResult> results = new LinkedHashMap<>();
+
+        int i = 0;
+        for (ImageRule rule : rules) {
+            for (ValidationReportColumn column : rule.getReportColumns()) {
+                ValidationReportColumnKey columnKey = ValidationReportColumnKey.of(column);
+                if (!results.containsKey(columnKey)) {
+                    // validation result
+                    results.put(columnKey, ruleResults.get(i));
+                } else {
+                    // add validation results together (if multiple rules list the same report column as relevant column)
+                    results.put(columnKey, ValidationResult.of(List.of(ruleResults.get(i), results.get(columnKey))));
+                }
+            }
+
+            i += 1;
+        }
+
+        return results;
     }
 }

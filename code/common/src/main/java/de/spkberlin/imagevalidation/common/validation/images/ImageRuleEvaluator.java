@@ -1,16 +1,16 @@
-package de.spkberlin.imagevalidation.common.validation.images.rules;
+package de.spkberlin.imagevalidation.common.validation.images;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRule;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeAndCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeNotCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCompositeOrCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleCondition;
-import de.spkberlin.imagevalidation.common.validation.images.rules.state.ImageRuleSimpleConditionOperatorType;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRule;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleCompositeAndCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleCompositeCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleCompositeNotCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleCompositeOrCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleCondition;
+import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleConditionOperatorType;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
-import de.spkberlin.imagevalidation.cli.output.report.ReportPropertyColumn;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class ConfigurationReportSection {
     @Valid
     private ConfigurationPath excelPath;
 
-    private List<@Valid ReportPropertyColumn> columns;
+    private List<@Valid ValidationReportColumn> columns;
 
     public ConfigurationReportSection() {
         this.columns = new ArrayList<>();
@@ -35,11 +35,11 @@ public class ConfigurationReportSection {
         this.excelPath = excelPath;
     }
 
-    public List<ReportPropertyColumn> getColumns() {
+    public List<ValidationReportColumn> getColumns() {
         return this.columns;
     }
 
-    public void setColumns(List<ReportPropertyColumn> columns) {
+    public void setColumns(List<ValidationReportColumn> columns) {
         this.columns = columns;
     }
 }

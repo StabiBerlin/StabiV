@@ -80,18 +80,12 @@ validation:
               inPercent: false
 
   imageRules:
-    # TIF format
-    - message: Image must be a TIF file
-      severity: error
-      context: $.exiftool
-      condition:
-        property: $.TIFF.FileType
-        assert: equal
-        value: TIFF
-
     # JHove wellformed
     - message: JHove must detect file as wellformed
       severity: error
+      reportColumns:
+        - label: JHove wellformed
+          property: $.jhove.wellformed
       context: $.jhove
       condition:
         property: $.wellformed
@@ -101,6 +95,9 @@ validation:
     # JHove valid
     - message: JHove must detect file as valid
       severity: error
+      reportColumns:
+        - label: JHove valid
+          property: $.jhove.valid
       context: $.jhove
       condition:
         property: $.valid
@@ -110,15 +107,33 @@ validation:
     # Exiftool reports no warning
     - message: Exiftool reports warning
       severity: error
+      reportColumns:
+        - label: Exiftool warning
+          property: $.exiftool..Warning
       context: $.exiftool
       condition:
         not:
           property: $..Warning
           assert: exists
 
+    # TIF format
+    - message: Image must be a TIF file
+      severity: error
+      reportColumns:
+        - label: FileType
+          property: $.exiftool..FileType
+      context: $.exiftool
+      condition:
+        property: $..FileType
+        assert: equal
+        value: TIFF
+
     # IFD
     - message: must have exactly one IFD
       severity: error
+      reportColumns:
+        - label: Number of IFDs
+          property: $.exiftool.TIFF.IFD.length()
       context: $.exiftool
       condition:
         property: $.TIFF.IFD
@@ -128,6 +143,9 @@ validation:
     # ImageWidth
     - message: ImageWidth must be positive integer
       severity: error
+      reportColumns:
+        - label: ImageWidth
+          property: $.exiftool.TIFF.IFD[0].ImageWidth
       context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
@@ -140,6 +158,9 @@ validation:
     # ImageLength
     - message: ImageHeight must be positive integer
       severity: error
+      reportColumns:
+        - label: ImageHeight
+          property: $.exiftool.TIFF.IFD[0].ImageHeight
       context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
@@ -152,6 +173,9 @@ validation:
     # PhotometricInterpretation
     - message: PhotometricInterpretation must be RGB or BlackIsZero
       severity: error
+      reportColumns:
+        - label: PhotometricInterpretation
+          property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.PhotometricInterpretation
@@ -163,6 +187,9 @@ validation:
     # BitsPerSample
     - message: BitsPerSample must be all 8 or all 16
       severity: error
+      reportColumns:
+        - label: BitsPerSample
+          property: $.exiftool.TIFF.IFD[0].BitsPerSample
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.BitsPerSample
@@ -176,6 +203,9 @@ validation:
     # Compression
     - message: Compression must be Uncompressed
       severity: error
+      reportColumns:
+        - label: Compression
+          property: $.exiftool.TIFF.IFD[0].Compression
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.Compression
@@ -185,6 +215,9 @@ validation:
     # StripOffsets
     - message: StripOffsets must be positive integer
       severity: error
+      reportColumns:
+        - label: StripOffsets
+          property: $.exiftool.TIFF.IFD[0].StripOffsets
       context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
@@ -197,6 +230,9 @@ validation:
     # RowsPerStrip
     - message: RowsPerStrip must be positive integer
       severity: error
+      reportColumns:
+        - label: RowsPerStrip
+          property: $.exiftool.TIFF.IFD[0].RowsPerStrip
       context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
@@ -209,6 +245,9 @@ validation:
     # StripByteCounts
     - message: StripByteCounts must be positive integer
       severity: error
+      reportColumns:
+        - label: StripByteCounts
+          property: $.exiftool.TIFF.IFD[0].StripByteCounts
       context: $.exiftool.TIFF.IFD[0]
       condition:
         and:
@@ -221,6 +260,9 @@ validation:
     # XResolution
     - message: XResolution must be either 300, 400 or 600
       severity: error
+      reportColumns:
+        - label: XResolution
+          property: $.exiftool.TIFF.IFD[0].XResolution
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.XResolution
@@ -233,6 +275,9 @@ validation:
     # YResolution
     - message: YResolution must be either 300, 400 or 600
       severity: error
+      reportColumns:
+        - label: YResolution
+          property: $.exiftool.TIFF.IFD[0].YResolution
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.YResolution
@@ -245,6 +290,11 @@ validation:
     # XResolution = YResolution
     - message: XResolution must be the same as YResolution
       severity: error
+      reportColumns:
+        - label: XResolution
+          property: $.exiftool.TIFF.IFD[0].XResolution
+        - label: YResolution
+          property: $.exiftool.TIFF.IFD[0].YResolution
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.XResolution
@@ -254,6 +304,9 @@ validation:
     # ResolutionUnit
     - message: ResolutionUnit must be inches
       severity: error
+      reportColumns:
+        - label: ResolutionUnit
+          property: $.exiftool.TIFF.IFD[0].ResolutionUnit
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.ResolutionUnit
@@ -263,6 +316,9 @@ validation:
     # Make
     - message: Make must not be empty
       severity: error
+      reportColumns:
+        - label: Make
+          property: $.exiftool.TIFF.IFD[0].Make
       context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
@@ -272,6 +328,9 @@ validation:
     # Model
     - message: Model must not be empty
       severity: error
+      reportColumns:
+        - label: Model
+          property: $.exiftool.TIFF.IFD[0].Model
       context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
@@ -281,6 +340,9 @@ validation:
     # Software
     - message: Software must not be empty
       severity: error
+      reportColumns:
+        - label: Software
+          property: $.exiftool.TIFF.IFD[0].Software
       context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
@@ -290,6 +352,9 @@ validation:
     # Artist
     - message: Artist must not be empty
       severity: error
+      reportColumns:
+        - label: Artist
+          property: $.exiftool.TIFF.IFD[0].Artist
       context: $.exiftool.TIFF.IFD[0]
       condition:
         not:
@@ -299,6 +364,9 @@ validation:
     # ICC Profile
     - message: ICC profile required
       severity: error
+      reportColumns:
+        - label: ICC Profile Description
+          property: $.exiftool.TIFF.IFD[0].ICC_Profile.ProfileDescription
       context: $.exiftool
       condition:
         property: $..ICC_Profile
@@ -308,6 +376,11 @@ validation:
     # SerialNumber
     - message: SerialNumber required
       severity: error
+      reportColumns:
+        - label: SerialNumber (ExifIFD)
+          property: $.exiftool.TIFF.IFD[0].ExifIFD.SerialNumber
+        - label: SerialNumber (XMP)
+          property: $.exiftool.TIFF.IFD[0].XMP.SerialNumber
       context: $.exiftool
       condition:
         or:
@@ -321,6 +394,9 @@ validation:
     # SubfileType
     - message: SubfileType must be 'Full-resolution image' if defined
       severity: error
+      reportColumns:
+        - label: SubfileType
+          property: $.exiftool.TIFF.IFD[0].SubfileType
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -334,6 +410,9 @@ validation:
     # FillOrder
     - message: FillOrder must be 'Normal' image if defined
       severity: error
+      reportColumns:
+        - label: FillOrder
+          property: $.exiftool.TIFF.IFD[0].FillOrder
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -347,6 +426,9 @@ validation:
     # ImageDescription
     - message: ImageDescription must not be empty if defined
       severity: error
+      reportColumns:
+        - label: ImageDescription
+          property: $.exiftool.TIFF.IFD[0].ImageDescription
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -360,6 +442,9 @@ validation:
     # Orientation
     - message: Orientation must be 'Horizontal (normal)' if defined
       severity: error
+      reportColumns:
+        - label: Orientation
+          property: $.exiftool.TIFF.IFD[0].Orientation
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -373,6 +458,9 @@ validation:
     # SamplesPerPixel
     - message: SamplesPerPixel must be 1 or 3
       severity: error
+      reportColumns:
+        - label: SamplesPerPixel
+          property: $.exiftool.TIFF.IFD[0].SamplesPerPixel
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.SamplesPerPixel
@@ -384,6 +472,9 @@ validation:
     # PlanarConfiguration
     - message: PlanarConfiguration must be 'Chunky' if defined
       severity: error
+      reportColumns:
+        - label: PlanarConfiguration
+          property: $.exiftool.TIFF.IFD[0].PlanarConfiguration
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -397,6 +488,9 @@ validation:
     # ModifyDate
     - message: ModifyDate must be formatted as 'YYYY:MM:DD HH:MM:SS' if defined
       severity: error
+      reportColumns:
+        - label: ModifyDate
+          property: $.exiftool.TIFF.IFD[0].ModifyDate
       context: $.exiftool.TIFF.IFD[0]
       condition:
         or:
@@ -410,6 +504,9 @@ validation:
     # WhiteBalance
     - message: WhiteBalance must be Auto or Manual
       severity: error
+      reportColumns:
+        - label: WhiteBalance
+          property: $.exiftool.TIFF.IFD[0].WhiteBalance
       context: $.exiftool.TIFF.IFD[0]
       condition:
         property: $.WhiteBalance
@@ -421,6 +518,9 @@ validation:
     # Copyright
     - message: Copyright must not be defined
       severity: error
+      reportColumns:
+        - label: Copyright
+          property: $.exiftool..Copyright
       context: $.exiftool
       condition:
         not:
@@ -430,6 +530,9 @@ validation:
     # XMP Rights
     - message: XMP Rights must not be defined
       severity: error
+      reportColumns:
+        - label: XMP Rights
+          property: $.exiftool..XMP.Rights
       context: $.exiftool
       condition:
         not:
@@ -439,6 +542,9 @@ validation:
     # OldSubfileType
     - message: OldSubfileType must not be defined
       severity: error
+      reportColumns:
+        - label: OldSubfileType
+          property: $.exiftool..OldSubfileType
       context: $.exiftool
       condition:
         not:
@@ -448,6 +554,9 @@ validation:
     # Thresholding
     - message: Thresholding must not be defined
       severity: error
+      reportColumns:
+        - label: Thresholding
+          property: $.exiftool..Thresholding
       context: $.exiftool
       condition:
         not:
@@ -457,6 +566,9 @@ validation:
     # CellWidth
     - message: CellWidth must not be defined
       severity: error
+      reportColumns:
+        - label: CellWidth
+          property: $.exiftool..CellWidth
       context: $.exiftool
       condition:
         not:
@@ -466,6 +578,9 @@ validation:
     # CellLength
     - message: CellLength must not be defined
       severity: error
+      reportColumns:
+        - label: CellLength
+          property: $.exiftool..CellLength
       context: $.exiftool
       condition:
         not:
@@ -475,6 +590,9 @@ validation:
     # FreeOffsets
     - message: FreeOffsets must not be defined
       severity: error
+      reportColumns:
+        - label: FreeOffsets
+          property: $.exiftool..FreeOffsets
       context: $.exiftool
       condition:
         not:
@@ -484,6 +602,9 @@ validation:
     # FreeByteCounts
     - message: FreeByteCounts must not be defined
       severity: error
+      reportColumns:
+        - label: FreeByteCounts
+          property: $.exiftool..FreeByteCounts
       context: $.exiftool
       condition:
         not:
@@ -493,6 +614,9 @@ validation:
     # HostComputer
     - message: HostComputer must not be defined
       severity: error
+      reportColumns:
+        - label: HostComputer
+          property: $.exiftool..HostComputer
       context: $.exiftool
       condition:
         not:
@@ -502,6 +626,9 @@ validation:
     # ColorMap
     - message: ColorMap must not be defined
       severity: error
+      reportColumns:
+        - label: ColorMap
+          property: $.exiftool..ColorMap
       context: $.exiftool
       condition:
         not:
@@ -511,6 +638,9 @@ validation:
     # ExtraSamples
     - message: ExtraSamples must not be defined
       severity: error
+      reportColumns:
+        - label: ExtraSamples
+          property: $.exiftool..ExtraSamples
       context: $.exiftool
       condition:
         not:
@@ -525,63 +655,5 @@ output:
     csvPath: output.csv
     excelPath: output.xlsx
     columns:
-      - label: JHove wellformed
-        property: $.jhove.wellformed
-      - label: JHove valid
-        property: $.jhove.valid
-      - label: Exiftool warning
-        property: $.exiftool..Warning
-      - label: Number of IFDs
-        property: $.exiftool.TIFF.IFD.length()
-      - label: ImageWidth
-        property: $.exiftool.TIFF.IFD[0].ImageWidth
-      - label: ImageHeight
-        property: $.exiftool.TIFF.IFD[0].ImageHeight
-      - label: PhotometricInterpretation
-        property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
-      - label: BitsPerSample
-        property: $.exiftool.TIFF.IFD[0].BitsPerSample
-      - label: Compression
-        property: $.exiftool.TIFF.IFD[0].Compression
-      - label: StripOffsets
-        property: $.exiftool.TIFF.IFD[0].StripOffsets
-      - label: RowsPerStrip
-        property: $.exiftool.TIFF.IFD[0].RowsPerStrip
-      - label: StripByteCounts
-        property: $.exiftool.TIFF.IFD[0].StripByteCounts
-      - label: XResolution
-        property: $.exiftool.TIFF.IFD[0].XResolution
-      - label: YResolution
-        property: $.exiftool.TIFF.IFD[0].YResolution
-      - label: ResolutionUnit
-        property: $.exiftool.TIFF.IFD[0].ResolutionUnit
-      - label: Make
-        property: $.exiftool.TIFF.IFD[0].Make
-      - label: Model
-        property: $.exiftool.TIFF.IFD[0].Model
-      - label: Software
-        property: $.exiftool.TIFF.IFD[0].Software
-      - label: Artist
-        property: $.exiftool.TIFF.IFD[0].Artist
-      - label: ICC Profile Description
-        property: $.exiftool.TIFF.IFD[0].ICC_Profile.ProfileDescription
-      - label: SerialNumber (ExifIFD)
-        property: $.exiftool.TIFF.IFD[0].ExifIFD.SerialNumber
-      - label: SerialNumber (XMP)
-        property: $.exiftool.TIFF.IFD[0].XMP.SerialNumber
-      - label: SubfileType
-        property: $.exiftool.TIFF.IFD[0].SubfileType
-      - label: FillOrder
-        property: $.exiftool.TIFF.IFD[0].FillOrder
-      - label: ImageDescription
-        property: $.exiftool.TIFF.IFD[0].ImageDescription
-      - label: Orientation
-        property: $.exiftool.TIFF.IFD[0].Orientation
-      - label: SamplesPerPixel
-        property: $.exiftool.TIFF.IFD[0].SamplesPerPixel
-      - label: PlanarConfiguration
-        property: $.exiftool.TIFF.IFD[0].PlanarConfiguration
-      - label: ModifyDate
-        property: $.exiftool.TIFF.IFD[0].ModifyDate
-      - label: WhiteBalance
-        property: $.exiftool.TIFF.IFD[0].WhiteBalance
+      - label: DateTimeOriginal
+        property: $.exiftool.TIFF.IFD[0].DateTimeOriginal

@@ -1,5 +1,6 @@
 package de.spkberlin.imagevalidation.cli.output.report;
 
+import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.util.List;
 
 public enum ReportCellHighlightType {
@@ -20,5 +21,9 @@ public enum ReportCellHighlightType {
             : !warnings.isEmpty()
                 ? ReportCellHighlightType.warning
                 : ReportCellHighlightType.none;
+    }
+
+    public static ReportCellHighlightType fromValidationResult(ValidationResult validationResult) {
+        return fromErrorsAndWarnings(validationResult.getErrors(), validationResult.getWarnings());
     }
 }
