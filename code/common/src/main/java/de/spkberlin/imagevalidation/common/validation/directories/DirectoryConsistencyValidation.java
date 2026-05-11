@@ -1,6 +1,5 @@
 package de.spkberlin.imagevalidation.common.validation.directories;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;

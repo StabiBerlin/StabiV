@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
-      <artifactId>poi-ooxml-lite</artifactId>
+      <artifactId>poi-ooxml-full</artifactId>
     </dependency>
     <dependency>
       <groupId>info.picocli</groupId>

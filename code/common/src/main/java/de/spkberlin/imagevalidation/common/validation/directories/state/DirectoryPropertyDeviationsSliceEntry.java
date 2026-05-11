@@ -1,6 +1,5 @@
 package de.spkberlin.imagevalidation.common.validation.directories.state;
 
-import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

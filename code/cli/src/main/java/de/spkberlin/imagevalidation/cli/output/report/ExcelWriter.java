@@ -8,7 +8,12 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTAutoFilter;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilters;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTWorksheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +30,7 @@ public class ExcelWriter {
     public static void writeReport(Path outputPath, List<ReportRow> report) throws IOException {
         logger.info("write excel output file '{}'", outputPath);
         XSSFWorkbook workbook = new XSSFWorkbook();
-        Sheet mainSheet = workbook.createSheet("Report");
+        XSSFSheet mainSheet = workbook.createSheet("Report");
         ExcelCellWriter cellWriter = new ExcelCellWriter(workbook, mainSheet);
 
         int maxColumnId = 0;
@@ -52,9 +57,10 @@ public class ExcelWriter {
             rowId += 1;
         }
 
-        groupImageRows(report, mainSheet);
+        groupImageRows(mainSheet, report);
         autoFitColumns(mainSheet, maxColumnId + 1, 512);
         addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
+        hideValidImagesByDefault(mainSheet, report);
 
         mainSheet.createFreezePane(6, 2);
         mainSheet.setColumnHidden(0, true);
@@ -78,6 +84,33 @@ public class ExcelWriter {
     }
 
     /**
+     * Applies the table column filter "false or empty" to the "Image Passed Validation" column and hides all corresponding rows.
+     *
+     * @param sheet the main sheet
+     */
+    private static void hideValidImagesByDefault(XSSFSheet sheet, List<ReportRow> report) {
+        // apply table column filter
+        CTWorksheet ctWorksheet = sheet.getCTWorksheet();
+        CTAutoFilter autoFilter = ctWorksheet.getAutoFilter();
+
+        CTFilterColumn filterColumn = autoFilter.addNewFilterColumn();
+        filterColumn.setColId(4);
+
+        CTFilters filters = filterColumn.addNewFilters();
+        filters.setBlank(true);
+        filters.addNewFilter().setVal("false");
+
+        // actually hide rows
+        int rowId = 0;
+        for (ReportRow reportRow : report) {
+            if (ReportRowType.image.equals(reportRow.getType()) && reportRow.isValid()) {
+                sheet.getRow(rowId).setZeroHeight(true);
+            }
+            rowId += 1;
+        }
+    }
+
+    /**
      * Increase column size to fit data.
      *
      * @param sheet the sheet
@@ -91,7 +124,13 @@ public class ExcelWriter {
         }
     }
 
-    private static void groupImageRows(List<ReportRow> report, Sheet sheet) {
+    /**
+     * Add grouping such that all images for a directory can be collapsed or expanded.
+     *
+     * @param report the report
+     * @param sheet the sheet
+     */
+    private static void groupImageRows(Sheet sheet, List<ReportRow> report) {
         int rowId = 0;
         int startImageRowId = 0;
         Boolean lastDirectoryValid = true;

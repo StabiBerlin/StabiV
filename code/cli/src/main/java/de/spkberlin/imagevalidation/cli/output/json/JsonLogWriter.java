@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryValidation;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
-import de.spkberlin.imagevalidation.common.validation.images.ImageValidationRunnerResult;
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import java.io.IOException;
 import java.io.PrintWriter;

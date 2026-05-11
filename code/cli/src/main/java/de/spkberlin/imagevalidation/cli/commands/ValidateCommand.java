@@ -14,7 +14,6 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.report.CsvWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
-import de.spkberlin.imagevalidation.cli.output.report.ReportCell;
 import de.spkberlin.imagevalidation.cli.output.report.ReportGenerator;
 import de.spkberlin.imagevalidation.cli.output.report.ReportRow;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;

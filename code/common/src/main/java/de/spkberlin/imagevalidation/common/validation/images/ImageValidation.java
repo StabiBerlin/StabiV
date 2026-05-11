@@ -2,7 +2,6 @@ package de.spkberlin.imagevalidation.common.validation.images;
 
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidationResult;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
