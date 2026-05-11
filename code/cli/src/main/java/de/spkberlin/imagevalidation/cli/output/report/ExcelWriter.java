@@ -4,15 +4,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
+import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.AreaReference;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTAutoFilter;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilters;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTable;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTTableStyleInfo;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTWorksheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +66,7 @@ public class ExcelWriter {
         groupImageRows(mainSheet, report);
         autoFitColumns(mainSheet, maxColumnId + 1, 512);
         addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
-        hideValidImagesByDefault(mainSheet, report);
+        // hideValidImagesByDefault(mainSheet, report);
 
         mainSheet.createFreezePane(6, 2);
         mainSheet.setColumnHidden(0, true);
@@ -79,8 +85,28 @@ public class ExcelWriter {
      * @param rows the number of rows
      * @param columns the number of columns
      */
-    private static void addTableFilters(Sheet sheet, int rows, int columns) {
-        sheet.setAutoFilter(new CellRangeAddress(0, rows - 1, 0, columns - 1));
+    private static void addTableFilters(XSSFSheet sheet, int rows, int columns) {
+        AreaReference area = new AreaReference(
+            new CellReference(0, 0),
+            new CellReference(rows - 1, columns - 1),
+            SpreadsheetVersion.EXCEL2007
+        );
+
+        XSSFTable table = sheet.createTable(area);
+        CTTable ctTable = table.getCTTable();
+        ctTable.setName("Table1");
+        ctTable.setDisplayName("Table1");
+        // ctTable.setRef(area.formatAsString());
+
+        CTTableStyleInfo style = Objects.nonNull(ctTable.getTableStyleInfo())
+            ? ctTable.getTableStyleInfo()
+            : ctTable.addNewTableStyleInfo();
+        style.setName("TableStyleMedium1");
+        style.setShowRowStripes(true);
+        style.setShowColumnStripes(false);
+
+        ctTable.addNewAutoFilter().setRef(area.formatAsString());
+        // sheet.setAutoFilter(new CellRangeAddress(0, rows - 1, 0, columns - 1));
     }
 
     /**
@@ -88,6 +114,7 @@ public class ExcelWriter {
      *
      * @param sheet the main sheet
      */
+    @SuppressWarnings("unused")
     private static void hideValidImagesByDefault(XSSFSheet sheet, List<ReportRow> report) {
         // apply table column filter
         CTWorksheet ctWorksheet = sheet.getCTWorksheet();

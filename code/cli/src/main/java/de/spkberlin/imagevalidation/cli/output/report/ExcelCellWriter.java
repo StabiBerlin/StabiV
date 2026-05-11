@@ -155,10 +155,10 @@ public class ExcelCellWriter {
         style.setBorderBottom(BorderStyle.THIN);
         style.setBorderLeft(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
-        style.setTopBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setLeftBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setRightBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        style.setTopBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        style.setBottomBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        style.setLeftBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
+        style.setRightBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
         return style;
     }
 }
