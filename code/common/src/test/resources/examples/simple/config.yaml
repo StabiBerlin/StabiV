@@ -31,8 +31,8 @@ validation:
 
 output:
   report:
-    csvPath: output.csv
-    excelPath: output.xlsx
+    csvPath: ${date}_${time}_report.csv
+    excelPath: ${date}_${time}_report.xlsx
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed

@@ -657,6 +657,8 @@ The following options can be specified to influence how checksum files are gener
 Filename templates may use the following substitution variables to generate filenames:
 
 - `directory` - the name of the directory that was successfully validated
+- `date` - the current date in format `YY-MM-DD`
+- `time` - the current time in format `HH-MM-SS`
 
 Variables may be referenced via the syntax `${variable}`. For example, the filename template `${directory}.sha1` generates filenames that consist of the directory name followed by the file extension `.sha1`.
 
@@ -696,6 +698,13 @@ The validation report can be generated as CSV and Excel file with the following 
 - `columns` - the list of additional property columns added to CSV report
 
 Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--outputBaseDirectory` or as the very last command line argument, which defines a global base directory. If nothing is defined, the current working directory is used.
+
+Both `csvPath` and `excelPath` may use the following substitution variables to generate filepaths:
+
+- `date` - the current date in format `YY-MM-DD`
+- `time` - the current time in format `HH-MM-SS`
+
+Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report.csv` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00.csv`.
 
 Additional property columns can be specified as a list of two options:
 

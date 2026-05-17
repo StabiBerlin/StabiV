@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -13,6 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChecksumFileWriter {
+
+    private static DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH-mm-ss");
 
     private static final Logger logger = LoggerFactory.getLogger(ChecksumFileWriter.class);
 
@@ -58,7 +63,11 @@ public class ChecksumFileWriter {
     }
 
     private static String resolveFilenameTemplate(String filenameTemplate, Path directory) {
-        Map<String, String> variables = Map.ofEntries(Map.entry("directory", directory.getFileName().toString()));
+        Map<String, String> variables = Map.ofEntries(
+            Map.entry("directory", directory.getFileName().toString()),
+            Map.entry("date", LocalDateTime.now().format(dateFormat)),
+            Map.entry("time", LocalDateTime.now().format(timeFormat))
+        );
         return StringSubstitutor.replace(filenameTemplate, variables);
     }
 

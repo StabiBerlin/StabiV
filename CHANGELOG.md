@@ -17,6 +17,7 @@ New Features
 - Show the expected number of images in the validation report if there are missing files in a directory
 - CSV and Excel report files are never overwritten, instead filenames are modified to include a number
 - The report now contains basic metadata: version information, the date and time, and the config file that was used
+- The CSV and Excel report filepaths may use the substitution variables `date` and `time`
 
 Breaking Changes
 
