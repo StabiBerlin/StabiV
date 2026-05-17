@@ -7,6 +7,8 @@ import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
 import de.spkberlin.imagevalidation.common.properties.PropertiesSerializer;
 import de.spkberlin.imagevalidation.common.validation.directories.DirectoryValidation;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
+import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsRule;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryValidationResult;
 import de.spkberlin.imagevalidation.common.validation.images.ImageValidation;
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageRule;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,14 +53,24 @@ public class ReportGenerator {
     public static List<ReportRow> generateReport(
         ValidateAllResult validateAllResult,
         List<ImageRule> imageRules,
+        List<DirectoryConsistencyCondition> consistencyRules,
+        List<DirectoryPropertyDeviationsRule> deviationRules,
         List<ValidationReportColumn> extraPropertyColumns
     ) {
         logger.info("generate report");
-        List<ValidationReportColumnKey> propertyColumnKeys = findAllReportColumns(imageRules, extraPropertyColumns);
+        List<ValidationReportColumnKey> propertyColumnKeys = findAllReportColumns(
+            imageRules,
+            consistencyRules,
+            deviationRules,
+            extraPropertyColumns
+        );
 
         return Stream.concat(
             generateHeader(propertyColumnKeys),
-            Stream.concat(writeSummaryLine(validateAllResult), writeDirectories(validateAllResult, propertyColumnKeys, imageRules))
+            Stream.concat(
+                writeSummaryLine(validateAllResult),
+                writeDirectories(validateAllResult, propertyColumnKeys, imageRules, consistencyRules, deviationRules)
+            )
         ).toList();
     }
 
@@ -85,12 +98,15 @@ public class ReportGenerator {
     private static Stream<ReportRow> writeDirectories(
         ValidateAllResult validateAllResult,
         List<ValidationReportColumnKey> propertyColumnKeys,
-        List<ImageRule> imageRules
+        List<ImageRule> imageRules,
+        List<DirectoryConsistencyCondition> consistencyRules,
+        List<DirectoryPropertyDeviationsRule> deviationRules
     ) {
         return validateAllResult
             .getFilesByDirectory()
             .entrySet()
             .stream()
+            .sorted(Map.Entry.comparingByKey())
             .flatMap(entry -> {
                 return Stream.concat(
                     Stream.concat(
@@ -98,12 +114,15 @@ public class ReportGenerator {
                         entry
                             .getValue()
                             .stream()
+                            .sorted()
                             .flatMap(filepath ->
                                 writeFile(
                                     filepath,
                                     validateAllResult.getImageValidationResults().get(filepath),
                                     propertyColumnKeys,
-                                    imageRules
+                                    imageRules,
+                                    consistencyRules,
+                                    deviationRules
                                 )
                             )
                     ),
@@ -125,7 +144,7 @@ public class ReportGenerator {
             ReportRow.ofDirectory(
                 Stream.of(
                     ReportCell.of(directory.toString()), // path
-                    ReportCell.of(directory.getFileName().toString(), highlightType), // directory name
+                    ReportCell.of(directory.getFileName().toString(), highlightType, null), // directory name
                     ReportCell.of(directoryResult.getImageResults().size(), highlightType), // file name / total images
                     ReportCell.of(passedValidation, highlightType), // directory passed
                     ReportCell.empty(highlightType),
@@ -141,7 +160,9 @@ public class ReportGenerator {
         Path filepath,
         ImageValidationResult imageValidationResult,
         List<ValidationReportColumnKey> propertyColumnKeys,
-        List<ImageRule> imageRules
+        List<ImageRule> imageRules,
+        List<DirectoryConsistencyCondition> consistencyRules,
+        List<DirectoryPropertyDeviationsRule> deviationRules
     ) {
         Boolean passedValidation = ImageValidation.isImageValid(imageValidationResult);
         List<String> validationErrors = ImageValidation.getAllErrors(imageValidationResult);
@@ -149,6 +170,8 @@ public class ReportGenerator {
         ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(validationErrors, validationWarnings);
         Map<ValidationReportColumnKey, ValidationResult> columnResults = getReportColumnsWithValidationResult(
             imageRules,
+            consistencyRules,
+            deviationRules,
             imageValidationResult
         );
         int errorWarningCount = validationErrors.size() + validationWarnings.size();
@@ -160,7 +183,7 @@ public class ReportGenerator {
                         Stream.of(
                             ReportCell.of(filepath.toString()), // path
                             ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
-                            ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
+                            ReportCell.of(filepath.getFileName().toString(), highlightType, null), // file name
                             ReportCell.empty(highlightType), // directory passed validation
                             ReportCell.of(passedValidation, highlightType), // file passed validation
                             ReportCell.of(validationErrors, validationWarnings), // validation error or warning
@@ -172,6 +195,9 @@ public class ReportGenerator {
                                 ReportCell.of(
                                     extractPropertyOrNull(propertyColumnKey.property(), imageValidationResult.getExtractionResult()),
                                     ReportCellHighlightType.fromValidationResult(
+                                        columnResults.getOrDefault(propertyColumnKey, ValidationResult.fromSuccess())
+                                    ),
+                                    getNoteFromValidationResult(
                                         columnResults.getOrDefault(propertyColumnKey, ValidationResult.fromSuccess())
                                     )
                                 )
@@ -210,15 +236,32 @@ public class ReportGenerator {
         }
     }
 
-    private static List<ValidationReportColumnKey> findAllReportColumns(List<ImageRule> rules, List<ValidationReportColumn> extraColumns) {
+    private static List<ValidationReportColumnKey> findAllReportColumns(
+        List<ImageRule> imageRules,
+        List<DirectoryConsistencyCondition> consistencyRules,
+        List<DirectoryPropertyDeviationsRule> deviationRules,
+        List<ValidationReportColumn> extraColumns
+    ) {
         Set<ValidationReportColumnKey> keySet = new LinkedHashSet<>();
 
-        for (ImageRule rule : rules) {
+        // image rules
+        for (ImageRule rule : imageRules) {
             for (ValidationReportColumn column : rule.getReportColumns()) {
                 keySet.add(ValidationReportColumnKey.of(column));
             }
         }
 
+        // consistency rules
+        for (DirectoryConsistencyCondition consistencyRule : consistencyRules) {
+            keySet.add(new ValidationReportColumnKey(consistencyRule.getLabel(), consistencyRule.getProperty()));
+        }
+
+        // deviation rules
+        for (DirectoryPropertyDeviationsRule deviationRule : deviationRules) {
+            keySet.add(new ValidationReportColumnKey(deviationRule.getLabel(), deviationRule.getProperty()));
+        }
+
+        // extra columns
         for (ValidationReportColumn column : extraColumns) {
             keySet.add(ValidationReportColumnKey.of(column));
         }
@@ -227,18 +270,75 @@ public class ReportGenerator {
     }
 
     private static Map<ValidationReportColumnKey, ValidationResult> getReportColumnsWithValidationResult(
-        List<ImageRule> rules,
+        List<ImageRule> imageRules,
+        List<DirectoryConsistencyCondition> consistencyRules,
+        List<DirectoryPropertyDeviationsRule> deviationRules,
         ImageValidationResult imageValidationResult
     ) {
-        List<ValidationResult> ruleResults = imageValidationResult.getImageRuleEvaluationResults();
-        if (rules.size() != ruleResults.size()) {
-            throw new IllegalArgumentException("number of rules does not match number of rule validation results");
+        return mergeReportColumnsWithValidationResults(
+            mergeReportColumnsWithValidationResults(
+                getImageRuleReportColumnsWithValidationResult(imageRules, imageValidationResult),
+                getConsistentPropertyReportColumnsWithValidationResult(consistencyRules, imageValidationResult)
+            ),
+            getPropertyDeviationReportColumnsWithValidationResult(deviationRules, imageValidationResult)
+        );
+    }
+
+    private static Map<ValidationReportColumnKey, ValidationResult> getPropertyDeviationReportColumnsWithValidationResult(
+        List<DirectoryPropertyDeviationsRule> deviationRules,
+        ImageValidationResult imageValidationResult
+    ) {
+        List<ValidationResult> ruleResults = imageValidationResult.getPropertyDeviationEvaluationResults();
+        if (deviationRules.size() != ruleResults.size()) {
+            throw new IllegalArgumentException("number of property deviation rules does not match number of validation results");
         }
 
         Map<ValidationReportColumnKey, ValidationResult> results = new LinkedHashMap<>();
 
         int i = 0;
-        for (ImageRule rule : rules) {
+        for (DirectoryPropertyDeviationsRule deviationRule : deviationRules) {
+            ValidationReportColumnKey columnKey = new ValidationReportColumnKey(deviationRule.getLabel(), deviationRule.getProperty());
+            results.put(columnKey, ruleResults.get(i));
+            i += 1;
+        }
+
+        return results;
+    }
+
+    private static Map<ValidationReportColumnKey, ValidationResult> getConsistentPropertyReportColumnsWithValidationResult(
+        List<DirectoryConsistencyCondition> consistencyRules,
+        ImageValidationResult imageValidationResult
+    ) {
+        List<ValidationResult> ruleResults = imageValidationResult.getConsistentPropertyEvaluationResults();
+        if (consistencyRules.size() != ruleResults.size()) {
+            throw new IllegalArgumentException("number of consistency rules does not match number of validation results");
+        }
+
+        Map<ValidationReportColumnKey, ValidationResult> results = new LinkedHashMap<>();
+
+        int i = 0;
+        for (DirectoryConsistencyCondition consistencyRule : consistencyRules) {
+            ValidationReportColumnKey columnKey = new ValidationReportColumnKey(consistencyRule.getLabel(), consistencyRule.getProperty());
+            results.put(columnKey, ruleResults.get(i));
+            i += 1;
+        }
+
+        return results;
+    }
+
+    private static Map<ValidationReportColumnKey, ValidationResult> getImageRuleReportColumnsWithValidationResult(
+        List<ImageRule> imageRules,
+        ImageValidationResult imageValidationResult
+    ) {
+        List<ValidationResult> ruleResults = imageValidationResult.getImageRuleEvaluationResults();
+        if (imageRules.size() != ruleResults.size()) {
+            throw new IllegalArgumentException("number of image rules does not match number of validation results");
+        }
+
+        Map<ValidationReportColumnKey, ValidationResult> results = new LinkedHashMap<>();
+
+        int i = 0;
+        for (ImageRule rule : imageRules) {
             for (ValidationReportColumn column : rule.getReportColumns()) {
                 ValidationReportColumnKey columnKey = ValidationReportColumnKey.of(column);
                 if (!results.containsKey(columnKey)) {
@@ -254,5 +354,29 @@ public class ReportGenerator {
         }
 
         return results;
+    }
+
+    private static Map<ValidationReportColumnKey, ValidationResult> mergeReportColumnsWithValidationResults(
+        Map<ValidationReportColumnKey, ValidationResult> resultsA,
+        Map<ValidationReportColumnKey, ValidationResult> resultsB
+    ) {
+        Map<ValidationReportColumnKey, ValidationResult> results = new LinkedHashMap<>(resultsA);
+
+        for (Map.Entry<ValidationReportColumnKey, ValidationResult> entry : resultsB.entrySet()) {
+            if (!results.containsKey(entry.getKey())) {
+                results.put(entry.getKey(), entry.getValue());
+            } else {
+                results.put(entry.getKey(), ValidationResult.of(List.of(entry.getValue(), results.get(entry.getKey()))));
+            }
+        }
+
+        return results;
+    }
+
+    private static String getNoteFromValidationResult(ValidationResult validationResult) {
+        return List.of(validationResult.getErrors(), validationResult.getWarnings())
+            .stream()
+            .flatMap(List::stream)
+            .collect(Collectors.joining("\n"));
     }
 }

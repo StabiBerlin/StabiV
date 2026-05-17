@@ -3,7 +3,6 @@ package de.spkberlin.imagevalidation.cli.output.report;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.ClientAnchor;
@@ -29,7 +28,9 @@ public class ExcelCellWriter {
     private XSSFWorkbook workbook;
     private Sheet mainSheet;
     private Sheet listSheet;
+    private CreationHelper creationHelper;
     private DataValidationHelper validationHelper;
+    private Drawing<?> drawingPatriarch;
     private AtomicInteger listIndex;
 
     private XSSFCellStyle defaultStyle;
@@ -51,6 +52,8 @@ public class ExcelCellWriter {
         this.workbook.setSheetHidden(workbook.getSheetIndex(listSheet), true);
         this.listIndex = new AtomicInteger(0);
         this.validationHelper = mainSheet.getDataValidationHelper();
+        this.creationHelper = workbook.getCreationHelper();
+        this.drawingPatriarch = mainSheet.createDrawingPatriarch();
 
         this.defaultStyle = createBaseCellStyle(workbook);
 
@@ -91,6 +94,10 @@ public class ExcelCellWriter {
             cell.setCellValue(reportCell.getList().stream().findFirst().orElse(""));
         }
 
+        if (Objects.nonNull(reportCell.getNote()) && !reportCell.getNote().isBlank()) {
+            addNote(cell, reportCell.getNote());
+        }
+
         // apply color
         if (ReportCellHighlightType.error.equals(reportCell.getHighlightType())) {
             cell.setCellStyle(errorStyle);
@@ -105,21 +112,18 @@ public class ExcelCellWriter {
         }
     }
 
-    @SuppressWarnings("unused")
-    private static void addListAsNote(CreationHelper creationHelper, Drawing<?> drawing, Cell cell, List<String> list) {
-        if (list.size() > 1) {
-            ClientAnchor anchor = creationHelper.createClientAnchor();
-            anchor.setCol1(cell.getColumnIndex());
-            anchor.setCol2(cell.getColumnIndex());
-            anchor.setRow1(cell.getRowIndex());
-            anchor.setRow2(cell.getRowIndex());
+    private void addNote(Cell cell, String note) {
+        ClientAnchor anchor = this.creationHelper.createClientAnchor();
+        anchor.setCol1(cell.getColumnIndex());
+        anchor.setCol2(cell.getColumnIndex() + 3);
+        anchor.setRow1(cell.getRowIndex());
+        anchor.setRow2(cell.getRowIndex() + note.split("\n").length);
 
-            Comment comment = drawing.createCellComment(anchor);
-            comment.setString(creationHelper.createRichTextString(list.stream().collect(Collectors.joining("\n\n"))));
-            comment.setAuthor("System");
+        Comment comment = this.drawingPatriarch.createCellComment(anchor);
+        comment.setString(this.creationHelper.createRichTextString(note));
+        comment.setAuthor("System");
 
-            cell.setCellComment(comment);
-        }
+        cell.setCellComment(comment);
     }
 
     private static void addListAsConstraint(

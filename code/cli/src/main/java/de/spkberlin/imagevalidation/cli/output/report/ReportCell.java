@@ -11,6 +11,7 @@ public class ReportCell {
     private Integer integer;
     private List<String> list;
     private String text;
+    private String note;
 
     /**
      * Create a new report cell based on all properties.
@@ -26,33 +27,35 @@ public class ReportCell {
         ReportCellHighlightType highlightType,
         Integer integer,
         String text,
-        List<String> list
+        List<String> list,
+        String note
     ) {
         this.valueType = valueType;
         this.highlightType = highlightType;
         this.text = text;
         this.integer = integer;
         this.list = list;
+        this.note = note;
     }
 
     public static ReportCell empty() {
-        return new ReportCell(ReportCellValueType.empty, ReportCellHighlightType.none, null, null, null);
+        return new ReportCell(ReportCellValueType.empty, ReportCellHighlightType.none, null, null, null, null);
     }
 
     public static ReportCell empty(ReportCellHighlightType highlightType) {
-        return new ReportCell(ReportCellValueType.empty, highlightType, null, null, null);
+        return new ReportCell(ReportCellValueType.empty, highlightType, null, null, null, null);
     }
 
     public static ReportCell of(String text) {
-        return new ReportCell(ReportCellValueType.text, ReportCellHighlightType.none, null, text, null);
+        return new ReportCell(ReportCellValueType.text, ReportCellHighlightType.none, null, text, null, null);
     }
 
-    public static ReportCell of(String text, ReportCellHighlightType highlightType) {
-        return new ReportCell(ReportCellValueType.text, highlightType, null, text, null);
+    public static ReportCell of(String text, ReportCellHighlightType highlightType, String note) {
+        return new ReportCell(ReportCellValueType.text, highlightType, null, text, null, note);
     }
 
     public static ReportCell of(Integer count) {
-        return new ReportCell(ReportCellValueType.integer, ReportCellHighlightType.none, count, null, null);
+        return new ReportCell(ReportCellValueType.integer, ReportCellHighlightType.none, count, null, null, null);
     }
 
     /**
@@ -64,7 +67,7 @@ public class ReportCell {
      */
     public static ReportCell of(Integer count, ReportCellHighlightType highlightType) {
         if (Objects.nonNull(count)) {
-            return new ReportCell(ReportCellValueType.integer, highlightType, count, null, null);
+            return new ReportCell(ReportCellValueType.integer, highlightType, count, null, null, null);
         }
         return ReportCell.empty(highlightType);
     }
@@ -77,7 +80,7 @@ public class ReportCell {
      * @return the report cell containing "true" or "false"
      */
     public static ReportCell of(Boolean passed, ReportCellHighlightType highlightType) {
-        return new ReportCell(ReportCellValueType.text, highlightType, null, String.valueOf(passed), null);
+        return new ReportCell(ReportCellValueType.text, highlightType, null, String.valueOf(passed), null, null);
     }
 
     /**
@@ -93,7 +96,8 @@ public class ReportCell {
             ReportCellHighlightType.fromErrorsAndWarnings(errors, warnings),
             null,
             null,
-            Stream.concat(errors.stream(), warnings.stream()).toList()
+            Stream.concat(errors.stream(), warnings.stream()).toList(),
+            null
         );
     }
 
@@ -135,5 +139,13 @@ public class ReportCell {
 
     public void setHighlightType(ReportCellHighlightType highlightType) {
         this.highlightType = highlightType;
+    }
+
+    public String getNote() {
+        return this.note;
+    }
+
+    public void setNode(String note) {
+        this.note = note;
     }
 }

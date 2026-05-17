@@ -358,6 +358,8 @@ public class ValidateCommand implements Callable<Integer> {
         List<ReportRow> report = ReportGenerator.generateReport(
             result,
             config.getValidation().getImageRules(),
+            config.getValidation().getDirectoryRules().getConsistentProperties(),
+            config.getValidation().getDirectoryRules().getPropertyDeviations(),
             config.getOutput().getReport().getColumns()
         );
 
