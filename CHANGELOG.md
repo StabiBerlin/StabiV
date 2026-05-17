@@ -7,7 +7,7 @@ New Features
 - Highlight various Excel report cells in case they are related to validation errors or warnings
 - Show validation errors and warnings for a specific property column via an Excel note
 - Show all validation errors and warnings in the Excel report via a drop-down menu
-- Show individual error messages for each image with property deviations (in addition reporting the directory error)
+- Show individual error messages for each image with property deviations (in addition to reporting the directory error)
 - The first 2 rows and 7 columns are frozen in the Excel report
 - The first column (full path to file or directory) is hidden by default in the Excel report
 - The Excel report is generated with borders around every cell
