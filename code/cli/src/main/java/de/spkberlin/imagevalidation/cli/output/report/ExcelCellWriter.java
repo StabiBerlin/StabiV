@@ -115,7 +115,7 @@ public class ExcelCellWriter {
     private void addNote(Cell cell, String note) {
         ClientAnchor anchor = this.creationHelper.createClientAnchor();
         anchor.setCol1(cell.getColumnIndex());
-        anchor.setCol2(cell.getColumnIndex() + 3);
+        anchor.setCol2(cell.getColumnIndex() + 5);
         anchor.setRow1(cell.getRowIndex());
         anchor.setRow2(cell.getRowIndex() + note.split("\n").length);
 
