@@ -155,13 +155,13 @@ validation:
       reportColumns:
         - label: ImageWidth
           property: $.exiftool.TIFF.IFD[0].ImageWidth
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         and:
-          - property: $.ImageWidth
+          - property: $.TIFF.IFD[0].ImageWidth
             assert: greaterThan
             value: 0
-          - property: $.ImageWidth
+          - property: $.TIFF.IFD[0].ImageWidth
             assert: isInteger
 
     # ImageLength
@@ -170,13 +170,13 @@ validation:
       reportColumns:
         - label: ImageHeight
           property: $.exiftool.TIFF.IFD[0].ImageHeight
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         and:
-          - property: $.ImageHeight
+          - property: $.TIFF.IFD[0].ImageHeight
             assert: greaterThan
             value: 0
-          - property: $.ImageHeight
+          - property: $.TIFF.IFD[0].ImageHeight
             assert: isInteger
 
     # PhotometricInterpretation
@@ -185,9 +185,9 @@ validation:
       reportColumns:
         - label: PhotometricInterpretation
           property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.PhotometricInterpretation
+        property: $.TIFF.IFD[0].PhotometricInterpretation
         assert: oneOf
         value:
           - BlackIsZero
@@ -199,9 +199,9 @@ validation:
       reportColumns:
         - label: BitsPerSample
           property: $.exiftool.TIFF.IFD[0].BitsPerSample
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.BitsPerSample
+        property: $.TIFF.IFD[0].BitsPerSample
         assert: oneOf
         value:
           - "8"
@@ -215,9 +215,9 @@ validation:
       reportColumns:
         - label: Compression
           property: $.exiftool.TIFF.IFD[0].Compression
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.Compression
+        property: $.TIFF.IFD[0].Compression
         assert: equal
         value: Uncompressed
 
@@ -227,13 +227,13 @@ validation:
       reportColumns:
         - label: StripOffsets
           property: $.exiftool.TIFF.IFD[0].StripOffsets
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         and:
-          - property: $.StripOffsets
+          - property: $.TIFF.IFD[0].StripOffsets
             assert: greaterThan
             value: 0
-          - property: $.StripOffsets
+          - property: $.TIFF.IFD[0].StripOffsets
             assert: isInteger
 
     # RowsPerStrip
@@ -242,13 +242,13 @@ validation:
       reportColumns:
         - label: RowsPerStrip
           property: $.exiftool.TIFF.IFD[0].RowsPerStrip
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         and:
-          - property: $.RowsPerStrip
+          - property: $.TIFF.IFD[0].RowsPerStrip
             assert: greaterThan
             value: 0
-          - property: $.RowsPerStrip
+          - property: $.TIFF.IFD[0].RowsPerStrip
             assert: isInteger
 
     # StripByteCounts
@@ -257,13 +257,13 @@ validation:
       reportColumns:
         - label: StripByteCounts
           property: $.exiftool.TIFF.IFD[0].StripByteCounts
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         and:
-          - property: $.StripByteCounts
+          - property: $.TIFF.IFD[0].StripByteCounts
             assert: greaterThan
             value: 0
-          - property: $.StripByteCounts
+          - property: $.TIFF.IFD[0].StripByteCounts
             assert: isInteger
 
     # XResolution
@@ -272,9 +272,9 @@ validation:
       reportColumns:
         - label: XResolution
           property: $.exiftool.TIFF.IFD[0].XResolution
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.XResolution
+        property: $.TIFF.IFD[0].XResolution
         assert: oneOf
         value:
           - 300
@@ -287,9 +287,9 @@ validation:
       reportColumns:
         - label: YResolution
           property: $.exiftool.TIFF.IFD[0].YResolution
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.YResolution
+        property: $.TIFF.IFD[0].YResolution
         assert: oneOf
         value:
           - 300
@@ -304,11 +304,11 @@ validation:
           property: $.exiftool.TIFF.IFD[0].XResolution
         - label: YResolution
           property: $.exiftool.TIFF.IFD[0].YResolution
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.XResolution
+        property: $.TIFF.IFD[0].XResolution
         assert: equalsProperty
-        value: $.YResolution
+        value: $.TIFF.IFD[0].YResolution
 
     # ResolutionUnit
     - message: ResolutionUnit must be inches
@@ -316,9 +316,9 @@ validation:
       reportColumns:
         - label: ResolutionUnit
           property: $.exiftool.TIFF.IFD[0].ResolutionUnit
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.ResolutionUnit
+        property: $.TIFF.IFD[0].ResolutionUnit
         assert: equal
         value: inches
 
@@ -328,10 +328,10 @@ validation:
       reportColumns:
         - label: Make
           property: $.exiftool.TIFF.IFD[0].Make
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         not:
-          property: $.Make
+          property: $.TIFF.IFD[0].Make
           assert: isEmpty
 
     # Model
@@ -340,10 +340,10 @@ validation:
       reportColumns:
         - label: Model
           property: $.exiftool.TIFF.IFD[0].Model
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         not:
-          property: $.Model
+          property: $.TIFF.IFD[0].Model
           assert: isEmpty
 
     # Software
@@ -352,10 +352,10 @@ validation:
       reportColumns:
         - label: Software
           property: $.exiftool.TIFF.IFD[0].Software
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         not:
-          property: $.Software
+          property: $.TIFF.IFD[0].Software
           assert: isEmpty
 
     # Artist
@@ -364,10 +364,10 @@ validation:
       reportColumns:
         - label: Artist
           property: $.exiftool.TIFF.IFD[0].Artist
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         not:
-          property: $.Artist
+          property: $.TIFF.IFD[0].Artist
           assert: isEmpty
 
     # ICC Profile
@@ -406,13 +406,13 @@ validation:
       reportColumns:
         - label: SubfileType
           property: $.exiftool.TIFF.IFD[0].SubfileType
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.SubfileType
+              property: $.TIFF.IFD[0].SubfileType
               assert: exists
-          - property: $.SubfileType
+          - property: $.TIFF.IFD[0].SubfileType
             assert: equal
             value: Full-resolution image
 
@@ -422,13 +422,13 @@ validation:
       reportColumns:
         - label: FillOrder
           property: $.exiftool.TIFF.IFD[0].FillOrder
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.FillOrder
+              property: $.TIFF.IFD[0].FillOrder
               assert: exists
-          - property: $.FillOrder
+          - property: $.TIFF.IFD[0].FillOrder
             assert: equal
             value: Normal
 
@@ -438,14 +438,14 @@ validation:
       reportColumns:
         - label: ImageDescription
           property: $.exiftool.TIFF.IFD[0].ImageDescription
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.ImageDescription
+              property: $.TIFF.IFD[0].ImageDescription
               assert: exists
           - not:
-              property: $.ImageDescription
+              property: $.TIFF.IFD[0].ImageDescription
               assert: isEmpty
 
     # Orientation
@@ -454,13 +454,13 @@ validation:
       reportColumns:
         - label: Orientation
           property: $.exiftool.TIFF.IFD[0].Orientation
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.Orientation
+              property: $.TIFF.IFD[0].Orientation
               assert: exists
-          - property: $.Orientation
+          - property: $.TIFF.IFD[0].Orientation
             assert: equal
             value: Horizontal (normal)
 
@@ -470,9 +470,9 @@ validation:
       reportColumns:
         - label: SamplesPerPixel
           property: $.exiftool.TIFF.IFD[0].SamplesPerPixel
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.SamplesPerPixel
+        property: $.TIFF.IFD[0].SamplesPerPixel
         assert: oneOf
         value:
           - 1
@@ -484,13 +484,13 @@ validation:
       reportColumns:
         - label: PlanarConfiguration
           property: $.exiftool.TIFF.IFD[0].PlanarConfiguration
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.PlanarConfiguration
+              property: $.TIFF.IFD[0].PlanarConfiguration
               assert: exists
-          - property: $.PlanarConfiguration
+          - property: $.TIFF.IFD[0].PlanarConfiguration
             assert: equal
             value: Chunky
 
@@ -500,13 +500,13 @@ validation:
       reportColumns:
         - label: ModifyDate
           property: $.exiftool.TIFF.IFD[0].ModifyDate
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
         or:
           - not:
-              property: $.ModifyDate
+              property: $.TIFF.IFD[0].ModifyDate
               assert: exists
-          - property: $.ModifyDate
+          - property: $.TIFF.IFD[0].ModifyDate
             assert: matches
             value: ^\d\d\d\d:\d\d:\d\d \d\d:\d\d:\d\d$
 
@@ -516,9 +516,9 @@ validation:
       reportColumns:
         - label: WhiteBalance
           property: $.exiftool.TIFF.IFD[0].WhiteBalance
-      context: $.exiftool.TIFF.IFD[0]
+      context: $.exiftool
       condition:
-        property: $.WhiteBalance
+        property: $.TIFF.IFD[0].WhiteBalance
         assert: oneOf
         value:
           - Auto
