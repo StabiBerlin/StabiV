@@ -14,6 +14,7 @@ New Features
 - Report property columns can also be configured inside all validation rules individually (such that report cells can be highlighted in case of errors)
 - Severity levels of property deviation rules, consistency rules and the consecutive numbering check can be configured
 - Directories and files are listed in lexicographic sort order in the report
+- Show the expected number of images in the validation report if there are missing files in a directory
 
 Breaking Changes
 

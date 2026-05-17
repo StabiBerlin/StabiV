@@ -96,11 +96,11 @@ public class DirectoryValidation {
             checksums
         );
 
-        // combine into one directory result
         return new DirectoryValidationResult(
             directory,
             imageValidationResults,
-            summarizeDirectoryValidationResult(imageValidationResults, consecutivenessResult)
+            summarizeDirectoryValidationResult(imageValidationResults, consecutivenessResult),
+            consecutivenessResult.getExpectedNumberOfFiles()
         );
     }
 

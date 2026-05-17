@@ -37,7 +37,8 @@ public class DirectoryConsecutivenessValidation {
             logger.debug("skip consecutiveness check due to empty filenameRegExp");
             return new DirectoryConsecutiveNumberingResult(
                 imageFilepaths.stream().collect(Collectors.toMap(filepath -> filepath, filepath -> ValidationResult.fromSuccess())),
-                ValidationResult.fromSuccess()
+                ValidationResult.fromSuccess(),
+                null
             );
         }
 
@@ -74,7 +75,11 @@ public class DirectoryConsecutivenessValidation {
             })
             .toList();
 
-        return new DirectoryConsecutiveNumberingResult(imageResults, ValidationResult.of(messages, condition.getSeverity()));
+        return new DirectoryConsecutiveNumberingResult(
+            imageResults,
+            ValidationResult.of(messages, condition.getSeverity()),
+            numbersList.stream().max(Integer::compareTo).orElse(null)
+        );
     }
 
     private static Map<Path, Optional<Integer>> matchFilenames(List<Path> filepaths, Pattern pattern, Integer matchGroup) {

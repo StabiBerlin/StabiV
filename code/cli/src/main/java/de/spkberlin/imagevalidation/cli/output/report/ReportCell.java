@@ -50,6 +50,10 @@ public class ReportCell {
         return new ReportCell(ReportCellValueType.text, ReportCellHighlightType.none, null, text, null, null);
     }
 
+    public static ReportCell of(String text, ReportCellHighlightType highlightType) {
+        return new ReportCell(ReportCellValueType.text, highlightType, null, text, null, null);
+    }
+
     public static ReportCell of(String text, ReportCellHighlightType highlightType, String note) {
         return new ReportCell(ReportCellValueType.text, highlightType, null, text, null, note);
     }

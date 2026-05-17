@@ -138,14 +138,24 @@ public class ReportGenerator {
         List<String> directoryWarnings = directoryResult.getDirectoryResult().getWarnings();
         ReportCellHighlightType highlightType = ReportCellHighlightType.fromErrorsAndWarnings(directoryErrors, directoryWarnings);
         int errorWarningCount = directoryErrors.size() + directoryWarnings.size();
+        Integer expectedNumberOfFiles = directoryResult.getExpectedNumberOfFiles();
+        Integer numberOfFilesChecked = Integer.valueOf(directoryResult.getImageResults().size());
+
+        ReportCell totalImagesCell =
+            Objects.isNull(expectedNumberOfFiles) || expectedNumberOfFiles.equals(numberOfFilesChecked)
+                ? ReportCell.of(numberOfFilesChecked, highlightType)
+                : ReportCell.of(
+                      String.format("expected %d images, found %d images", expectedNumberOfFiles, numberOfFilesChecked),
+                      highlightType
+                  );
 
         // write directory validation result
         return Stream.of(
             ReportRow.ofDirectory(
                 Stream.of(
                     ReportCell.of(directory.toString()), // path
-                    ReportCell.of(directory.getFileName().toString(), highlightType, null), // directory name
-                    ReportCell.of(directoryResult.getImageResults().size(), highlightType), // file name / total images
+                    ReportCell.of(directory.getFileName().toString(), highlightType), // directory name
+                    totalImagesCell, // file name / total images
                     ReportCell.of(passedValidation, highlightType), // directory passed
                     ReportCell.empty(highlightType),
                     ReportCell.of(directoryErrors, directoryWarnings), // validation error or warning
@@ -183,7 +193,7 @@ public class ReportGenerator {
                         Stream.of(
                             ReportCell.of(filepath.toString()), // path
                             ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
-                            ReportCell.of(filepath.getFileName().toString(), highlightType, null), // file name
+                            ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
                             ReportCell.empty(highlightType), // directory passed validation
                             ReportCell.of(passedValidation, highlightType), // file passed validation
                             ReportCell.of(validationErrors, validationWarnings), // validation error or warning
