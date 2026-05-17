@@ -222,7 +222,7 @@ public class ValidateCommand implements Callable<Integer> {
 
     static class OutputOptions {
 
-        /** The base directory for relative output filepaths */
+        /** The base directory for relative output filepaths. */
         @Option(
             names = { "--outputBaseDirectory" },
             arity = "1",
@@ -301,7 +301,7 @@ public class ValidateCommand implements Callable<Integer> {
 
     static class InputOptions {
 
-        /** The base directory for relative input filepaths */
+        /** The base directory for relative input filepaths. */
         @Option(
             names = { "--inputBaseDirectory" },
             arity = "1",

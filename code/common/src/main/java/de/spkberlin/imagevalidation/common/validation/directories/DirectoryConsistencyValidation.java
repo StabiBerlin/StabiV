@@ -40,11 +40,8 @@ public class DirectoryConsistencyValidation {
         }
         return consistencyConditions
             .stream()
-            .map(consistencyCondition -> {
-                Map<Path, Optional<String>> extractedValues = extractPropertyForAllImages(
-                    extractionResults,
-                    consistencyCondition.getProperty()
-                );
+            .map(condition -> {
+                Map<Path, Optional<String>> extractedValues = extractPropertyForAllImages(extractionResults, condition.getProperty());
                 Optional<String> mostFrequentValue = findMostFrequentValue(extractedValues.values());
                 return extractionResults
                     .entrySet()
@@ -54,28 +51,22 @@ public class DirectoryConsistencyValidation {
                             Path filepath = entry.getKey();
                             if (extractedValues.get(filepath).isEmpty()) {
                                 return ValidationResult.of(
-                                    String.format(
-                                        "could not extract property '%s' when checking consistency",
-                                        consistencyCondition.getLabel()
-                                    ),
-                                    consistencyCondition.getSeverity()
+                                    String.format("could not extract property '%s' when checking consistency", condition.getLabel()),
+                                    condition.getSeverity()
                                 );
                             } else if (mostFrequentValue.isEmpty()) {
                                 return ValidationResult.of(
-                                    String.format(
-                                        "could not determine consistent value for property '%s'",
-                                        consistencyCondition.getLabel()
-                                    ),
-                                    consistencyCondition.getSeverity()
+                                    String.format("could not determine consistent value for property '%s'", condition.getLabel()),
+                                    condition.getSeverity()
                                 );
                             } else if (!mostFrequentValue.get().equals(extractedValues.get(filepath).get())) {
                                 return ValidationResult.of(
                                     String.format(
                                         "value '%s' for property '%s' is not consistent",
                                         extractedValues.get(filepath).get(),
-                                        consistencyCondition.getLabel()
+                                        condition.getLabel()
                                     ),
-                                    consistencyCondition.getSeverity()
+                                    condition.getSeverity()
                                 );
                             }
                             return ValidationResult.fromSuccess();
