@@ -17,9 +17,7 @@ import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidati
 import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumnKey;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
-import jakarta.validation.Validation;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,8 +40,8 @@ public class ReportGenerator {
         "Path",
         "Directory Name",
         "File Name / Total Images",
-        "Directory Passed Validation",
-        "File Passed Validation",
+        "Directory Passed",
+        "File Passed",
         "Validation Errors / Warnings",
         "#"
     );
