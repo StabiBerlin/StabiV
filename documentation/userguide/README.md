@@ -196,7 +196,7 @@ The `input` section specifies which directories and files will be processed, and
 
 You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation.
 
-Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--inputBaseDirectory` or as the very last command line argument, which defines a global base directory. If nothing is defined, the current working directory is used.
+Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--inputBaseDirectory` or as the very last command line argument, which defines a global base directory. In case nothing is defined, the current working directory is used.
 
 If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated. If no include patterns are defined, the include all files pattern (`**`) is used by default.
 
@@ -640,7 +640,7 @@ validation:
 
 The `output` section contains the following options and subsections:
 
-- `baseDirectory` - the directory that is used to resolve relative filepaths for other output options
+- `baseDirectory` - the directory that is used to resolve relative file paths for other output options
 - `checksum` - whether to generate checksum files for each valid directory
 - `logging` - options to control logging
 - `report` - options related to the validation report
@@ -697,9 +697,9 @@ The validation report can be generated as CSV and Excel file with the following 
 - `excelPath` - the file path that is used to write the validation report as Excel file
 - `columns` - the list of additional property columns added to CSV report
 
-Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--outputBaseDirectory` or as the very last command line argument, which defines a global base directory. If nothing is defined, the current working directory is used.
+Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--outputBaseDirectory` or as the very last command line argument, which defines a global base directory. In case nothing is defined, the current working directory is used.
 
-Both `csvPath` and `excelPath` may use the following substitution variables to generate filepaths:
+Both `csvPath` and `excelPath` may use the following substitution variables to generate file paths:
 
 - `date` - the current date in format `YY-MM-DD`
 - `time` - the current time in format `HH-MM-SS`

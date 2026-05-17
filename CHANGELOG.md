@@ -17,7 +17,7 @@ New Features
 - Show the expected number of images in the validation report if there are missing files in a directory
 - CSV and Excel report files are never overwritten, instead filenames are modified to include a number
 - The report now contains basic metadata: version information, the date and time, and the config file that was used
-- The CSV and Excel report filepaths may use the substitution variables `date` and `time`
+- The CSV and Excel report file paths may use the substitution variables `date` and `time`
 
 Breaking Changes
 
@@ -25,8 +25,8 @@ Breaking Changes
 - Error and warning messages are listed inside a single column in the CSV and Excel report
 - The checksum column has been moved to the end of the report
 - The order of report columns is determined based on where report columns are configured in the configuration file (there are now multiple locations to define them)
-- Relative filepaths inside a configuration file are no longer resolved with respect to the location of the configuration file
-- Relative filepaths inside a configuration file are now resolved with respect to a base directory that can be defined as command line option
+- Relative file paths inside a configuration file are no longer resolved with respect to the location of the configuration file
+- Relative file paths inside a configuration file are now resolved with respect to a base directory that can be defined as command line option
 
 Backend Improvement
 
@@ -102,7 +102,7 @@ New Features
 
 Breaking Changes
 
-- Configurtion option `parallelThreads` was moved from YAML section `validation` to YAML section `processing` and is now called `threads`
+- Configuration option `parallelThreads` was moved from YAML section `validation` to YAML section `processing` and is now called `threads`
 
 Fixes
 
