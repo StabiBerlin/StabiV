@@ -3,8 +3,8 @@ input:
     - "**"
   excludes:
     - "config.yaml"
-    - "output.csv"
-    - "output.xlsx"
+    - "**.csv"
+    - "**.xlsx"
     - ".~lock*"
     - "**.sha1"
     - "**.gitignore"

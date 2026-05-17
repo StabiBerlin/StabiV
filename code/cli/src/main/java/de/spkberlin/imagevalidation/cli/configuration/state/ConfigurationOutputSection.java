@@ -1,8 +1,11 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import jakarta.validation.Valid;
+import java.nio.file.Path;
 
 public class ConfigurationOutputSection {
+
+    private Path baseDirectory;
 
     @Valid
     private ConfigurationReportSection report;
@@ -20,6 +23,14 @@ public class ConfigurationOutputSection {
         report = new ConfigurationReportSection();
         logging = new ConfigurationLoggingSection();
         checksum = new ConfigurationOutputChecksumSection();
+    }
+
+    public Path getBaseDirectory() {
+        return this.baseDirectory;
+    }
+
+    public void setBaseDirectory(Path basepath) {
+        this.baseDirectory = basepath;
     }
 
     public ConfigurationReportSection getReport() {

@@ -2,10 +2,13 @@ package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationInputSection {
+
+    private Path baseDirectory;
 
     @NotEmpty
     private List<@Valid ConfigurationPath> includes;
@@ -18,6 +21,14 @@ public class ConfigurationInputSection {
     public ConfigurationInputSection() {
         includes = new ArrayList<>();
         excludes = new ArrayList<>();
+    }
+
+    public Path getBaseDirectory() {
+        return this.baseDirectory;
+    }
+
+    public void setBaseDirectory(Path basepath) {
+        this.baseDirectory = basepath;
     }
 
     public List<ConfigurationPath> getIncludes() {

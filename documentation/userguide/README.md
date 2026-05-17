@@ -194,9 +194,11 @@ Each section is described in detail as follows.
 
 The `input` section specifies which directories and files will be processed, and which directories and files will be ignored.
 
-You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation. Relative file paths are resolved relative to the location of the configuration file.
+You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation.
 
-If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated.
+Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--inputBaseDirectory` or as the very last command line argument, which defines a global base directory. If nothing is defined, the current working directory is used.
+
+If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated. If no include patterns are defined, the include all files pattern (`**`) is used by default.
 
 Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 
@@ -207,36 +209,28 @@ For Example:
 ```YAML
 input:
 
+  baseDirectory: /path/to/directory
+
   includes:
-    - /path/to/directory
     - /path/to/file.tif
     - "/all/tif/files/*.tif"
     - "/all/tif/files/in/all/subdirectories/**/*.tif"
     - "/path/to/mixed/files/*.{tif,jpg}"
+    - "relative/to/base/directory/*.tif"
 
   excludes:
     - /path/to/directory
     - "/path/to/mixed/files/**.jpg"
+    - "relative/to/base/directory/*.jpg"
 ```
 
-Alternatively, but not recommended, the list of includes and excludes can also be defined as pairs of `baseDirectory` and `path`, for example:
+By default, all files in the base directory are included, and no files are excluded, which corresponds to the following configuration:
 
 ```YAML
 input:
 
   includes:
-    - baseDirectory: /path/to/directory
-    - path: "subdirectory/*.tif"
-```
-
-This distinction is used by the tool to differentiate how relative paths are resolved in case they are provided as CLI argument or from a configuration file. When providing a relative filepath via CLI argument, the `baseDirectory` defaults to the current working directory. When defining configuration file options, the `baseDirectory` defaults to the directory that contains the configuration file.
-
-By default, no files are included or excluded, which corresponds to the following empty configuration:
-
-```YAML
-input:
-
-  includes:
+    - "**"
 
   excludes:
 ```
@@ -644,8 +638,9 @@ validation:
 
 ### Output Section
 
-The `output` section contains the following subsections:
+The `output` section contains the following options and subsections:
 
+- `baseDirectory` - the directory that is used to resolve relative filepaths for other output options
 - `checksum` - whether to generate checksum files for each valid directory
 - `logging` - options to control logging
 - `report` - options related to the validation report
@@ -700,7 +695,7 @@ The validation report can be generated as CSV and Excel file with the following 
 - `excelPath` - the file path that is used to write the validation report as Excel file
 - `columns` - the list of additional property columns added to CSV report
 
-A relative file path is resolved relative to the location of the configuration file.
+Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--outputBaseDirectory` or as the very last command line argument, which defines a global base directory. If nothing is defined, the current working directory is used.
 
 Additional property columns can be specified as a list of two options:
 
@@ -718,6 +713,8 @@ For example:
 
 ```YAML
 output:
+
+  baseDirectory: /path/to/output/directory
 
   report:
     csvPath: output.csv

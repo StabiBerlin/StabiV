@@ -88,13 +88,13 @@ There are many other possible path variants. A comprehensive list of examples ca
 You can test validating images from the two examples provided in the `examples` directory.
 
 ```
-bash spk-iv-cli.sh validate -v --config=examples/simple/config.yaml
+bash spk-iv-cli.sh validate -v --config=examples/simple/config.yaml examples/simple
 ```
 
 or
 
 ```
-bash spk-iv-cli.sh validate -v --config=examples/spk-berlin/config.yaml
+bash spk-iv-cli.sh validate -v --config=examples/spk-berlin/config.yaml  examples/spk-berlin
 ```
 
 Both commands will generate an CSV file `output.csv` in their respective directories.

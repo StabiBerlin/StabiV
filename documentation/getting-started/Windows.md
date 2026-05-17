@@ -80,13 +80,13 @@ There are many other possible path variants. A comprehensive list of examples ca
 You can test validating images from the two examples provided in the `examples` directory.
 
 ```
-spk-iv-cli.bat validate -v --config=examples\simple\config.yaml
+spk-iv-cli.bat validate -v --config=examples\simple\config.yaml examples\simple
 ```
 
 or
 
 ```
-spk-iv-cli.bat validate -v --config=examples\spk-berlin\config.yaml
+spk-iv-cli.bat validate -v --config=examples\spk-berlin\config.yaml examples\spk-berlin
 ```
 
 Both commands will generate an CSV file `output.csv` in their respective directories.

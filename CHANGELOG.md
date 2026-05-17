@@ -22,7 +22,9 @@ Breaking Changes
 - Layout of CSV and Excel report was changed significantly
 - Error and warning messages are listed inside a single column in the CSV and Excel report
 - The checksum column has been moved to the end of the report
-- The order of report columns is determined based on where report columns are configured in the configuration file
+- The order of report columns is determined based on where report columns are configured in the configuration file (there are now multiple locations to define them)
+- Relative filepaths inside a configuration file are no longer resolved with respect to the location of the configuration file
+- Relative filepaths inside a configuration file are now resolved with respect to a base directory that can be defined as command line option
 
 Backend Improvement
 

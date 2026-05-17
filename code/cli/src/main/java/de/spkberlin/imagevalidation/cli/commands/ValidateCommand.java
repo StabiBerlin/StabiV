@@ -81,8 +81,8 @@ public class ValidateCommand implements Callable<Integer> {
     static class ConfigOptions {
 
         /** The filepath to the configuration file. */
-        @Option(names = { "--config" }, description = "Load and use a configuration file")
-        String configFilepath;
+        @Option(names = { "--config" }, paramLabel = "FILEPATH", description = "Load and use a configuration file")
+        Path configFilepath;
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Processing Options|@%n%n", order = 2, exclusive = false)
@@ -222,6 +222,21 @@ public class ValidateCommand implements Callable<Integer> {
 
     static class OutputOptions {
 
+        /** The base directory for relative output filepaths */
+        @Option(
+            names = { "--outputBaseDirectory" },
+            arity = "1",
+            paramLabel = "DIRECTORY",
+            description = """
+            The directory path that is used as base directory when resolving relative filepaths for output options
+            (in particular the CSV and Excel report filepath options). Defaults to the global base directory.
+
+            For example:
+            - `/path/to/directory`
+            """
+        )
+        Path baseDirectory;
+
         /** The filepath to the generated CSV file. */
         @Option(
             names = { "--checksumFilename" },
@@ -245,11 +260,11 @@ public class ValidateCommand implements Callable<Integer> {
         String checksumFilename;
 
         /** The filepath to the generated CSV file. */
-        @Option(names = { "--csv" }, description = "CSV output file")
+        @Option(names = { "--csv" }, paramLabel = "FILEPATH", description = "CSV output file")
         String csvOutputFilepath;
 
         /** The filepath to the generated CSV file. */
-        @Option(names = { "--excel" }, description = "Excel output file")
+        @Option(names = { "--excel" }, paramLabel = "FILEPATH", description = "Excel output file")
         String excelOutputFilepath;
 
         @Option(
@@ -286,9 +301,24 @@ public class ValidateCommand implements Callable<Integer> {
 
     static class InputOptions {
 
+        /** The base directory for relative input filepaths */
+        @Option(
+            names = { "--inputBaseDirectory" },
+            arity = "1",
+            paramLabel = "DIRECTORY",
+            description = """
+            The directory path that is used as base directory when resolving relative filepaths defined for input options
+            (in particular the include and exclude options). Defaults to the global base directory.
+
+            For example:
+            - `/path/to/directory`
+            """
+        )
+        Path baseDirectory;
+
         @Option(
             names = { "--exclude" },
-            paramLabel = "PATH",
+            paramLabel = "PATTERN",
             arity = "1",
             description = """
             one ore multiple files, directories or glob patterns that are excluded from validation
@@ -301,22 +331,36 @@ public class ValidateCommand implements Callable<Integer> {
         )
         List<String> excludes = Collections.emptyList();
 
-        /** The list of directories and files that are being validated. */
-        @Parameters(
-            paramLabel = "PATHS",
-            arity = "0..*",
+        @Option(
+            names = { "--include" },
+            paramLabel = "PATTERN",
+            arity = "1",
             description = """
-            one or multiple files, directories or glob patterns that are scanned for files to validate
+            one ore multiple files, directories or glob patterns that are excluded from validation
 
             Examples
-            - `/path/to/directory` - validate all files from all subdirectories
-            - `/path/to/directory/&ast;.tif` - validate tif files in this directory not considering subdirectories
-            - `/path/to/directory/&ast;&ast;/&ast;.tif` - validate tif files in all subdirectories
-            - `/path/to/directory/&ast;&ast;/&ast;.{tif,jpg}` - validate tif and jpg files in all subdirectories
-            - `../relative/path/to/directory` - relative path with respect to current working directory
+            - `&ast;.tif` - validate all tif files in this directory not considering subdirectories
+            - `&ast;&ast;.tif` - validate all tif files in all subdirectories
+            - `&ast;&ast;/&ast;.{tif,jpg}` - validate tif and jpg files in all subdirectories, but not the base directory
             """
         )
         List<String> includes = Collections.emptyList();
+
+        /** The list of directories and files that are being validated. */
+        @Parameters(
+            paramLabel = "BASE_DIRECTORY",
+            arity = "1",
+            description = """
+            The global base directory that is used to resolve all relative filepaths. Defaults to the current working directory. If more
+            specific base directories are defined, e.g. via `--inputBaseDirectory` or `--outputBaseDirectry`, then they will overwrite the
+            global base directory. Also, if base directories are specified inside the configuration file, they will also overwrite this
+            global base directory.
+
+            Examples
+            - `/path/to/directory` - validate all files according to include and exclude rules in this directory
+            """
+        )
+        Path globalBaseDirectory = Path.of(CWD);
     }
 
     /** Called when CLI arguments were successfully parsed. */
@@ -386,28 +430,23 @@ public class ValidateCommand implements Callable<Integer> {
     public ConfigurationRoot loadConfiguration() throws IOException {
         ConfigurationRoot config = new ConfigurationRoot();
 
-        Path cwd = Path.of(CWD).normalize().toAbsolutePath();
         Path configPath = null;
-
         if (Objects.nonNull(configOptions.configFilepath)) {
             logger.info("load configuration file '{}'", configOptions.configFilepath);
-            configPath = Path.of(configOptions.configFilepath).normalize().toAbsolutePath();
+            configPath = Path.of(CWD).resolve(configOptions.configFilepath).normalize().toAbsolutePath();
             config = ConfigurationParser.parseConfigurationFile(configPath);
         }
 
-        List<String> absoluteIncludes = inputOptions.includes
-            .stream()
-            .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
-            .toList();
-
-        List<String> absoluteExcludes = inputOptions.excludes
-            .stream()
-            .map(p -> GlobResolver.makePatternAbsolute(p, cwd))
-            .toList();
+        if (Objects.isNull(inputOptions.baseDirectory)) {
+            inputOptions.baseDirectory = inputOptions.globalBaseDirectory;
+        }
+        if (Objects.isNull(outputOptions.baseDirectory)) {
+            outputOptions.baseDirectory = inputOptions.globalBaseDirectory;
+        }
 
         logger.debug("merge configuration with command line options");
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
-        ConfigurationMerger.mergeInput(config, cwd, configPath, absoluteIncludes, absoluteExcludes);
+        ConfigurationMerger.mergeInput(config, inputOptions.baseDirectory, inputOptions.includes, inputOptions.excludes);
         ConfigurationMerger.mergeProcessing(config, processingOptions.parallelThreads, processingOptions.checksumAlgorithm);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
         ConfigurationMerger.mergeValidation(
@@ -419,8 +458,7 @@ public class ValidateCommand implements Callable<Integer> {
         );
         ConfigurationMerger.mergeOutput(
             config,
-            configPath,
-            cwd,
+            outputOptions.baseDirectory,
             outputOptions.csvOutputFilepath,
             outputOptions.excelOutputFilepath,
             outputOptions.reportColumns,

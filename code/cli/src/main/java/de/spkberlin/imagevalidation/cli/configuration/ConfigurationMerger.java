@@ -36,28 +36,37 @@ public class ConfigurationMerger {
      * Merge input section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
-     * @param cwd the current working directory
-     * @param configFilePath the path to the configuration file
+     * @param baseDirectory the path to the configuration file
      * @param includes the list of includes filepaths specified with CLI option
      * @param excludes the list of exclided filepaths specified with CLI option
      */
-    public static void mergeInput(ConfigurationRoot config, Path cwd, Path configFilePath, List<String> includes, List<String> excludes) {
+    public static void mergeInput(ConfigurationRoot config, Path baseDirectory, List<String> includes, List<String> excludes) {
         // make sure input section exists
         if (Objects.isNull(config.getInput())) {
             config.setInput(new ConfigurationInputSection());
+        }
+
+        // make sure base directory is defined
+        if (Objects.isNull(config.getInput().getBaseDirectory())) {
+            config.getInput().setBaseDirectory(baseDirectory);
         }
 
         // make sure includes are defined
         if (Objects.isNull(config.getInput().getIncludes())) {
             config.getInput().setIncludes(new ArrayList<>());
         }
-        mergeConfigurationPaths(config.getInput().getIncludes(), configFilePath, cwd, includes);
+        mergeConfigurationPaths(config.getInput().getIncludes(), config.getInput().getBaseDirectory(), includes);
+
+        // add default include pattern "**" if none are specified
+        if (config.getInput().getIncludes().isEmpty()) {
+            config.getInput().getIncludes().add(new ConfigurationPath("**", config.getInput().getBaseDirectory()));
+        }
 
         // merge excludes
         if (Objects.isNull(config.getInput().getExcludes())) {
             config.getInput().setExcludes(new ArrayList<>());
         }
-        mergeConfigurationPaths(config.getInput().getExcludes(), configFilePath, cwd, excludes);
+        mergeConfigurationPaths(config.getInput().getExcludes(), config.getInput().getBaseDirectory(), excludes);
     }
 
     /**
@@ -240,8 +249,7 @@ public class ConfigurationMerger {
      * Merge output section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
-     * @param configFilePath the path to the configuration file
-     * @param cwd the current working directory
+     * @param baseDirectory the current working directory
      * @param csvPath the csv output path specified with CLI option
      * @param excelPath the excel output path specified with CLI option
      * @param reportColumns add list of additional property columns as provided by CLI option
@@ -251,8 +259,7 @@ public class ConfigurationMerger {
      */
     public static void mergeOutput(
         ConfigurationRoot config,
-        Path configFilePath,
-        Path cwd,
+        Path baseDirectory,
         String csvPath,
         String excelPath,
         List<String> reportColumns,
@@ -265,7 +272,11 @@ public class ConfigurationMerger {
             config.setOutput(new ConfigurationOutputSection());
         }
 
-        mergeOutputReportSection(config.getOutput(), configFilePath, cwd, csvPath, excelPath, reportColumns);
+        if (Objects.isNull(config.getOutput().getBaseDirectory())) {
+            config.getOutput().setBaseDirectory(baseDirectory);
+        }
+
+        mergeOutputReportSection(config.getOutput(), csvPath, excelPath, reportColumns);
         mergeOutputChecksumSection(config.getOutput(), checksumFilename);
 
         // overwrite json output
@@ -284,8 +295,6 @@ public class ConfigurationMerger {
 
     private static void mergeOutputReportSection(
         ConfigurationOutputSection config,
-        Path configFilePath,
-        Path cwd,
         String csvPath,
         String excelPath,
         List<String> reportColumns
@@ -297,16 +306,16 @@ public class ConfigurationMerger {
 
         // overwrite csv path from cli
         if (Objects.nonNull(csvPath)) {
-            config.getReport().setCsvPath(new ConfigurationPath(csvPath, cwd));
+            config.getReport().setCsvPath(new ConfigurationPath(csvPath, config.getBaseDirectory()));
         } else if (Objects.nonNull(config.getReport().getCsvPath())) {
-            mergeConfigurationPath(config.getReport().getCsvPath(), configFilePath, cwd);
+            mergeConfigurationPath(config.getReport().getCsvPath(), config.getBaseDirectory());
         }
 
         // overwrite excel path from cli
         if (Objects.nonNull(excelPath)) {
-            config.getReport().setExcelPath(new ConfigurationPath(excelPath, cwd));
+            config.getReport().setExcelPath(new ConfigurationPath(excelPath, config.getBaseDirectory()));
         } else if (Objects.nonNull(config.getReport().getExcelPath())) {
-            mergeConfigurationPath(config.getReport().getExcelPath(), configFilePath, cwd);
+            mergeConfigurationPath(config.getReport().getExcelPath(), config.getBaseDirectory());
         }
 
         // add csv columns
@@ -339,29 +348,24 @@ public class ConfigurationMerger {
         return new ValidationReportColumn(columnTextSplit[0], columnTextSplit[1]);
     }
 
-    private static void mergeConfigurationPaths(
-        List<ConfigurationPath> configPathList,
-        Path configFilePath,
-        Path cwd,
-        List<String> cliPaths
-    ) {
+    private static void mergeConfigurationPaths(List<ConfigurationPath> configPathList, Path baseDirectory, List<String> cliPaths) {
         // make sure config include paths have base directory of config file
         for (ConfigurationPath path : configPathList) {
-            mergeConfigurationPath(path, configFilePath, cwd);
+            mergeConfigurationPath(path, baseDirectory);
         }
-        // add cli includes
+        // add cli paths
         if (Objects.nonNull(cliPaths)) {
             List<ConfigurationPath> additional = cliPaths
                 .stream()
-                .map(p -> new ConfigurationPath(p, cwd))
+                .map(p -> new ConfigurationPath(p, baseDirectory))
                 .toList();
             configPathList.addAll(additional);
         }
     }
 
-    private static void mergeConfigurationPath(ConfigurationPath configPath, Path configFilePath, Path fallbackBaseDirectory) {
+    private static void mergeConfigurationPath(ConfigurationPath configPath, Path baseDirectory) {
         if (Objects.isNull(configPath.getBaseDirectory())) {
-            configPath.setBaseDirectory(Objects.nonNull(configFilePath) ? configFilePath.getParent() : fallbackBaseDirectory);
+            configPath.setBaseDirectory(baseDirectory);
         }
     }
 }

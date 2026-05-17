@@ -1,7 +1,11 @@
 input:
-  includes:
-    - broken
-    - wellformed
+  excludes:
+    - config.yaml
+    - "**.csv"
+    - "**.xlsx"
+    - ".~lock*"
+    - "**.sha1"
+    - "**.gitignore"
 
 validation:
   imageRules:

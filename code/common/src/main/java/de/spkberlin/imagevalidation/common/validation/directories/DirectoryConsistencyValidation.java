@@ -9,6 +9,7 @@ import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +35,9 @@ public class DirectoryConsistencyValidation {
         List<DirectoryConsistencyCondition> consistencyConditions,
         Map<Path, ExtractionResult> extractionResults
     ) throws IOException {
+        if (consistencyConditions.isEmpty()) {
+            return extractionResults.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Collections.emptyList()));
+        }
         return consistencyConditions
             .stream()
             .map(consistencyCondition -> {
