@@ -2,6 +2,7 @@ package de.spkberlin.imagevalidation.common.validation.directories.state;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,9 @@ public class DirectoryPropertyDeviationsRule {
     @NotBlank
     private String property;
 
+    @NotNull
+    private Boolean reportColumn;
+
     @Valid
     private DirectoryPropertyDeviationsCondition condition;
 
@@ -23,17 +27,20 @@ public class DirectoryPropertyDeviationsRule {
      *
      * @param label a short label for a property that is included in error messages
      * @param property the property that is checked as json path
+     * @param reportColumn whether the property is added as an additional column to the final validation report
      * @param condition the deviation confition that is checked
      * @param additionalSlices a list of slice definitions to check a specific range of images for deviations
      */
     public DirectoryPropertyDeviationsRule(
         String label,
         String property,
+        Boolean reportColumn,
         DirectoryPropertyDeviationsCondition condition,
         List<DirectoryPropertyDeviationsSliceEntry> additionalSlices
     ) {
         this.label = label;
         this.property = property;
+        this.reportColumn = reportColumn;
         this.condition = condition;
         this.additionalSlices = additionalSlices;
     }
@@ -42,7 +49,11 @@ public class DirectoryPropertyDeviationsRule {
      * Intiailize property deviations rule with default settings.
      */
     public DirectoryPropertyDeviationsRule() {
-        additionalSlices = new ArrayList<>();
+        this.label = null;
+        this.property = null;
+        this.condition = null;
+        this.additionalSlices = new ArrayList<>();
+        this.reportColumn = true;
     }
 
     public String getLabel() {
@@ -75,5 +86,13 @@ public class DirectoryPropertyDeviationsRule {
 
     public void setAdditionalSlices(List<DirectoryPropertyDeviationsSliceEntry> additionalSlices) {
         this.additionalSlices = additionalSlices;
+    }
+
+    public Boolean isReportColumn() {
+        return this.reportColumn;
+    }
+
+    public void setReportColumn(Boolean reportColumn) {
+        this.reportColumn = reportColumn;
     }
 }

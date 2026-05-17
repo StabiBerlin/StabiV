@@ -49,20 +49,29 @@ public class DirectoryConsistencyValidation {
                         Collectors.toMap(Map.Entry::getKey, entry -> {
                             Path filepath = entry.getKey();
                             if (extractedValues.get(filepath).isEmpty()) {
-                                return ValidationResult.fromError(
-                                    String.format("could not extract property '%s'", consistencyCondition.getLabel())
+                                return ValidationResult.of(
+                                    String.format(
+                                        "could not extract property '%s' when checking consistency",
+                                        consistencyCondition.getLabel()
+                                    ),
+                                    consistencyCondition.getSeverity()
                                 );
                             } else if (mostFrequentValue.isEmpty()) {
-                                return ValidationResult.fromError(
-                                    String.format("could not determine consistent value for property '%s'", consistencyCondition.getLabel())
+                                return ValidationResult.of(
+                                    String.format(
+                                        "could not determine consistent value for property '%s'",
+                                        consistencyCondition.getLabel()
+                                    ),
+                                    consistencyCondition.getSeverity()
                                 );
                             } else if (!mostFrequentValue.get().equals(extractedValues.get(filepath).get())) {
-                                return ValidationResult.fromError(
+                                return ValidationResult.of(
                                     String.format(
                                         "value '%s' for property '%s' is not consistent",
                                         extractedValues.get(filepath).get(),
                                         consistencyCondition.getLabel()
-                                    )
+                                    ),
+                                    consistencyCondition.getSeverity()
                                 );
                             }
                             return ValidationResult.fromSuccess();

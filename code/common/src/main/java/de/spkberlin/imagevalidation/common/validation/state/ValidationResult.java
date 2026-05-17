@@ -34,6 +34,18 @@ public class ValidationResult {
     }
 
     /**
+     * Create a validation result with specific errors or warnings depending on severity level.
+     *
+     * @return the validation result
+     */
+    public static ValidationResult of(List<String> messages, ValidationFailureSeverity severity) {
+        if (ValidationFailureSeverity.error.equals(severity)) {
+            return new ValidationResult(messages, Collections.emptyList());
+        }
+        return new ValidationResult(Collections.emptyList(), messages);
+    }
+
+    /**
      * Create a validation result by combining a collection of other validation results, merging all errors and warnings.
      *
      * @return the validation result

@@ -324,11 +324,29 @@ The `validation` section defines all rules that are checked when validating indi
 The `imageRules` section contains a list of validation rules that check extracted image properties against certain conditions (e.g. `exists`, `equal`, `oneOf`). An image rule consists of the following options:
 
 - `message` - an error or warning message that is shown in case the validation rule fails
-- `severity` - either `error` or `warning`, an image with a warning still passes validation successfully
+- `severity` - either `error` (default) or `warning`, an image with a warning still passes validation successfully
+- `reportColumns` - a list of properties that are included in the validation report (similar to the `output` section, see below)
 - `context` - the set of properties or property subtrees that are checked against the condition
 - `condition` - the condition that is checked
 
-The options `context` and `condition` work together in the following way: the context option describes which property or properties to check, and the condition option describes how to check them. This two-fold definition is required, because image properties are hierarchical and may occur multiple times, e.g., in case of multipage TIF images with multiple IFDs. Suppose you would like validate that every multipage TIF sub-image uses the color space `rgb`. Then, the context will describe the part "every IFD", and the condition will describe the part "has to have RGB color space". An appropriate rule for this scenario would be:
+The option `message` allows specifying a message that is shown for an image in case it violates the validation rule. The severity of failing a rule is defined in the `severity` option. A value of `error` means that failing this rule also fails the overall validation of the image. A value of `warning` declares this rule to be a hint only. A failed rule with severity level `warning` will still pass the overall validation.
+
+The option `reportColumns` allows specifying a list of properties that are added as additional columns to the validation report. In contrast to columns defined in the `output` section of the configuration file, columns that are defined for a specific validation rule are linked to that rule. If a rule fails for an image, the corresponding Excel cells of all listed columns are highlighted as error or warning. Columns defined in the `output` section are not linked to any rule and will not be highlighted. However, you can declare the same property or the same column both in the `output` section and various validation rules. Columns with the same label and the same JSONPath are detected as duplicates and will only be included once in the final report. Each column needs to be declared with a `label` (column name) and `property` (JSONPath) value, similar to the `output` section, see below. An example would be:
+
+```YAML
+message: JHove must detect file as wellformed
+severity: error
+reportColumns:
+  - label: JHove wellformed
+    property: $.jhove.wellformed
+context: $.jhove
+condition:
+  property: $.wellformed
+  assert: equal
+  value: true
+```
+
+The options `context` and `condition` work together in the following way: the context option describes which property or properties are checked, and the condition option describes how they are checked. This two-fold definition is required, because image properties are hierarchical and may occur multiple times, e.g., in case of multipage TIF images with multiple IFDs. Suppose you would like validate that every multipage TIF sub-image uses the color space `rgb`. Then, the context will describe the part "every IFD", and the condition will describe the part "has to have RGB color space". An appropriate rule for this scenario would be:
 
 ```YAML
 message: Every IFD needs to be have RGB colorspace
@@ -451,9 +469,12 @@ The following options are used to determine whether a directory is considered va
 
 ##### Consistent Properties by Directory
 
-Define a list of properties that are required to be consistent for all images within a directory. If there are two images with different values for the same property, the validation of this directory fails. Individual images may still be valid by themselves.
+Check that properties for all images within a directory are consistent, meaning, that they have the exact same value. If there are two images with different values for the same property, the validation of this directory fails. The most frequent value is considered the "correct" target value. All images that have other values are considered inconsistent and will fail validation depending on the specified severity level. Each consistency rule consists of the following options:
 
-For each property, a label needs to be specified, which is used to describe the property when generating error messages in case the property is not consistent within a directory.
+- `label` - the label that describes the property that is checked for consistency
+- `property` - the JSONPath for the property that is checked for consistency
+- `severity` - whether an inconsistent value is considered an `error` (default) or `warning`
+- `reportColumn` - whether the property should be included in the final validation report as additional column, either `true` (default) or `false`
 
 For Example:
 
@@ -465,8 +486,13 @@ validation:
     consistentProperties:
       - label: Color Space
         property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+        severity: error
+        reportColumn: true
+
       - label: Bits Per Sample
         property: $.exiftool.TIFF.IFD[0].BitsPerSample
+        severity: warning
+        reportColumn: false
 ```
 
 By default, no properties are checked for consistency, meaning the following configuration is used:
@@ -483,15 +509,19 @@ validation:
 
 Define a regular expression that is used to parse a unique number from all filenames in a directory that are then checked for consecutiveness. This check will verify that image files are numbered without gaps inside a directory, e.g., `00000001.tif`, `00000002.tif`, and so on.
 
-The regular expression needs to be defined in a way that the number contained in a filename is matched with a single match group (or capture group). For example, the regular expression `^(\d{8})\.tif$` defines a match group around an 8-digit number by adding parentheses around this part of the filename. There can be multiple match groups if required. The match group number can be specified (defaults to 1). More information about regular expressions can be found in the Java [java.util.regex.Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) documentation.
-
-Additionally, it is possible to configure the starting number of files (defaults to 1).
-
 The following options need to be defined:
 
 - `filenameRegExp` - the regular expression that is used to extract a number from the filename
 - `numberMatchGroup` - the id of the capture group that matches the number part of the filename
+- `severity` - whether to consider missing images an `error` (default) or `warning`
+- `filenameTemplate` - a template that is used to generate expected filenames from missing image numbers
 - `startNumber` - the starting number of the consecutiveness check (usually 0 or 1)
+
+The regular expression needs to be defined in a way that the number contained in a filename is matched with a single match group (or capture group). For example, the regular expression `^(\d{8})\.tif$` defines a match group around an 8-digit number by adding parentheses around this part of the filename. There can be multiple match groups if required. The match group number can be specified (defaults to 1). More information about regular expressions can be found in the Java [java.util.regex.Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) documentation.
+
+In order to print nice filenames for missing files, you may specify a `filenameTemplate`. The filename template is then translated into an actual filename for each missing image file. Filename templates need to be defined as `printf`-style format strings (see [Java documentation](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html)). The filename template will be provided with one integer number: the image number of the missing image. Thus, you need to include this image number via `%d` (d = decimal integer) inside your filename template. For example, the filename template `%d.tif` will generate filenames `1.tif`, `2.tif`, `3.tif`, etc. You can add zero-padding to your filename template by including the number of digits prefixed by `0`. The filename template `%08d.tif` will generate 8-digit zero-padded filenames `00000001.tif`, `00000002.tif`, `00000003.tif`. If no filename template is provided, simply the image number is included inside error or warning messages.
+
+Additionally, it is possible to configure the starting number expected image files (defaults to 1).
 
 For Example:
 
@@ -501,7 +531,9 @@ validation:
   directoryRules:
 
     consecutiveNumbering:
-      filenameRegExp: ^(\d{8})\.tif$
+      filenameRegExp: "^(\d{8})\.tif$"
+      filenameTemplate: "%08d.tif"
+      severity: error
       numberMatchGroup: 1
       startNumber: 1
 ```
@@ -515,6 +547,8 @@ validation:
 
     consecutiveNumbering:
       filenameRegExp:
+      filenameTemplate:
+      severity: error
       numberMatchGroup: 1
       startNumber: 1
 ```
@@ -527,12 +561,14 @@ In order to specify a property deviation rule, you need to define the following 
 
 - `label` - the label that is used to describe the property in case of errors, mandatory
 - `property` - the JSONPath referring to the property that is being checked, mandatory
+- `reportColumn` - whether to include the property as additional column in the final validation report, either `true` (default) or `false`
 
 Then, a property deviation condition consists of the following options:
 
 - `aggregate` - the method of aggregation, e.g. `average` or `median`, optional (default is `average`)
 - `maxDeviation` - the maximum deviation as absolute number or percentage, mandatory
 - `inPercent` - whether the maximum deviation is provided as absolute number or percentage, optional (default is `false`)
+- `severity` - whether to consider exceeding the maximum allowed deviation an `error` or `warning`
 
 An example configuration would be:
 
@@ -544,6 +580,7 @@ validation:
     propertyDeviations:
       - label: ImageWidth
         property: $.exiftool.TIFF.IFD[0].ImageWidth
+        reportColumn: true
         condition:
           aggregate: average
           maxDeviation: 10
@@ -579,6 +616,7 @@ validation:
           aggregate: average
           maxDeviation: 10
           inPercent: false
+          severity: warning
         additionalSlices:
           - from: 1
             to: 3
@@ -587,6 +625,7 @@ validation:
               aggregate: average
               maxDeviation: 10
               inPercent: false
+              severity: error
 ```
 
 Additional slice conditions are evaluated within a slice. Meaning, the average is calculated within the slice. The width of the first 3 images could deviate from all other images by any amount. However, within the first 3 images, neither of them may deviate more than 10 pixels from their average.
@@ -667,6 +706,13 @@ Additional property columns can be specified as a list of two options:
 
 - `label` - the column label that is used for this column in the CSV report
 - `property` - the JSONPath to the property that is supposed to be included in the CSV report
+
+The order of columns is determined based on where these columns are defined in the configuration file:
+
+1. First, columns from the image validation rules are listed.
+2. Then, columns defined as part of the consistency rules are listed.
+3. Then, columns from the maximum deviation rules are listed.
+4. Finally, additional columns defined in this section are listed.
 
 For example:
 

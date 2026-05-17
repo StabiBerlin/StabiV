@@ -253,12 +253,16 @@ public class ReportGenerator {
 
         // consistency rules
         for (DirectoryConsistencyCondition consistencyRule : consistencyRules) {
-            keySet.add(new ValidationReportColumnKey(consistencyRule.getLabel(), consistencyRule.getProperty()));
+            if (consistencyRule.isReportColumn()) {
+                keySet.add(new ValidationReportColumnKey(consistencyRule.getLabel(), consistencyRule.getProperty()));
+            }
         }
 
         // deviation rules
         for (DirectoryPropertyDeviationsRule deviationRule : deviationRules) {
-            keySet.add(new ValidationReportColumnKey(deviationRule.getLabel(), deviationRule.getProperty()));
+            if (deviationRule.isReportColumn()) {
+                keySet.add(new ValidationReportColumnKey(deviationRule.getLabel(), deviationRule.getProperty()));
+            }
         }
 
         // extra columns

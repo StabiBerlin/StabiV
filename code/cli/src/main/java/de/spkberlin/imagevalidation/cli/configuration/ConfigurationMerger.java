@@ -185,6 +185,7 @@ public class ConfigurationMerger {
         DirectoryPropertyDeviationsRule rule = new DirectoryPropertyDeviationsRule(
             ruleTextSplit[0],
             ruleTextSplit[1],
+            true,
             new DirectoryPropertyDeviationsCondition(
                 DirectoryPropertyDeviationsAggregateType.average,
                 Double.parseDouble(ruleTextSplit[2]),

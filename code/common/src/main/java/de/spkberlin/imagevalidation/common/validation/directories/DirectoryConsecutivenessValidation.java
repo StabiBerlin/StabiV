@@ -3,9 +3,10 @@ package de.spkberlin.imagevalidation.common.validation.directories;
 import de.spkberlin.imagevalidation.common.math.NumberConsecutiveness;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingResult;
+import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,21 +54,27 @@ public class DirectoryConsecutivenessValidation {
         Set<Integer> duplicateNumbers = NumberConsecutiveness.findDuplicates(numbersList);
 
         // generate error messages for individual images
-        Map<Path, ValidationResult> imageResults = compileImageResults(numbersByImage, duplicateNumbers);
+        Map<Path, ValidationResult> imageResults = compileImageResults(numbersByImage, duplicateNumbers, condition.getSeverity());
 
         // check for gaps
-        ValidationResult gapResult = ValidationResult.of(
-            NumberConsecutiveness.findGaps(numbersList, condition.getStartNumber())
-                .stream()
-                .map(n -> String.format("number %d is missing, which violates consecutiveness", n))
-                .toList(),
-            Collections.emptyList()
-        );
+        List<String> messages = NumberConsecutiveness.findGaps(numbersList, condition.getStartNumber())
+            .stream()
+            .map(n -> {
+                try {
+                    if (Objects.nonNull(condition.getFilenameTemplate()) && !condition.getFilenameTemplate().isBlank()) {
+                        return String.format(
+                            "image '%s' is missing, which violates consecutiveness",
+                            String.format(condition.getFilenameTemplate(), n)
+                        );
+                    }
+                } catch (IllegalFormatException e) {
+                    logger.warn("filename template '{}' does not accept single number (%d parameter)");
+                }
+                return String.format("number %d is missing, which violates consecutiveness", n);
+            })
+            .toList();
 
-        // combine into final result object
-        // ValidationResult imageSummaryResult = ValidationResult.ofFirst(imageResults.values());
-        // ValidationResult directoryResult = ValidationResult.of(Stream.of(imageSummaryResult, gapResult).toList());
-        return new DirectoryConsecutiveNumberingResult(imageResults, gapResult);
+        return new DirectoryConsecutiveNumberingResult(imageResults, ValidationResult.of(messages, condition.getSeverity()));
     }
 
     private static Map<Path, Optional<Integer>> matchFilenames(List<Path> filepaths, Pattern pattern, Integer matchGroup) {
@@ -98,16 +105,20 @@ public class DirectoryConsecutivenessValidation {
             );
     }
 
-    private static Map<Path, ValidationResult> compileImageResults(Map<Path, Optional<Integer>> extractedNumbers, Set<Integer> duplicates) {
+    private static Map<Path, ValidationResult> compileImageResults(
+        Map<Path, Optional<Integer>> extractedNumbers,
+        Set<Integer> duplicates,
+        ValidationFailureSeverity severity
+    ) {
         return extractedNumbers
             .entrySet()
             .stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, entry -> {
                     if (!entry.getValue().isPresent()) {
-                        return ValidationResult.fromError("could not extract number from filename");
+                        return ValidationResult.of("could not extract number from filename", severity);
                     } else if (duplicates.contains(entry.getValue().get())) {
-                        return ValidationResult.fromError("extracted number occurrs more than once for consecutiveness check");
+                        return ValidationResult.of("extracted number occurrs more than once for consecutiveness check", severity);
                     }
                     return ValidationResult.fromSuccess();
                 })

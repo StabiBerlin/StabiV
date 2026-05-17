@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.6.0 - 2026-05-18
+
+New Features
+
+- Highlight various Excel report cells in case they are related to validation errors or warnings
+- Show validation errors and warnings for a specific property column via an Excel note
+- Show all validation errors and warnings in the Excel report via a drop-down menu
+- Show individual error messages for each image with property deviations (in addition reporting the directory error)
+- The first 2 rows and 7 columns are frozen in the Excel report
+- The first column (full path to file or directory) is hidden by default in the Excel report
+- The Excel report is generated with borders around every cell
+- Report property columns can also be configured inside all validation rules individually (such that report cells can be highlighted in case of errors)
+- Severity levels of property deviation rules, consistency rules and the consecutive numbering check can be configured
+- Directories and files are listed in lexicographic sort order in the report
+
+Breaking Changes
+
+- Layout of CSV and Excel report was changed significantly
+- Error and warning messages are listed inside a single column in the CSV and Excel report
+- The checksum column has been moved to the end of the report
+- The order of report columns is determined based on where report columns are configured in the configuration file
+
+Backend Improvement
+
+- Instead of aborting the validation of an image upon the first error, all validation rules are evaluated for each image
+
 ## v0.5.0 - 2026-04-29
 
 New Features

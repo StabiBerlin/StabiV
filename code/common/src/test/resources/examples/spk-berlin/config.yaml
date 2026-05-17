@@ -18,18 +18,26 @@ validation:
     consistentProperties:
       - label: PhotometricInterpretation
         property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+        severity: error
+        reportColumn: true
+
       - label: BitsPerSample
         property: $.exiftool.TIFF.IFD[0].BitsPerSample
+        severity: warning
+        reportColumn: true
 
     consecutiveNumbering:
-      filenameRegExp: ^(\d{8})\.tif$
+      filenameRegExp: "^(\\d{8})\\.tif$"
+      filenameTemplate: "%08d.tif"
       numberMatchGroup: 1
       startNumber: 1
+      severity: error
 
     propertyDeviations:
       # max image width deviation
       - label: ImageWidth
         property: $.exiftool.TIFF.IFD[0].ImageWidth
+        reportColumn: true
         condition:
           severity: warning
           aggregate: average
@@ -56,6 +64,7 @@ validation:
       # max image height deviation
       - label: ImageHeight
         property: $.exiftool.TIFF.IFD[0].ImageHeight
+        reportColumn: true
         condition:
           severity: warning
           aggregate: average
