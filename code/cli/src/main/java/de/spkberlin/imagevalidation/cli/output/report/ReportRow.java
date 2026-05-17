@@ -44,6 +44,10 @@ public class ReportRow {
         return new ReportRow(cells, ReportRowType.image, valid);
     }
 
+    public static ReportRow ofMetadata(List<ReportCell> cells) {
+        return new ReportRow(cells, ReportRowType.metadata, null);
+    }
+
     public List<ReportCell> getCells() {
         return this.cells;
     }

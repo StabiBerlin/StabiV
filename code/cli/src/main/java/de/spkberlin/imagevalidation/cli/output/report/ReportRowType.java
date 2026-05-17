@@ -6,4 +6,5 @@ public enum ReportRowType {
     empty,
     directory,
     image,
+    metadata,
 }

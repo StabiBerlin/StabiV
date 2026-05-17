@@ -2,6 +2,7 @@ package de.spkberlin.imagevalidation.cli.output.report;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
+import de.spkberlin.imagevalidation.cli.common.Constants;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import de.spkberlin.imagevalidation.common.extract.ExtractionResult;
@@ -16,7 +17,11 @@ import de.spkberlin.imagevalidation.common.validation.images.state.ImageValidati
 import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumnKey;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationResult;
+import jakarta.validation.Validation;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -55,7 +60,8 @@ public class ReportGenerator {
         List<ImageRule> imageRules,
         List<DirectoryConsistencyCondition> consistencyRules,
         List<DirectoryPropertyDeviationsRule> deviationRules,
-        List<ValidationReportColumn> extraPropertyColumns
+        List<ValidationReportColumn> extraPropertyColumns,
+        Path configFilepath
     ) {
         logger.info("generate report");
         List<ValidationReportColumnKey> propertyColumnKeys = findAllReportColumns(
@@ -69,7 +75,10 @@ public class ReportGenerator {
             generateHeader(propertyColumnKeys),
             Stream.concat(
                 writeSummaryLine(validateAllResult),
-                writeDirectories(validateAllResult, propertyColumnKeys, imageRules, consistencyRules, deviationRules)
+                Stream.concat(
+                    writeDirectories(validateAllResult, propertyColumnKeys, imageRules, consistencyRules, deviationRules),
+                    writeMetadata(configFilepath)
+                )
             )
         ).toList();
     }
@@ -392,5 +401,26 @@ public class ReportGenerator {
             .stream()
             .flatMap(List::stream)
             .collect(Collectors.joining("\n"));
+    }
+
+    private static Stream<ReportRow> writeMetadata(Path configFilepath) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+
+        return Stream.of(
+            ReportRow.empty(),
+            ReportRow.ofMetadata(
+                Stream.of(ReportCell.empty(), ReportCell.of("Image Validation CLI"), ReportCell.of(Constants.VERSION)).toList()
+            ),
+            ReportRow.ofMetadata(
+                Stream.of(ReportCell.empty(), ReportCell.of("Generated on"), ReportCell.of(ZonedDateTime.now().format(formatter))).toList()
+            ),
+            ReportRow.ofMetadata(
+                Stream.of(
+                    ReportCell.empty(),
+                    ReportCell.of("Using configuration file"),
+                    ReportCell.of(configFilepath.toAbsolutePath().normalize().toString())
+                ).toList()
+            )
+        );
     }
 }

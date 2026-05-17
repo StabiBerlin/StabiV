@@ -16,7 +16,6 @@ import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ReportGenerator;
 import de.spkberlin.imagevalidation.cli.output.report.ReportRow;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
-import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
 import java.io.IOException;
@@ -371,9 +370,14 @@ public class ValidateCommand implements Callable<Integer> {
 
         logger.info("run validate command");
 
+        Path configFilepath = null;
+        if (Objects.nonNull(configOptions.configFilepath)) {
+            configFilepath = Path.of(CWD).resolve(configOptions.configFilepath).normalize().toAbsolutePath();
+        }
+
         ConfigurationRoot config;
         try {
-            config = loadConfiguration();
+            config = loadConfiguration(configFilepath);
         } catch (IOException e) {
             logger.error("configuration file could not be loaded, exiting ...");
             return 2;
@@ -388,7 +392,7 @@ public class ValidateCommand implements Callable<Integer> {
         Logging.setLogLevel(ConfigurationLoggingSection.VERBOSITY_LEVELS.indexOf(config.getOutput().getLogging().getVerbosity()));
 
         ValidateAllResult result = ValidateAll.validateAll(config, spec.commandLine().getOut());
-        writeReport(result, config);
+        writeReport(result, config, configFilepath);
         return ValidateAll.isOverallValid(result) ? 0 : 3;
     }
 
@@ -397,15 +401,17 @@ public class ValidateCommand implements Callable<Integer> {
      *
      * @param result the validation result for all directories and files
      * @param config the configuration
+     * @param configFilepath filepath to the configuration file
      * @throws IOException in case writing the report fails
      */
-    public void writeReport(ValidateAllResult result, ConfigurationRoot config) throws IOException {
+    public void writeReport(ValidateAllResult result, ConfigurationRoot config, Path configFilepath) throws IOException {
         List<ReportRow> report = ReportGenerator.generateReport(
             result,
             config.getValidation().getImageRules(),
             config.getValidation().getDirectoryRules().getConsistentProperties(),
             config.getValidation().getDirectoryRules().getPropertyDeviations(),
-            config.getOutput().getReport().getColumns()
+            config.getOutput().getReport().getColumns(),
+            configFilepath
         );
 
         ConfigurationPath csvPath = config.getOutput().getReport().getCsvPath();
@@ -427,14 +433,12 @@ public class ValidateCommand implements Callable<Integer> {
      * @return the yaml configuration
      * @throws IOException in case filepaths cannot be evaluated
      */
-    public ConfigurationRoot loadConfiguration() throws IOException {
+    public ConfigurationRoot loadConfiguration(Path configFilepath) throws IOException {
         ConfigurationRoot config = new ConfigurationRoot();
 
-        Path configPath = null;
-        if (Objects.nonNull(configOptions.configFilepath)) {
-            logger.info("load configuration file '{}'", configOptions.configFilepath);
-            configPath = Path.of(CWD).resolve(configOptions.configFilepath).normalize().toAbsolutePath();
-            config = ConfigurationParser.parseConfigurationFile(configPath);
+        if (Objects.nonNull(configFilepath)) {
+            logger.info("load configuration file '{}'", configFilepath);
+            config = ConfigurationParser.parseConfigurationFile(configFilepath);
         }
 
         if (Objects.isNull(inputOptions.baseDirectory)) {
