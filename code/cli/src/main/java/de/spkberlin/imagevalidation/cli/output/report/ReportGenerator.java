@@ -418,7 +418,7 @@ public class ReportGenerator {
                 Stream.of(
                     ReportCell.empty(),
                     ReportCell.of("Using configuration file"),
-                    ReportCell.of(configFilepath.toAbsolutePath().normalize().toString())
+                    ReportCell.of(Objects.nonNull(configFilepath) ? configFilepath.toAbsolutePath().normalize().toString() : "")
                 ).toList()
             )
         );

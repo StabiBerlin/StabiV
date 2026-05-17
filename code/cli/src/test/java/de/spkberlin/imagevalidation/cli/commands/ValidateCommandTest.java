@@ -22,10 +22,10 @@ public class ValidateCommandTest {
 
     private static final String NEWLINE = System.getProperty("line.separator");
 
-    private static final Path EXAMPLE_PATH = TestConstants.EXAMPLES_PATH.resolve("simple/wellformed/simple_rgb.tif");
-    private static final Path UNKNOWN_PATH = TestConstants.EXAMPLES_PATH.resolve("unknown.tif");
+    private static final Path UNKNOWN_PATH = TestConstants.EXAMPLES_PATH.resolve("unknown");
 
-    private static final Path SIMPLE_CONFIG_PATH = TestConstants.EXAMPLES_PATH.resolve("simple/config.yaml");
+    private static final Path SIMPLE_DIRECTORY = TestConstants.EXAMPLES_PATH.resolve("simple");
+    private static final Path SIMPLE_CONFIG_PATH = SIMPLE_DIRECTORY.resolve("config.yaml");
 
     private static final Path SPK_BERLIN_DIRECTORY = TestConstants.EXAMPLES_PATH.resolve("spk-berlin");
     private static final Path SPK_BERLIN_CONFIG_PATH = SPK_BERLIN_DIRECTORY.resolve("config.yaml");
@@ -46,7 +46,12 @@ public class ValidateCommandTest {
     @Test
     public void validateSimpleTif() {
         CommandLine cmd = new CommandLine(new ValidateCommand());
-        int exitCode = cmd.execute("-v", "--imageRule=$.jhove.wellformed/equal/true", EXAMPLE_PATH.toAbsolutePath().toString());
+        int exitCode = cmd.execute(
+            "-v",
+            "--imageRule=$.jhove.wellformed/equal/true",
+            "--include=wellformed/simple_rgb.tif",
+            SIMPLE_DIRECTORY.toString()
+        );
         assertEquals(0, exitCode);
     }
 
@@ -56,7 +61,7 @@ public class ValidateCommandTest {
     @Test
     public void validateSimpleConfigExample() {
         CommandLine cmd = new CommandLine(new ValidateCommand());
-        int exitCode = cmd.execute("-v", "--config=" + SIMPLE_CONFIG_PATH.toAbsolutePath().toString());
+        int exitCode = cmd.execute("-v", "--config=" + SIMPLE_CONFIG_PATH.toAbsolutePath().toString(), SIMPLE_DIRECTORY.toString());
         assertEquals(3, exitCode);
     }
 
@@ -68,19 +73,30 @@ public class ValidateCommandTest {
         StringWriter stdout = new StringWriter();
         CommandLine cmd = new CommandLine(new ValidateCommand());
         cmd.setOut(new PrintWriter(stdout));
-        int exitCode = cmd.execute("-v", "--json", "--config=" + SPK_BERLIN_CONFIG_PATH.toAbsolutePath().toString());
+        int exitCode = cmd.execute(
+            "-v",
+            "--json",
+            "--config=" + SPK_BERLIN_CONFIG_PATH.toAbsolutePath().toString(),
+            SPK_BERLIN_DIRECTORY.toString()
+        );
         assertEquals(3, exitCode);
 
         ObjectMapper objectMapper = new ObjectMapper();
         Map<Path, Boolean> successByPath = new HashMap<>();
         for (String line : stdout.toString().split(NEWLINE)) {
             JsonLogEntry logEntry = objectMapper.readValue(line, JsonLogEntry.class);
+
             Path relativePath = SPK_BERLIN_DIRECTORY.toAbsolutePath().relativize(Path.of(logEntry.getPath()));
             successByPath.put(relativePath, JsonLogEntry.VALIDATION_SUCCESS.equals(logEntry.getValidation()));
         }
 
         // valid directories
-        List<String> validDirectories = List.of("size_deviations_valid", "consistency_valid", "consecutive_numbering_valid");
+        List<String> validDirectories = List.of(
+            "size_deviations_valid",
+            "consistency_valid",
+            "consecutive_numbering_valid",
+            "size_deviations_center_slice_invalid"
+        );
         for (String validDirectory : validDirectories) {
             assertTrue(successByPath.get(Path.of(validDirectory)));
         }
@@ -89,13 +105,13 @@ public class ValidateCommandTest {
         List<String> invalidDirectories = List.of(
             "size_deviations_first_slice_invalid",
             "size_deviations_last_slice_invalid",
-            "size_deviations_center_slice_invalid",
             "image_rules_valid",
             "image_rules_invalid",
             "consistency_invalid",
             "consecutive_numbering_invalid"
         );
         for (String invalidDirectory : invalidDirectories) {
+            System.out.println(invalidDirectory);
             assertFalse(successByPath.get(Path.of(invalidDirectory)));
         }
 

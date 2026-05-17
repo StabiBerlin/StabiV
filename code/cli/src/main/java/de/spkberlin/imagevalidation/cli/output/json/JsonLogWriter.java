@@ -34,7 +34,7 @@ public class JsonLogWriter {
             JsonLogEntry entry = new JsonLogEntry(
                 time,
                 JsonLogEntry.FILE_TYPE,
-                result.getFilePath().toString(),
+                result.getFilePath().toAbsolutePath().normalize().toString(),
                 result.getChecksum(),
                 passed ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
                 ImageValidation.getFirstError(result),
@@ -61,7 +61,7 @@ public class JsonLogWriter {
             JsonLogEntry entry = new JsonLogEntry(
                 time,
                 JsonLogEntry.DIRECTORY_TYPE,
-                result.getDirectory().toString(),
+                result.getDirectory().toAbsolutePath().normalize().toString(),
                 null,
                 DirectoryValidation.isDirectoryValid(result) ? JsonLogEntry.VALIDATION_SUCCESS : JsonLogEntry.VALIDATION_FAILED,
                 DirectoryValidation.getFirstError(result),
