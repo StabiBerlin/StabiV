@@ -41,10 +41,17 @@ public class ExcelWriter {
 
         int maxColumnId = 0;
         int rowId = 0;
+        boolean fitted = false;
 
         for (ReportRow reportRow : report) {
             Row row = mainSheet.createRow(rowId);
             int columnId = 0;
+
+            // auto fit columns as soon as all validation results are written (ignoring metadata rows)
+            if (!fitted && ReportRowType.metadata.equals(reportRow.getType())) {
+                autoFitColumns(mainSheet, maxColumnId + 1, 512);
+                fitted = true;
+            }
 
             for (ReportCell reportCell : reportRow.getCells()) {
                 Cell cell = row.createCell(columnId);
@@ -64,9 +71,7 @@ public class ExcelWriter {
         }
 
         groupImageRows(mainSheet, report);
-        autoFitColumns(mainSheet, maxColumnId + 1, 512);
         addTableFilters(mainSheet, rowId + 1, maxColumnId + 1);
-        // hideValidImagesByDefault(mainSheet, report);
 
         mainSheet.createFreezePane(7, 2);
         mainSheet.setColumnHidden(0, true);
