@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,5 +90,37 @@ public class FileUtils {
             .stream()
             .filter(e -> !(e.getValue().isEmpty() && parentDirectories.contains(e.getKey())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (entryLeft, entryRight) -> entryLeft, TreeMap::new));
+    }
+
+    /**
+     * Make a filepath unique such that a file is never overwritten. Instead, add a number to the filename.
+     *
+     * @param filepath the filepath that is checked and modified to not exist yet
+     * @return the modified filepath
+     */
+    public static Path modifyPathIfExists(Path filepath) {
+        if (!Files.exists(filepath)) {
+            // filepath doesn't exist, no modification necessary
+            return filepath;
+        }
+
+        String filename = filepath.getFileName().toString();
+
+        String basename = FilenameUtils.getBaseName(filename);
+        String extension = FilenameUtils.getExtension(filename);
+
+        int i = 1;
+        while (true) {
+            String candidateName = extension.isEmpty()
+                ? String.format("%s (%d)", basename, i)
+                : String.format("%s (%d).%s", basename, i, extension);
+            Path candidate = filepath.resolveSibling(candidateName);
+
+            if (!Files.exists(candidate)) {
+                return candidate;
+            }
+
+            i++;
+        }
     }
 }

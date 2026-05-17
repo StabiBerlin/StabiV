@@ -15,6 +15,7 @@ import de.spkberlin.imagevalidation.cli.output.report.CsvWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ReportGenerator;
 import de.spkberlin.imagevalidation.cli.output.report.ReportRow;
+import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAll;
 import de.spkberlin.imagevalidation.cli.validation.ValidateAllResult;
@@ -365,13 +366,13 @@ public class ValidateCommand implements Callable<Integer> {
 
         ConfigurationPath csvPath = config.getOutput().getReport().getCsvPath();
         if (Objects.nonNull(csvPath)) {
-            Path resolvedCsvPath = csvPath.getBaseDirectory().resolve(csvPath.getPath()).normalize();
+            Path resolvedCsvPath = FileUtils.modifyPathIfExists(csvPath.getBaseDirectory().resolve(csvPath.getPath()).normalize());
             CsvWriter.writeReport(resolvedCsvPath, report);
         }
 
         ConfigurationPath excelPath = config.getOutput().getReport().getExcelPath();
         if (Objects.nonNull(excelPath)) {
-            Path resolvedExcelPath = excelPath.getBaseDirectory().resolve(excelPath.getPath()).normalize();
+            Path resolvedExcelPath = FileUtils.modifyPathIfExists(excelPath.getBaseDirectory().resolve(excelPath.getPath()).normalize());
             ExcelWriter.writeReport(resolvedExcelPath, report);
         }
     }

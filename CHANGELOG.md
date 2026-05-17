@@ -15,6 +15,7 @@ New Features
 - Severity levels of property deviation rules, consistency rules and the consecutive numbering check can be configured
 - Directories and files are listed in lexicographic sort order in the report
 - Show the expected number of images in the validation report if there are missing files in a directory
+- CSV and Excel report files are never overwritten, instead filenames are modified to include a number
 
 Breaking Changes
 
