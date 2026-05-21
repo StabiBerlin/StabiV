@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.7.0 - tbd
+## v0.7.0 - 2026-05-22
 
 New Features
 
@@ -8,12 +8,13 @@ New Features
 - Include raw command line arguments in report metadata
 - Add substitution variable `inputBaseDirectoryName` for the `path` configuration of both the `csv` and `excel` report
 - Add various configuration options to customize both the csv and excel report
+- Add "stress" example dataset for stress testing
 
 Breaking Changes
 
 - Restructured `csvPath` and `excelPath` configuration options into separate `csv` and `excel` subsections with a `path` option
 
-General Changes
+General Improvements
 
 - JHove parsing warning log messages have been reduced to debug log level
 - Excel report cells with multiple values are now stored row-wise to avoid 16k column limit

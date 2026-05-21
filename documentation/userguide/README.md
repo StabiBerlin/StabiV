@@ -693,7 +693,7 @@ output:
 
 The validation report can be generated as CSV and Excel file with the following options:
 
-- `csv` - csv specific options that are used to generate the validation report as CSV file
+- `csv` - CSV specific options that are used to generate the validation report as CSV file
 - `excel` - excel specific options that are used to generate the Excel report
 - `columns` - the list of additional property columns added to the CSV and Excel report
 
@@ -730,25 +730,25 @@ The `path` property may use the following substitution variables to generate the
 
 Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00_report_for_spk-berlin.xslx`.
 
-The layout section allows customizing the excel file with the following options:
+The layout section allows customizing the Excel file with the following options:
 
 - `fixed` - the number of frozen rows and columns that will not scroll
   - `rows` - the number of frozen rows (0 means no rows are frozen, 2 means the first two rows are frozen)
   - `columns` - the number of frozen columns (0 means no columns are frozen, 7 means the first seven columns are frozen)
 - `autoFitColumns` - whether to automatically calculate the width of columns based on amount of text in cells
-  - `enabled` - whether auto fitting is enabled (either `true` or `false`)
+  - `enabled` - whether auto-fitting is enabled (either `true` or `false`)
   - `padding` - addition extra padding that is added on top of the width calculation for each column in units of 1/256th of a character width (so 512 corresponds to 2 characters)
-- `hiddenColumns` - a list of column ids that are hidden by default (starting with index 0 = column A, 1 = column B)
+- `hiddenColumns` - a list of column indexes that are hidden by default (starting with index 0 = column A, 1 = column B)
 - `groupDirectories` - whether all rows for images of a single directory are grouped such that they can be interactively collapsed (either `true` or `false`)
 - `collapseValidDirectories` - whether to hide all rows for all images of a directory that was evaluated to be valid (either `true` or `false`)
 - `onlyFirstListEntry` - whether to output only the first error or warning (`true`) or the full list of errors (`false`) as drop-down list
 
-The style section allows customizing various cell types used in the excel file with the following options:
+The style section allows customizing various cell types used in the Excel file with the following options:
 
-- `default` - options for regular cells that are neither errors or warnings
+- `default` - options for regular cells that are neither errors nor warnings
 - `error` - options for cells that highlight validation errors
 - `warning` - options for cells that highlight validation warnings
-- `header` - options for the first row of the excel file
+- `header` - options for the first row of the Excel file
 
 Each cell type can be customized with the following options:
 
