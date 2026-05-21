@@ -409,8 +409,8 @@ public class ValidateCommand implements Callable<Integer> {
      * @throws IOException in case writing the report fails
      */
     public void writeReport(ValidateAllResult result, ConfigurationRoot config, Path configFilepath) throws IOException {
-        ConfigurationPath csvPath = config.getOutput().getReport().getCsvPath();
-        ConfigurationPath excelPath = config.getOutput().getReport().getExcelPath();
+        ConfigurationPath csvPath = config.getOutput().getReport().getCsv().getPath();
+        ConfigurationPath excelPath = config.getOutput().getReport().getExcel().getPath();
 
         if (Objects.nonNull(csvPath) || Objects.nonNull(excelPath)) {
             // determine extractor versions
@@ -435,23 +435,11 @@ public class ValidateCommand implements Callable<Integer> {
             );
 
             if (Objects.nonNull(csvPath)) {
-                Path resolvedCsvPath = FileUtils.modifyPathIfExists(
-                    csvPath
-                        .getBaseDirectory()
-                        .resolve(ReportFile.resolveFilepathTemplate(csvPath.getPath(), config.getInput().getBaseDirectory()))
-                        .normalize()
-                );
-                CsvWriter.writeReport(resolvedCsvPath, report);
+                CsvWriter.writeReport(config.getOutput().getReport().getCsv(), report, config.getInput().getBaseDirectory());
             }
 
             if (Objects.nonNull(excelPath)) {
-                Path resolvedExcelPath = FileUtils.modifyPathIfExists(
-                    excelPath
-                        .getBaseDirectory()
-                        .resolve(ReportFile.resolveFilepathTemplate(excelPath.getPath(), config.getInput().getBaseDirectory()))
-                        .normalize()
-                );
-                ExcelWriter.writeReport(resolvedExcelPath, report);
+                ExcelWriter.writeReport(config.getOutput().getReport().getExcel(), report, config.getInput().getBaseDirectory());
             }
         }
     }

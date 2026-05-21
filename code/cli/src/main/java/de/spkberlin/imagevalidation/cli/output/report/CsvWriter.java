@@ -1,5 +1,8 @@
 package de.spkberlin.imagevalidation.cli.output.report;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelSection;
+import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,10 +21,12 @@ public class CsvWriter {
     /**
      * Write the CSV validation report file.
      *
-     * @param outputPath output filepath of the CSV file
+     * @param config the csv report configuration section
      * @param report the report to write
+     * @param inputBaseDirectory the base directory of the input config section
      */
-    public static void writeReport(Path outputPath, List<ReportRow> report) {
+    public static void writeReport(ConfigurationCsvSection config, List<ReportRow> report, Path inputBaseDirectory) {
+        Path outputPath = resolveOutputPath(config, inputBaseDirectory);
         logger.info("write csv output file '{}'", outputPath);
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(outputPath.toFile()), CSVFormat.EXCEL)) {
             for (ReportRow reportRow : report) {
@@ -46,5 +51,22 @@ public class CsvWriter {
         } catch (IOException e) {
             logger.error("exception while writing CSV report", e);
         }
+    }
+
+    /**
+     * Resolve output path for the csv report by applying variable substitions.
+     *
+     * @param config the csv report configuration
+     * @param inputBaseDirectory the base directory defined in the input config section
+     * @return the final output path
+     */
+    private static Path resolveOutputPath(ConfigurationCsvSection config, Path inputBaseDirectory) {
+        return FileUtils.modifyPathIfExists(
+            config
+                .getPath()
+                .getBaseDirectory()
+                .resolve(ReportFile.resolveFilepathTemplate(config.getPath().getPath(), inputBaseDirectory))
+                .normalize()
+        );
     }
 }

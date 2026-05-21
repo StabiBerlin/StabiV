@@ -693,19 +693,110 @@ output:
 
 The validation report can be generated as CSV and Excel file with the following options:
 
-- `csvPath` - the file path that is used to write the validation report as CSV file
-- `excelPath` - the file path that is used to write the validation report as Excel file
-- `columns` - the list of additional property columns added to CSV report
+- `csv` - csv specific options that are used to generate the validation report as CSV file
+- `excel` - excel specific options that are used to generate the Excel report
+- `columns` - the list of additional property columns added to the CSV and Excel report
 
 Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--outputBaseDirectory` or as the very last command line argument, which defines a global base directory. In case nothing is defined, the current working directory is used.
 
-Both `csvPath` and `excelPath` may use the following substitution variables to generate file paths:
+##### CSV Report
+
+The CSV report can be configured with the following options:
+
+- `path` - the file path for the CSV report
+- `onlyFirstListEntry` - whether to output only the first error or warning (true) or the full list of errors (false) separated by semicolon
+
+The `path` property may use the following substitution variables to generate the CSV file path:
 
 - `date` - the current date in format `YY-MM-DD`
 - `time` - the current time in format `HH-MM-SS`
 - `inputBaseDirectoryName` - the name of the base directory of the input configuration
 
 Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report.csv` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00.csv`.
+
+##### Excel Report
+
+The Excel report can be configured with the following options:
+
+- `path` - the file path for the CSV report
+- `layout` - options affecting the layout (e.g., grouping rows) of the Excel report
+- `style` - options affecting the style (e.g., colors) of the Excel report
+
+The `path` property may use the following substitution variables to generate the Excel file path:
+
+- `date` - the current date in format `YY-MM-DD`
+- `time` - the current time in format `HH-MM-SS`
+- `inputBaseDirectoryName` - the name of the base directory of the input configuration
+
+Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00_report_for_spk-berlin.xslx`.
+
+The layout section allows customizing the excel file with the following options:
+
+- `fixed` - the number of frozen rows and columns that will not scroll
+  - `rows` - the number of frozen rows (0 means no rows are frozen, 2 means the first two rows are frozen)
+  - `columns` - the number of frozen columns (0 means no columns are frozen, 7 means the first seven columns are frozen)
+- `autoFitColumns` - whether to automatically calculate the width of columns based on amount of text in cells
+  - `enabled` - whether auto fitting is enabled (either `true` or `false`)
+  - `padding` - addition extra padding that is added on top of the width calculation for each column in units of 1/256th of a character width (so 512 corresponds to 2 characters)
+- `hiddenColumns` - a list of column ids that are hidden by default (starting with index 0 = column A, 1 = column B)
+- `groupDirectories` - whether all rows for images of a single directory are grouped such that they can be interactively collapsed (either `true` or `false`)
+- `collapseValidDirectories` - whether to hide all rows for all images of a directory that was evaluated to be valid (either `true` or `false`)
+
+The style section allows customizing various cell types used in the excel file with the following options:
+
+- `default` - options for regular cells that are neither errors or warnings
+- `error` - options for cells that highlight validation errors
+- `warning` - options for cells that highlight validation warnings
+- `header` - options for the first row of the excel file
+
+Each cell type can be customized with the following options:
+
+- `bold` - whether to use bold font inside a cell (either `true` or `false`)
+- `backgroundColor` - the background color for a cell (as HTML hex color codes, e.g. `#ffffff`)
+- `borderColor` - the border color for a cell (as HTML hex color codes, e.g. `#000000`)
+
+By default, the following configuration is used:
+
+```YAML
+report:
+
+    excel:
+      path:
+
+      layout:
+        fixed:
+          rows: 2
+          columns: 7
+        autoFitColumns:
+          enabled: true
+          padding: 512
+        hiddenColumns: [0]
+        groupDirectories: true
+        collapseValidDirectories: true
+
+      style:
+        default:
+          bold: false
+          backgroundColor:
+          borderColor: "#888888"
+
+        header:
+          bold: true
+          backgroundColor: "#dddddd"
+          borderColor: "#888888"
+
+        error:
+          bold: false
+          backgroundColor: "#ff7d55"
+          borderColor: "#9d2609"
+
+        warning:
+          bold: false
+          backgroundColor: "#ffff00"
+          borderColor: "#888800"
+```
+
+##### Report Property Columns
 
 Additional property columns can be specified as a list of two options:
 
@@ -723,12 +814,7 @@ For example:
 
 ```YAML
 output:
-
-  baseDirectory: /path/to/output/directory
-
   report:
-    csvPath: output.csv
-    excelPath: output.xlsx
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed
@@ -738,14 +824,11 @@ output:
         property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
 ```
 
-Default configuration (no CSV or Excel report):
+Default configuration (no additional columns):
 
 ```YAML
 output:
-
   report:
-    csvPath:
-    excelPath:
     columns:
 ```
 

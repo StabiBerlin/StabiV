@@ -6,7 +6,12 @@ New Features
 
 - Include version information of operating system, java and extractor modules in report metadata
 - Include raw command line arguments in report metadata
-- Add substitution variable `inputBaseDirectoryName` for `csvPath` and `excelPath`
+- Add substitution variable `inputBaseDirectoryName` for the `path` configuration of both the `csv` and `excel` report
+- Add various configuration options to customize both the csv and excel report
+
+Breaking Changes
+
+- Restructured `csvPath` and `excelPath` configuration options into separate `csv` and `excel` subsections with a `path` option
 
 General Changes
 

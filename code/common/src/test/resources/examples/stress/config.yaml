@@ -145,5 +145,7 @@ output:
     filename: ${directory}.sha1
     lineFormat: ${checksum} *${filename}
   report:
-    csvPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
-    excelPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
+    csv:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
+    excel:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx

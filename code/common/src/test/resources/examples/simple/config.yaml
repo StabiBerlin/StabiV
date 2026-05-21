@@ -31,8 +31,13 @@ validation:
 
 output:
   report:
-    csvPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
-    excelPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
+    csv:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
+      renderOnlyFirstListValue: true
+
+    excel:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
+
     columns:
       - label: JHove wellformed
         property: $.jhove.wellformed

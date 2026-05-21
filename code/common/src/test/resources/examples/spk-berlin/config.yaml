@@ -660,9 +660,50 @@ output:
   checksum:
     filename: ${directory}.sha1
     lineFormat: ${checksum} *${filename}
+
   report:
-    csvPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
-    excelPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
+    # additional report property columns for both csv and excel reports
     columns:
       - label: DateTimeOriginal
         property: $.exiftool.TIFF.IFD[0].DateTimeOriginal
+
+    # csv options
+    csv:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
+      onlyFirstListEntry: false
+
+    # excel options
+    excel:
+      path: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
+
+      layout:
+        fixed:
+          rows: 2
+          columns: 7
+        autoFitColumns:
+          enabled: true
+          padding: 512
+        hiddenColumns: [0]
+        groupDirectories: true
+        collapseValidDirectories: true
+
+      style:
+        default:
+          bold: false
+          backgroundColor:
+          borderColor: "#888888"
+
+        header:
+          bold: true
+          backgroundColor: "#dddddd"
+          borderColor: "#888888"
+
+        error:
+          bold: false
+          backgroundColor: "#ff7d55"
+          borderColor: "#9d2609"
+
+        warning:
+          bold: false
+          backgroundColor: "#ffff00"
+          borderColor: "#888800"

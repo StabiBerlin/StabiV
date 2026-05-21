@@ -8,31 +8,32 @@ import java.util.List;
 public class ConfigurationReportSection {
 
     @Valid
-    private ConfigurationPath csvPath;
+    private ConfigurationCsvSection csv;
 
     @Valid
-    private ConfigurationPath excelPath;
+    private ConfigurationExcelSection excel;
 
     private List<@Valid ValidationReportColumn> columns;
 
     public ConfigurationReportSection() {
         this.columns = new ArrayList<>();
+        this.excel = new ConfigurationExcelSection();
     }
 
-    public ConfigurationPath getCsvPath() {
-        return this.csvPath;
+    public ConfigurationCsvSection getCsv() {
+        return this.csv;
     }
 
-    public void setCsvPath(ConfigurationPath csvPath) {
-        this.csvPath = csvPath;
+    public void setCsv(ConfigurationCsvSection csv) {
+        this.csv = csv;
     }
 
-    public ConfigurationPath getExcelPath() {
-        return this.excelPath;
+    public ConfigurationExcelSection getExcel() {
+        return this.excel;
     }
 
-    public void setExcelPath(ConfigurationPath excelPath) {
-        this.excelPath = excelPath;
+    public void setExcel(ConfigurationExcelSection excel) {
+        this.excel = excel;
     }
 
     public List<ValidationReportColumn> getColumns() {

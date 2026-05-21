@@ -1,5 +1,9 @@
 package de.spkberlin.imagevalidation.cli.configuration;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelLayoutSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelStyleSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExtractionSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationInputSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingSection;
@@ -295,38 +299,65 @@ public class ConfigurationMerger {
 
     private static void mergeOutputReportSection(
         ConfigurationOutputSection config,
-        String csvPath,
-        String excelPath,
-        List<String> reportColumns
+        String cliCsvPath,
+        String cliExcelPath,
+        List<String> cliReportColumns
     ) {
         // make sure csv section exists
         if (Objects.isNull(config.getReport())) {
             config.setReport(new ConfigurationReportSection());
         }
 
-        // overwrite csv path from cli
-        if (Objects.nonNull(csvPath)) {
-            config.getReport().setCsvPath(new ConfigurationPath(csvPath, config.getBaseDirectory()));
-        } else if (Objects.nonNull(config.getReport().getCsvPath())) {
-            mergeConfigurationPath(config.getReport().getCsvPath(), config.getBaseDirectory());
-        }
-
-        // overwrite excel path from cli
-        if (Objects.nonNull(excelPath)) {
-            config.getReport().setExcelPath(new ConfigurationPath(excelPath, config.getBaseDirectory()));
-        } else if (Objects.nonNull(config.getReport().getExcelPath())) {
-            mergeConfigurationPath(config.getReport().getExcelPath(), config.getBaseDirectory());
-        }
+        mergeOutputReportCsvSection(config, cliCsvPath);
+        mergeOutputReportExcelSection(config, cliExcelPath);
 
         // add csv columns
         if (Objects.isNull(config.getReport().getColumns())) {
             config.getReport().setColumns(new ArrayList<>());
         }
-        List<ValidationReportColumn> additionalColumns = reportColumns
+        List<ValidationReportColumn> additionalColumns = cliReportColumns
             .stream()
             .map(c -> getReportPropertyColumnFromCommandLineOption(c))
             .toList();
         config.getReport().getColumns().addAll(additionalColumns);
+    }
+
+    private static void mergeOutputReportCsvSection(ConfigurationOutputSection config, String cliCsvPath) {
+        // make sure csv section exists
+        if (Objects.isNull(config.getReport().getCsv())) {
+            config.getReport().setCsv(new ConfigurationCsvSection());
+        }
+
+        // overwrite csv path from cli
+        if (Objects.nonNull(cliCsvPath)) {
+            config.getReport().getCsv().setPath(new ConfigurationPath(cliCsvPath, config.getBaseDirectory()));
+        } else if (Objects.nonNull(config.getReport().getCsv().getPath())) {
+            mergeConfigurationPath(config.getReport().getCsv().getPath(), config.getBaseDirectory());
+        }
+    }
+
+    private static void mergeOutputReportExcelSection(ConfigurationOutputSection config, String cliExcelPath) {
+        // make sure excel section exists
+        if (Objects.isNull(config.getReport().getExcel())) {
+            config.getReport().setExcel(new ConfigurationExcelSection());
+        }
+
+        // overwrite excel path from cli
+        if (Objects.nonNull(cliExcelPath)) {
+            config.getReport().getExcel().setPath(new ConfigurationPath(cliExcelPath, config.getBaseDirectory()));
+        } else if (Objects.nonNull(config.getReport().getExcel().getPath())) {
+            mergeConfigurationPath(config.getReport().getExcel().getPath(), config.getBaseDirectory());
+        }
+
+        // make sure layout section exists
+        if (Objects.isNull(config.getReport().getExcel().getLayout())) {
+            config.getReport().getExcel().setLayout(new ConfigurationExcelLayoutSection());
+        }
+
+        // make sure style section exists
+        if (Objects.isNull(config.getReport().getExcel().getStyle())) {
+            config.getReport().getExcel().setStyle(new ConfigurationExcelStyleSection());
+        }
     }
 
     private static void mergeOutputChecksumSection(ConfigurationOutputSection config, String checksumFilename) {
@@ -339,10 +370,10 @@ public class ConfigurationMerger {
         }
     }
 
-    private static ValidationReportColumn getReportPropertyColumnFromCommandLineOption(String columnText) {
-        String[] columnTextSplit = columnText.split("/", 2);
+    private static ValidationReportColumn getReportPropertyColumnFromCommandLineOption(String cliColumn) {
+        String[] columnTextSplit = cliColumn.split("/", 2);
         if (columnTextSplit.length != 2) {
-            throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by /", columnText));
+            throw new RuntimeException(String.format("csv column '%s' needs to consist of two parts separated by /", cliColumn));
         }
 
         return new ValidationReportColumn(columnTextSplit[0], columnTextSplit[1]);

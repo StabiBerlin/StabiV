@@ -1,5 +1,7 @@
 package de.spkberlin.imagevalidation.cli.output.report;
 
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelStyleElement;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,7 +15,6 @@ import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -44,7 +45,7 @@ public class ExcelCellWriter {
      * @param workbook the workbook
      * @param mainSheet the sheet
      */
-    public ExcelCellWriter(XSSFWorkbook workbook, Sheet mainSheet) {
+    public ExcelCellWriter(XSSFWorkbook workbook, Sheet mainSheet, ConfigurationExcelSection config) {
         this.workbook = workbook;
         this.mainSheet = mainSheet;
 
@@ -55,26 +56,13 @@ public class ExcelCellWriter {
         this.creationHelper = workbook.getCreationHelper();
         this.drawingPatriarch = mainSheet.createDrawingPatriarch();
 
-        this.defaultStyle = createBaseCellStyle(workbook);
-
-        this.headerStyle = createBaseCellStyle(workbook);
-        this.headerStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode("#DDDDDD"), null));
-        this.headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Font boldFont = workbook.createFont();
         boldFont.setBold(true);
-        this.headerStyle.setFont(boldFont);
 
-        this.warningStyle = createBaseCellStyle(workbook);
-        this.warningStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        this.warningStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        this.errorStyle = createBaseCellStyle(workbook);
-        this.errorStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode("#FF7D55"), null));
-        this.errorStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        this.errorStyle.setTopBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
-        this.errorStyle.setBottomBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
-        this.errorStyle.setLeftBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
-        this.errorStyle.setRightBorderColor(new XSSFColor(java.awt.Color.decode("#8c3b22"), null));
+        this.defaultStyle = createCellStyle(workbook, boldFont, config.getStyle().getDefaultElement());
+        this.headerStyle = createCellStyle(workbook, boldFont, config.getStyle().getHeader());
+        this.warningStyle = createCellStyle(workbook, boldFont, config.getStyle().getWarning());
+        this.errorStyle = createCellStyle(workbook, boldFont, config.getStyle().getError());
     }
 
     /**
@@ -168,16 +156,30 @@ public class ExcelCellWriter {
         }
     }
 
-    private static XSSFCellStyle createBaseCellStyle(XSSFWorkbook workbook) {
-        XSSFCellStyle style = workbook.createCellStyle();
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        style.setTopBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-        style.setBottomBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-        style.setLeftBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-        style.setRightBorderColor(IndexedColors.GREY_50_PERCENT.getIndex());
-        return style;
+    private static XSSFCellStyle createCellStyle(XSSFWorkbook workbook, Font boldFont, ConfigurationExcelStyleElement style) {
+        XSSFCellStyle cellStyle = workbook.createCellStyle();
+
+        if (style.isBold()) {
+            cellStyle.setFont(boldFont);
+        }
+
+        if (Objects.nonNull(style.getBackgroundColor())) {
+            cellStyle.setFillForegroundColor(new XSSFColor(java.awt.Color.decode(style.getBackgroundColor()), null));
+            cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        }
+
+        if (Objects.nonNull(style.getBorderColor())) {
+            XSSFColor borderColor = new XSSFColor(java.awt.Color.decode(style.getBorderColor()), null);
+
+            cellStyle.setBorderTop(BorderStyle.THIN);
+            cellStyle.setBorderBottom(BorderStyle.THIN);
+            cellStyle.setBorderLeft(BorderStyle.THIN);
+            cellStyle.setBorderRight(BorderStyle.THIN);
+            cellStyle.setTopBorderColor(borderColor);
+            cellStyle.setBottomBorderColor(borderColor);
+            cellStyle.setLeftBorderColor(borderColor);
+            cellStyle.setRightBorderColor(borderColor);
+        }
+        return cellStyle;
     }
 }
