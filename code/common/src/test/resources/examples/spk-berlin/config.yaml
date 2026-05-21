@@ -686,6 +686,7 @@ output:
         hiddenColumns: [0]
         groupDirectories: true
         collapseValidDirectories: true
+        onlyFirstListEntry: false
 
       style:
         default:

@@ -2,6 +2,7 @@ package de.spkberlin.imagevalidation.exiftool;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.spkberlin.imagevalidation.common.extract.ExtractionError;
@@ -106,5 +107,19 @@ public class ExiftoolExtractorTest {
                 )
             )
         );
+    }
+
+    /**
+     * Check that the version information is returned.
+     */
+    @Test
+    public void testVersion() {
+        ExiftoolExtractor extractor = new ExiftoolExtractor();
+
+        assertNotEquals(null, extractor.getVersion());
+        assertNotEquals("unknown version", extractor.getVersion());
+
+        extractor = new ExiftoolExtractor("exiftool-invalid-command", Collections.emptyList());
+        assertEquals("unknown version", extractor.getVersion());
     }
 }

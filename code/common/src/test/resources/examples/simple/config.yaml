@@ -33,7 +33,7 @@ output:
   report:
     csv:
       path: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
-      renderOnlyFirstListValue: true
+      onlyFirstListEntry: true
 
     excel:
       path: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
