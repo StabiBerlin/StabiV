@@ -13,9 +13,11 @@ public class ConfigurationExcelLayoutSection {
 
     private List<Integer> hiddenColumns;
 
-    private boolean groupDirectories;
+    private Boolean groupDirectories;
 
-    private boolean collapseValidDirectories;
+    private Boolean collapseValidDirectories;
+
+    private Boolean onlyFirstListEntry;
 
     /**
      * Initialize layout section with default values.
@@ -26,6 +28,7 @@ public class ConfigurationExcelLayoutSection {
         this.hiddenColumns = List.of(0);
         this.groupDirectories = true;
         this.collapseValidDirectories = true;
+        this.onlyFirstListEntry = false;
     }
 
     public ConfigurationExcelLayoutAutoFit getAutoFitColumns() {
@@ -56,15 +59,23 @@ public class ConfigurationExcelLayoutSection {
         return this.groupDirectories;
     }
 
-    public void setGroupDirectories(boolean groupDirectories) {
+    public void setGroupDirectories(Boolean groupDirectories) {
         this.groupDirectories = groupDirectories;
     }
 
-    public boolean isCollapseValidDirectories() {
+    public Boolean isCollapseValidDirectories() {
         return collapseValidDirectories;
     }
 
-    public void setCollapseValidDirectories(boolean filterValidImages) {
+    public void setCollapseValidDirectories(Boolean filterValidImages) {
         this.collapseValidDirectories = filterValidImages;
+    }
+
+    public Boolean isOnlyFirstListEntry() {
+        return this.onlyFirstListEntry;
+    }
+
+    public void setOnlyFirstListEntry(Boolean onlFirstListEntry) {
+        this.onlyFirstListEntry = onlFirstListEntry;
     }
 }

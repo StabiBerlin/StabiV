@@ -704,7 +704,7 @@ Relative file paths are resolved relative to a base directory. You can specify t
 The CSV report can be configured with the following options:
 
 - `path` - the file path for the CSV report
-- `onlyFirstListEntry` - whether to output only the first error or warning (true) or the full list of errors (false) separated by semicolon
+- `onlyFirstListEntry` - whether to output only the first error or warning (`true`) or the full list of errors (`false`) separated by semicolon
 
 The `path` property may use the following substitution variables to generate the CSV file path:
 
@@ -741,6 +741,7 @@ The layout section allows customizing the excel file with the following options:
 - `hiddenColumns` - a list of column ids that are hidden by default (starting with index 0 = column A, 1 = column B)
 - `groupDirectories` - whether all rows for images of a single directory are grouped such that they can be interactively collapsed (either `true` or `false`)
 - `collapseValidDirectories` - whether to hide all rows for all images of a directory that was evaluated to be valid (either `true` or `false`)
+- `onlyFirstListEntry` - whether to output only the first error or warning (`true`) or the full list of errors (`false`) as drop-down list
 
 The style section allows customizing various cell types used in the excel file with the following options:
 
@@ -773,6 +774,7 @@ report:
         hiddenColumns: [0]
         groupDirectories: true
         collapseValidDirectories: true
+        onlyFirstListEntry: false
 
       style:
         default:
@@ -884,7 +886,7 @@ The "validate" command of the Image Validation CLI works by following these gene
 
 ## JSON Output Mode
 
-In order to post-process validation results the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
+In order to post-process validation results, the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
 
 The JSON output mode generates one JSON document per line of output. Each JSON document follows the same structure and consists of the following properties:
 

@@ -33,6 +33,7 @@ public class ExcelCellWriter {
     private DataValidationHelper validationHelper;
     private Drawing<?> drawingPatriarch;
     private AtomicInteger listIndex;
+    private Boolean onlyFirstListEntry;
 
     private XSSFCellStyle defaultStyle;
     private XSSFCellStyle headerStyle;
@@ -49,6 +50,7 @@ public class ExcelCellWriter {
         this.workbook = workbook;
         this.mainSheet = mainSheet;
 
+        this.onlyFirstListEntry = config.getLayout().isOnlyFirstListEntry();
         this.listSheet = workbook.createSheet("Lists");
         this.workbook.setSheetHidden(workbook.getSheetIndex(listSheet), true);
         this.listIndex = new AtomicInteger(0);
@@ -78,7 +80,9 @@ public class ExcelCellWriter {
         } else if (ReportCellValueType.integer.equals(reportCell.getValueType())) {
             cell.setCellValue(reportCell.getInteger());
         } else if (ReportCellValueType.list.equals(reportCell.getValueType())) {
-            addListAsConstraint(workbook, mainSheet, listSheet, validationHelper, cell, reportCell.getList(), listIndex);
+            if (!onlyFirstListEntry) {
+                addListAsConstraint(workbook, mainSheet, listSheet, validationHelper, cell, reportCell.getList(), listIndex);
+            }
             cell.setCellValue(reportCell.getList().stream().findFirst().orElse(""));
         }
 
