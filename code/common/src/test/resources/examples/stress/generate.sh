@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# change to script directory
+cd "$(dirname "$0")"
+
 # read script arguments
 SOURCE_IMAGE=$1
 NUMBER_OF_DIRECTORIES=$2
@@ -24,7 +27,6 @@ fi
 # clean generated directory
 rm -rf generated
 mkdir -p generated
-echo -e "**\n!.gitignore" > generated/.gitignore
 
 # generate files
 for i in $(seq -f "%05g" 1 $NUMBER_OF_DIRECTORIES); do
