@@ -1,6 +1,7 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class ConfigurationExcelLayoutSection {
@@ -13,10 +14,13 @@ public class ConfigurationExcelLayoutSection {
 
     private List<Integer> hiddenColumns;
 
+    @NotNull
     private Boolean groupDirectories;
 
+    @NotNull
     private Boolean collapseValidDirectories;
 
+    @NotNull
     private Boolean onlyFirstListEntry;
 
     /**

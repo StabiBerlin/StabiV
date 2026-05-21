@@ -1,8 +1,12 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
+import jakarta.validation.constraints.NotNull;
+
 public class ConfigurationExcelStyleElement {
 
-    private boolean bold;
+    @NotNull
+    private Boolean bold;
+
     private String backgroundColor;
     private String borderColor;
 
@@ -17,17 +21,17 @@ public class ConfigurationExcelStyleElement {
      * @param backgroundColor the background color as html hex code
      * @param borderColor the border color as html hex code
      */
-    public ConfigurationExcelStyleElement(boolean bold, String backgroundColor, String borderColor) {
+    public ConfigurationExcelStyleElement(Boolean bold, String backgroundColor, String borderColor) {
         this.bold = bold;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
     }
 
-    public boolean isBold() {
+    public Boolean isBold() {
         return this.bold;
     }
 
-    public void setBold(boolean bold) {
+    public void setBold(Boolean bold) {
         this.bold = bold;
     }
 

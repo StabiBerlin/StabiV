@@ -80,7 +80,7 @@ public class ExcelCellWriter {
         } else if (ReportCellValueType.integer.equals(reportCell.getValueType())) {
             cell.setCellValue(reportCell.getInteger());
         } else if (ReportCellValueType.list.equals(reportCell.getValueType())) {
-            if (!onlyFirstListEntry) {
+            if (Objects.nonNull(onlyFirstListEntry) && !onlyFirstListEntry) {
                 addListAsConstraint(workbook, mainSheet, listSheet, validationHelper, cell, reportCell.getList(), listIndex);
             }
             cell.setCellValue(reportCell.getList().stream().findFirst().orElse(""));

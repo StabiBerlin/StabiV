@@ -1,12 +1,14 @@
 package de.spkberlin.imagevalidation.cli.configuration.state;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 public class ConfigurationCsvSection {
 
     @Valid
     private ConfigurationPath path;
 
+    @NotNull
     private Boolean onlyFirstListEntry;
 
     public ConfigurationCsvSection() {

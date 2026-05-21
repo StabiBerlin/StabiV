@@ -1,6 +1,8 @@
 package de.spkberlin.imagevalidation.cli.configuration;
 
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelLayoutAutoFit;
+import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelLayoutFixed;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelLayoutSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelSection;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelStyleSection;
@@ -352,6 +354,16 @@ public class ConfigurationMerger {
         // make sure layout section exists
         if (Objects.isNull(config.getReport().getExcel().getLayout())) {
             config.getReport().getExcel().setLayout(new ConfigurationExcelLayoutSection());
+        }
+
+        // make sure auto-fit options exists
+        if (Objects.isNull(config.getReport().getExcel().getLayout().getAutoFitColumns())) {
+            config.getReport().getExcel().getLayout().setAutoFitColumns(new ConfigurationExcelLayoutAutoFit());
+        }
+
+        // make sure fixed options exists
+        if (Objects.isNull(config.getReport().getExcel().getLayout().getFixed())) {
+            config.getReport().getExcel().getLayout().setFixed(new ConfigurationExcelLayoutFixed());
         }
 
         // make sure style section exists
