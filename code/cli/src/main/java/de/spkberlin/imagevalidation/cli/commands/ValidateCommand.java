@@ -10,6 +10,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLogging
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationLoggingVerbosityType;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationPath;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
+import de.spkberlin.imagevalidation.cli.extraction.ExtractorList;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
 import de.spkberlin.imagevalidation.cli.output.report.CsvWriter;
 import de.spkberlin.imagevalidation.cli.output.report.ExcelWriter;
@@ -23,8 +24,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine.ArgGroup;
@@ -406,29 +409,44 @@ public class ValidateCommand implements Callable<Integer> {
      * @throws IOException in case writing the report fails
      */
     public void writeReport(ValidateAllResult result, ConfigurationRoot config, Path configFilepath) throws IOException {
-        List<ReportRow> report = ReportGenerator.generateReport(
-            result,
-            config.getValidation().getImageRules(),
-            config.getValidation().getDirectoryRules().getConsistentProperties(),
-            config.getValidation().getDirectoryRules().getPropertyDeviations(),
-            config.getOutput().getReport().getColumns(),
-            configFilepath
-        );
-
         ConfigurationPath csvPath = config.getOutput().getReport().getCsvPath();
-        if (Objects.nonNull(csvPath)) {
-            Path resolvedCsvPath = FileUtils.modifyPathIfExists(
-                csvPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(csvPath.getPath())).normalize()
-            );
-            CsvWriter.writeReport(resolvedCsvPath, report);
-        }
-
         ConfigurationPath excelPath = config.getOutput().getReport().getExcelPath();
-        if (Objects.nonNull(excelPath)) {
-            Path resolvedExcelPath = FileUtils.modifyPathIfExists(
-                excelPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(excelPath.getPath())).normalize()
+
+        if (Objects.nonNull(csvPath) || Objects.nonNull(excelPath)) {
+            // determine extractor versions
+            Map<String, String> extractorVersions = new ExtractorList(config.getExtraction().getModules())
+                .getImplementations()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getVersion()));
+
+            // get original cli arguments list
+            List<String> commandArgs = spec.commandLine().getParseResult().originalArgs();
+
+            List<ReportRow> report = ReportGenerator.generateReport(
+                result,
+                config.getValidation().getImageRules(),
+                config.getValidation().getDirectoryRules().getConsistentProperties(),
+                config.getValidation().getDirectoryRules().getPropertyDeviations(),
+                config.getOutput().getReport().getColumns(),
+                commandArgs,
+                configFilepath,
+                extractorVersions
             );
-            ExcelWriter.writeReport(resolvedExcelPath, report);
+
+            if (Objects.nonNull(csvPath)) {
+                Path resolvedCsvPath = FileUtils.modifyPathIfExists(
+                    csvPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(csvPath.getPath())).normalize()
+                );
+                CsvWriter.writeReport(resolvedCsvPath, report);
+            }
+
+            if (Objects.nonNull(excelPath)) {
+                Path resolvedExcelPath = FileUtils.modifyPathIfExists(
+                    excelPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(excelPath.getPath())).normalize()
+                );
+                ExcelWriter.writeReport(resolvedExcelPath, report);
+            }
         }
     }
 

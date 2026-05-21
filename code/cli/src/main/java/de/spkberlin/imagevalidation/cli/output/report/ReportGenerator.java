@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -59,7 +60,9 @@ public class ReportGenerator {
         List<DirectoryConsistencyCondition> consistencyRules,
         List<DirectoryPropertyDeviationsRule> deviationRules,
         List<ValidationReportColumn> extraPropertyColumns,
-        Path configFilepath
+        List<String> commandArgs,
+        Path configFilepath,
+        Map<String, String> extractorVersions
     ) {
         logger.info("generate report");
         List<ValidationReportColumnKey> propertyColumnKeys = findAllReportColumns(
@@ -75,7 +78,7 @@ public class ReportGenerator {
                 writeSummaryLine(validateAllResult),
                 Stream.concat(
                     writeDirectories(validateAllResult, propertyColumnKeys, imageRules, consistencyRules, deviationRules),
-                    writeMetadata(configFilepath)
+                    writeMetadata(commandArgs, configFilepath, extractorVersions)
                 )
             )
         ).toList();
@@ -401,24 +404,81 @@ public class ReportGenerator {
             .collect(Collectors.joining("\n"));
     }
 
-    private static Stream<ReportRow> writeMetadata(Path configFilepath) {
+    private static Stream<ReportRow> writeMetadata(List<String> commandArgs, Path configFilepath, Map<String, String> extractorVersions) {
+        return Stream.of(
+            Stream.of(ReportRow.empty()),
+            writeCommandMetadata(commandArgs, configFilepath),
+            Stream.of(ReportRow.empty()),
+            writeVersionMetadata(extractorVersions)
+        ).flatMap(Function.identity());
+    }
+
+    private static Stream<ReportRow> writeCommandMetadata(List<String> commandArgs, Path configFilepath) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
 
         return Stream.of(
-            ReportRow.empty(),
             ReportRow.ofMetadata(
-                Stream.of(ReportCell.empty(), ReportCell.of("Image Validation CLI"), ReportCell.of(Constants.VERSION)).toList()
-            ),
-            ReportRow.ofMetadata(
-                Stream.of(ReportCell.empty(), ReportCell.of("Generated on"), ReportCell.of(ZonedDateTime.now().format(formatter))).toList()
+                Stream.of(ReportCell.empty(), ReportCell.of("generated on"), ReportCell.of(ZonedDateTime.now().format(formatter))).toList()
             ),
             ReportRow.ofMetadata(
                 Stream.of(
                     ReportCell.empty(),
-                    ReportCell.of("Using configuration file"),
+                    ReportCell.of("with arguments"),
+                    ReportCell.of(commandArgs.stream().collect(Collectors.joining(" ")))
+                ).toList()
+            ),
+            ReportRow.ofMetadata(
+                Stream.of(
+                    ReportCell.empty(),
+                    ReportCell.of("using configuration file"),
                     ReportCell.of(Objects.nonNull(configFilepath) ? configFilepath.toAbsolutePath().normalize().toString() : "")
                 ).toList()
             )
         );
+    }
+
+    private static Stream<ReportRow> writeVersionMetadata(Map<String, String> extractorVersions) {
+        return Stream.of(
+            Stream.of(
+                ReportRow.ofMetadata(
+                    Stream.of(
+                        ReportCell.empty(),
+                        ReportCell.of("operating system"),
+                        ReportCell.of(
+                            String.format(
+                                "%s %s %s",
+                                System.getProperty("os.name"),
+                                System.getProperty("os.version"),
+                                System.getProperty("os.arch")
+                            )
+                        )
+                    ).toList()
+                ),
+                ReportRow.ofMetadata(
+                    Stream.of(
+                        ReportCell.empty(),
+                        ReportCell.of("java"),
+                        ReportCell.of(
+                            String.format(
+                                "%s (%s %s %s)",
+                                System.getProperty("java.version"),
+                                System.getProperty("java.vendor"),
+                                System.getProperty("java.vm.name"),
+                                System.getProperty("java.vm.version")
+                            )
+                        )
+                    ).toList()
+                ),
+                ReportRow.ofMetadata(
+                    Stream.of(ReportCell.empty(), ReportCell.of("image validation cli"), ReportCell.of(Constants.VERSION)).toList()
+                )
+            ),
+            extractorVersions
+                .entrySet()
+                .stream()
+                .map(e ->
+                    ReportRow.ofMetadata(Stream.of(ReportCell.empty(), ReportCell.of(e.getKey()), ReportCell.of(e.getValue())).toList())
+                )
+        ).flatMap(Function.identity());
     }
 }

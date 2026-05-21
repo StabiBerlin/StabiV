@@ -75,4 +75,8 @@ public class JHoveExtractor implements Extractor {
             throw new ExtractionError("exception while validating with jhove: " + e.getMessage());
         }
     }
+
+    public String getVersion() {
+        return jhove.getRelease();
+    }
 }

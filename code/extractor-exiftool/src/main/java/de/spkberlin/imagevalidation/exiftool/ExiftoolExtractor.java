@@ -40,6 +40,7 @@ public class ExiftoolExtractor implements Extractor {
 
     public static final String DEFAULT_CMD = "exiftool";
     public static final List<String> DEFAULT_CLI_ARGS = List.of("-a", "-u", "-s", "-G5");
+    public static final List<String> VERSION_ARGS = List.of("-ver");
 
     private static final Logger logger = LoggerFactory.getLogger(ExiftoolExtractor.class);
 
@@ -68,6 +69,10 @@ public class ExiftoolExtractor implements Extractor {
         return new ExtractionResult(parseExifToolOutput(output));
     }
 
+    public String getVersion() {
+        return getExifVersion();
+    }
+
     /**
      * Initialize ExifTool extractor with default options.
      */
@@ -82,6 +87,34 @@ public class ExiftoolExtractor implements Extractor {
      */
     public ExiftoolExtractor(List<String> cliArgs) {
         this(DEFAULT_CMD, cliArgs);
+    }
+
+    /**
+     * Retrieves the version of Exiftool by running "exiftool -ver" and parsing the version from stdout.
+     *
+     * @return the version string or "unknown version" in case a problem occurred
+     */
+    public String getExifVersion() {
+        StringBuilder stdout = new StringBuilder();
+        try {
+            List<String> command = Stream.of(Stream.of(this.cmd), VERSION_ARGS.stream())
+                .flatMap(s -> s)
+                .toList();
+
+            Process process = new ProcessBuilder(command).start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    stdout.append(line);
+                    stdout.append(NEWLINE);
+                }
+            }
+
+            return stdout.toString().trim();
+        } catch (IOException e) {
+            logger.error("exception while determining Exiftool version", e);
+            return "unknown version";
+        }
     }
 
     /**

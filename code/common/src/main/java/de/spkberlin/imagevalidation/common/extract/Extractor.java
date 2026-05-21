@@ -13,4 +13,11 @@ public interface Extractor {
      * @throws ExtractionError in case extraction fails
      */
     public ExtractionResult extractProperties(Path filepath) throws ExtractionError;
+
+    /**
+     * Return a string describing the version of the extractor.
+     *
+     * @return the version description
+     */
+    public String getVersion();
 }
