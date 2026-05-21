@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.7.0 - tbd
+
+New Features
+
+-
+
+General Changes
+
+- JHove parsing warning log messages have been reduced to debug log level
+- Excel report cells with multiple values are now stored row-wise to avoid 16k column limit
+
 ## v0.6.0 - 2026-05-18
 
 New Features

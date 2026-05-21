@@ -67,7 +67,7 @@ public class RepInfoParser {
                     p -> p.getName(),
                     p -> parseProperty(p),
                     (pL, pR) -> {
-                        logger.warn("JHove RepInfo contains property with duplicate key '{}'", pL);
+                        logger.debug("JHove RepInfo contains property with duplicate key '{}'", pL);
                         return pL;
                     }
                 )
@@ -101,7 +101,7 @@ public class RepInfoParser {
                 })
                 .toList();
         } else {
-            logger.warn("JHove RepInfo contains property list of unknown type: " + value.toString());
+            logger.debug("JHove RepInfo contains property list of unknown type: " + value.toString());
         }
         return null;
     }
@@ -123,7 +123,7 @@ public class RepInfoParser {
         } else if (value instanceof long[]) {
             return Arrays.stream((long[]) value).boxed().toList();
         } else {
-            logger.warn("JHove RepInfo contains property array of unknown type: " + value.toString());
+            logger.debug("JHove RepInfo contains property array of unknown type: " + value.toString());
         }
         return null;
     }
