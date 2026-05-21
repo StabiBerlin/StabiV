@@ -56,6 +56,6 @@ RUN apt-get update && \
 WORKDIR /root/workspace
 
 COPY --from=0 /root/workspace/code/cli/target/runtimeDependencies /root/build/jars
-COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.6.0.jar /root/build/jars/imagevalidation-cli-0.6.0.jar
+COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.7.0.jar /root/build/jars/imagevalidation-cli-0.7.0.jar
 
 ENTRYPOINT ["java", "-cp", "/root/build/jars/*", "de.spkberlin.imagevalidation.cli.entrypoint.Main"]
