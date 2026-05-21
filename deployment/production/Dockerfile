@@ -26,9 +26,18 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# coyp files
+# copy files
 COPY bin /root/workspace/bin
 COPY code /root/workspace/code
+COPY documentation /root/workspace/documentation
+COPY CHANGELOG.md /root/workspace/CHANGELOG.md
+COPY LICENSE /root/workspace/LICENSE
+
+# create empty pdf files to avoid maven assembly error
+RUN touch /root/workspace/CHANGELOG.pdf && \
+    touch /root/workspace/documentation/userguide/README.pdf && \
+    touch /root/workspace/documentation/getting-started/Linux.pdf && \
+    touch /root/workspace/documentation/getting-started/Windows.pdf
 
 # build jar file
 RUN cd /root/workspace/bin && bash package.sh
@@ -46,6 +55,7 @@ RUN apt-get update && \
 
 WORKDIR /root/workspace
 
-COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.6.0.jar /root/build/main.jar
+COPY --from=0 /root/workspace/code/cli/target/runtimeDependencies /root/build/jars
+COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-0.6.0.jar /root/build/jars/imagevalidation-cli-0.6.0.jar
 
-ENTRYPOINT ["java", "-jar", "/root/build/main.jar"]
+ENTRYPOINT ["java", "-cp", "/root/build/jars/*", "de.spkberlin.imagevalidation.cli.entrypoint.Main"]
