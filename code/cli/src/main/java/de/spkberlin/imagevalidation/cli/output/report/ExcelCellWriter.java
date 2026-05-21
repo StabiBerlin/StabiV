@@ -126,6 +126,20 @@ public class ExcelCellWriter {
         cell.setCellComment(comment);
     }
 
+    /**
+     * Add an interactive drop-down list to a cell to visualize all list entries.
+     *
+     * <p>List values are stored row-wise in a separate sheet. The drop-down validation constraint references the list via a formula.
+     * In order to preserve space, empty lists will not create a row.
+     *
+     * @param workbook the workbook
+     * @param mainSheet the main sheet that contains the report
+     * @param listSheet the extra sheet that is used to store list values
+     * @param validationHelper a help class required to add validation constraints (drop-downs)
+     * @param cell the cell of the main sheet that is supposed to render the list
+     * @param list the list of values
+     * @param listIndex a global index that is incremented if a new list row is created
+     */
     private static void addListAsConstraint(
         Workbook workbook,
         Sheet mainSheet,
@@ -136,12 +150,13 @@ public class ExcelCellWriter {
         AtomicInteger listIndex
     ) {
         if (list.size() > 1) {
+            Row row = listSheet.createRow(listIndex.get());
             for (int i = 0; i < list.size(); i++) {
-                Row row = Objects.isNull(listSheet.getRow(i)) ? listSheet.createRow(i) : listSheet.getRow(i);
-                row.createCell(listIndex.get()).setCellValue(list.get(i));
+                row.createCell(i).setCellValue(list.get(i));
             }
-            String columnName = CellReference.convertNumToColString(listIndex.get());
-            String formula = String.format("Lists!$%s$1:$%s$%d", columnName, columnName, list.size());
+            String columnStartName = CellReference.convertNumToColString(0);
+            String columnEndName = CellReference.convertNumToColString(list.size() - 1);
+            String formula = String.format("Lists!$%s$%d:$%s$%d", columnStartName, listIndex.get() + 1, columnEndName, listIndex.get() + 1);
             DataValidationConstraint constraint = validationHelper.createFormulaListConstraint(formula);
             mainSheet.addValidationData(
                 validationHelper.createValidation(

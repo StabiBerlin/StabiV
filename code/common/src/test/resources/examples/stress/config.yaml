@@ -1,0 +1,149 @@
+input:
+  includes:
+    - "generated/**"
+  excludes:
+    - "config.yaml"
+    - "**.csv"
+    - "**.xlsx"
+    - ".~lock*"
+    - "**.sha1"
+    - "**.gitignore"
+
+processing:
+  threads: 8
+  checksumAlgorithm: SHA-1
+
+validation:
+  directoryRules:
+    consistentProperties:
+      - label: PhotometricInterpretation
+        property: $.exiftool.TIFF.IFD[0].PhotometricInterpretation
+        severity: error
+        reportColumn: true
+
+    consecutiveNumbering:
+      filenameRegExp: "^(\\d{8})\\.tif$"
+      filenameTemplate: "%08d.tif"
+      numberMatchGroup: 1
+      startNumber: 1
+      severity: error
+
+    propertyDeviations:
+      # max image width deviation
+      - label: ImageWidth
+        property: $.exiftool.TIFF.IFD[0].ImageWidth
+        reportColumn: true
+        condition:
+          severity: error
+          aggregate: average
+          maxDeviation: 0
+          inPercent: false
+
+      # max image height deviation
+      - label: ImageHeight
+        property: $.exiftool.TIFF.IFD[0].ImageHeight
+        reportColumn: true
+        condition:
+          severity: warning
+          aggregate: average
+          maxDeviation: 0
+          inPercent: false
+
+  imageRules:
+    # JHove wellformed
+    - message: JHove must detect file as wellformed
+      severity: error
+      reportColumns:
+        - label: JHove wellformed
+          property: $.jhove.wellformed
+      context: $.jhove
+      condition:
+        property: $.wellformed
+        assert: equal
+        value: true
+
+    # JHove valid
+    - message: JHove must detect file as valid
+      severity: error
+      reportColumns:
+        - label: JHove valid
+          property: $.jhove.valid
+      context: $.jhove
+      condition:
+        property: $.valid
+        assert: equal
+        value: true
+
+    # Exiftool reports no warning
+    - message: Exiftool reports warning
+      severity: error
+      reportColumns:
+        - label: Exiftool warning
+          property: $.exiftool..Warning
+      context: $.exiftool
+      condition:
+        not:
+          property: $..Warning
+          assert: exists
+
+    # TIF format
+    - message: Image must be a TIF file
+      severity: error
+      reportColumns:
+        - label: FileType
+          property: $.exiftool..FileType
+      context: $.exiftool
+      condition:
+        property: $..FileType
+        assert: equal
+        value: TIFF
+
+    # IFD
+    - message: must have exactly one IFD
+      severity: error
+      reportColumns:
+        - label: Number of IFDs
+          property: $.exiftool.TIFF.IFD.length()
+      context: $.exiftool
+      condition:
+        property: $.TIFF.IFD
+        assert: occurrences
+        value: 1
+
+    # ImageWidth
+    - message: ImageWidth must be 4
+      severity: error
+      reportColumns:
+        - label: ImageWidth
+          property: $.exiftool.TIFF.IFD[0].ImageWidth
+      context: $.exiftool
+      condition:
+        and:
+          - property: $.TIFF.IFD[0].ImageWidth
+            assert: isInteger
+          - property: $.TIFF.IFD[0].ImageWidth
+            assert: equal
+            value: 4
+
+    # ImageLength
+    - message: ImageHeight must be 4
+      severity: error
+      reportColumns:
+        - label: ImageHeight
+          property: $.exiftool.TIFF.IFD[0].ImageHeight
+      context: $.exiftool
+      condition:
+        and:
+          - property: $.TIFF.IFD[0].ImageHeight
+            assert: isInteger
+          - property: $.TIFF.IFD[0].ImageHeight
+            assert: equal
+            value: 4
+
+output:
+  checksum:
+    filename: ${directory}.sha1
+    lineFormat: ${checksum} *${filename}
+  report:
+    csvPath: ${date}_${time}_report.csv
+    excelPath: ${date}_${time}_report.xlsx
