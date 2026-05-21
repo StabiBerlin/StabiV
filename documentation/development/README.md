@@ -65,6 +65,16 @@ In order to bundle everything into one zip file, two things need to be done manu
 
 Now, when running `bash bin/package.sh`, both Java and exiftool is included in the final zip file.
 
+## Testing
+
+The are three examples datasets available in `code/common/src/test/resources/examples`:
+
+- `simple` - a small dataset with basic tif images
+- `spk-berlin` - a large dataset with various tif images designed to test validation rules used by SPK-Berlin
+- `stress` - a generator script that creates an arbitrary large dataset from a single valid or invalid image
+
+The `simple` and `spk-berlin` datasets are also processed as part of unit tests. The `stress` example needs to be run manually.
+
 ## Code Formatting
 
 This repository uses `spotless` to automatically format code according to coding guidlines.

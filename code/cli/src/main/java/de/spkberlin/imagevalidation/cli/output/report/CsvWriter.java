@@ -1,7 +1,6 @@
 package de.spkberlin.imagevalidation.cli.output.report;
 
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationCsvSection;
-import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationExcelSection;
 import de.spkberlin.imagevalidation.cli.path.FileUtils;
 import java.io.FileWriter;
 import java.io.IOException;
