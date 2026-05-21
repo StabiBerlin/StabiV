@@ -703,6 +703,7 @@ Both `csvPath` and `excelPath` may use the following substitution variables to g
 
 - `date` - the current date in format `YY-MM-DD`
 - `time` - the current time in format `HH-MM-SS`
+- `inputBaseDirectoryName` - the name of the base directory of the input configuration
 
 Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report.csv` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00.csv`.
 

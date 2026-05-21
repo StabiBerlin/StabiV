@@ -661,8 +661,8 @@ output:
     filename: ${directory}.sha1
     lineFormat: ${checksum} *${filename}
   report:
-    csvPath: ${date}_${time}_report.csv
-    excelPath: ${date}_${time}_report.xlsx
+    csvPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.csv
+    excelPath: ${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx
     columns:
       - label: DateTimeOriginal
         property: $.exiftool.TIFF.IFD[0].DateTimeOriginal

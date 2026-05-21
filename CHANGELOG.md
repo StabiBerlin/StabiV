@@ -6,6 +6,7 @@ New Features
 
 - Include version information of operating system, java and extractor modules in report metadata
 - Include raw command line arguments in report metadata
+- Add substitution variable `inputBaseDirectoryName` for `csvPath` and `excelPath`
 
 General Changes
 

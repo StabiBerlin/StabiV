@@ -436,14 +436,20 @@ public class ValidateCommand implements Callable<Integer> {
 
             if (Objects.nonNull(csvPath)) {
                 Path resolvedCsvPath = FileUtils.modifyPathIfExists(
-                    csvPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(csvPath.getPath())).normalize()
+                    csvPath
+                        .getBaseDirectory()
+                        .resolve(ReportFile.resolveFilepathTemplate(csvPath.getPath(), config.getInput().getBaseDirectory()))
+                        .normalize()
                 );
                 CsvWriter.writeReport(resolvedCsvPath, report);
             }
 
             if (Objects.nonNull(excelPath)) {
                 Path resolvedExcelPath = FileUtils.modifyPathIfExists(
-                    excelPath.getBaseDirectory().resolve(ReportFile.resolveFilepathTemplate(excelPath.getPath())).normalize()
+                    excelPath
+                        .getBaseDirectory()
+                        .resolve(ReportFile.resolveFilepathTemplate(excelPath.getPath(), config.getInput().getBaseDirectory()))
+                        .normalize()
                 );
                 ExcelWriter.writeReport(resolvedExcelPath, report);
             }

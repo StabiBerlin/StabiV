@@ -36,11 +36,11 @@ public class ConfigurationMerger {
      * Merge input section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
-     * @param baseDirectory the path to the configuration file
+     * @param cliBaseDirectory the path to the configuration file
      * @param includes the list of includes filepaths specified with CLI option
      * @param excludes the list of exclided filepaths specified with CLI option
      */
-    public static void mergeInput(ConfigurationRoot config, Path baseDirectory, List<String> includes, List<String> excludes) {
+    public static void mergeInput(ConfigurationRoot config, Path cliBaseDirectory, List<String> includes, List<String> excludes) {
         // make sure input section exists
         if (Objects.isNull(config.getInput())) {
             config.setInput(new ConfigurationInputSection());
@@ -48,7 +48,7 @@ public class ConfigurationMerger {
 
         // make sure base directory is defined
         if (Objects.isNull(config.getInput().getBaseDirectory())) {
-            config.getInput().setBaseDirectory(baseDirectory);
+            config.getInput().setBaseDirectory(cliBaseDirectory);
         }
 
         // make sure includes are defined
