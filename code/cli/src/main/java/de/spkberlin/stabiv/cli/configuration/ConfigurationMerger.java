@@ -340,9 +340,11 @@ public class ConfigurationMerger {
         // set output base directory based on cli options
         if (Objects.isNull(config.getOutput().getBaseDirectory()) && namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
             config.getOutput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
-        } else if (Objects.isNull(cliOutputBaseDirectory) && Objects.isNull(config.getOutput().getBaseDirectory())) {
+        } else if (Objects.isNull(config.getOutput().getBaseDirectory())) {
             config.getOutput().setBaseDirectory(cwd);
-        } else if (Objects.nonNull(cliOutputBaseDirectory)) {
+        }
+        // overwrite output base directory if cli option is provided
+        if (Objects.nonNull(cliOutputBaseDirectory)) {
             config.getOutput().setBaseDirectory(cliOutputBaseDirectory);
         }
 
