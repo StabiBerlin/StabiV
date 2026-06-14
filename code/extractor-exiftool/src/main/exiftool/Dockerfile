@@ -1,6 +1,6 @@
 FROM docker.io/library/ubuntu:22.04 as build
 
-ARG EXIFTOOL_VERSION=13.55
+ARG EXIFTOOL_VERSION=13.59
 ARG PERL_VERSION=5.42.2
 
 ENV DEBIAN_FRONTEND=noninteractive

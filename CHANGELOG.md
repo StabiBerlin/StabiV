@@ -8,6 +8,8 @@ Breaking Changes
 
 Other Improvements
 
+- Updated ExifTool to v13.59
+- Updated included OpenJDK to v26.0.1
 - Improved documentation, in particular about validating individual image files via nameless cli input arguments
 - Added the script `version_bump.sh` to update version strings for all pom files and `Constants.java`
 
