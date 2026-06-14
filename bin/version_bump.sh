@@ -5,6 +5,7 @@ cd ..
 
 NEW_VERSION=${1:-}
 CONSTANTS_FILE=code/cli/src/main/java/de/spkberlin/imagevalidation/cli/common/Constants.java
+DOCKER_FILE=deployment/production/Dockerfile
 
 if [[ -z "$NEW_VERSION" ]]; then
     echo "You need to provide a version string as first and only argument to this script-"
@@ -23,3 +24,6 @@ fi
 
 # update Constants.java
 sed -i -E "s/(VERSION = \")[^\"]+(\")/\1$NEW_VERSION\2/" "$CONSTANTS_FILE"
+
+# update Dockerfile
+sed -i -E "s/imagevalidation-cli-[^/ ]+\.jar/imagevalidation-cli-${NEW_VERSION}.jar/g" $DOCKER_FILE
