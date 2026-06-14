@@ -99,7 +99,7 @@ public class ValidateCommandTest {
         int exitCode = cmd.execute(
             "-v",
             "--imageRule=$.jhove.wellformed/equal/true",
-            SIMPLE_DIRECTORY.resolve("wellformed/*.tif").toString()
+            SIMPLE_DIRECTORY.resolve("wellformed").toString() + "/*.tif"
         );
         assertEquals(0, exitCode);
     }
