@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.0-SNAPSHOT - tbf
+
+Breaking Changes
+
+- Nameless cli input arguments may either list one or multiple image files that are being validated or a single directory that is scanned based on include and exclude rules
+
+Other Improvements
+
+- Improved documentation, in particular about validating individual image files via nameless cli input arguments
+- Added the script `version_bump.sh` to update version strings for all pom files and `Constants.java`
+
 ## v0.7.0 - 2026-05-22
 
 New Features
