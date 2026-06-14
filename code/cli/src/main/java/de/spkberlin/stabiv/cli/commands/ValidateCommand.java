@@ -480,6 +480,7 @@ public class ValidateCommand implements Callable<Integer> {
         ConfigurationMerger.mergeOutput(
             config,
             Path.of(CWD),
+            inputOptions.inputArguments,
             outputOptions.baseDirectory,
             outputOptions.csvOutputFilepath,
             outputOptions.excelOutputFilepath,

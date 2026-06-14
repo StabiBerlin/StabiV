@@ -67,11 +67,7 @@ public class ConfigurationMerger {
             config.getInput().setBaseDirectory(cwd);
         }
 
-        boolean namelessArgumentIsSingleDirectory =
-            cliInputArguments.size() == 1 &&
-            !GlobResolver.isGlobPattern(cliInputArguments.get(0)) &&
-            Files.isDirectory(Path.of(cliInputArguments.get(0)));
-        if (namelessArgumentIsSingleDirectory) {
+        if (namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
             // use input argument as base directory
             config.getInput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
         }
@@ -93,7 +89,21 @@ public class ConfigurationMerger {
         }
         mergeConfigurationPaths(config.getInput().getExcludes(), config.getInput().getBaseDirectory(), excludes);
 
-        mergeInputNamelessArguments(config, cwd, cliInputArguments, namelessArgumentIsSingleDirectory);
+        mergeInputNamelessArguments(config, cwd, cliInputArguments);
+    }
+
+    /**
+     * Returns true if there is only one nameless input argument referencing a directory.
+     *
+     * @param cliInputArguments the nameless input arguments specified via CLI
+     * @return true if there is only one nameless input argument referencing a directory
+     */
+    private static boolean namelessInputArgumentIsSingleDirectory(List<String> cliInputArguments) {
+        boolean isSingleDirectory =
+            cliInputArguments.size() == 1 &&
+            !GlobResolver.isGlobPattern(cliInputArguments.get(0)) &&
+            Files.isDirectory(Path.of(cliInputArguments.get(0)));
+        return isSingleDirectory;
     }
 
     /**
@@ -104,13 +114,8 @@ public class ConfigurationMerger {
      * @param cliInputArguments the nameless input arguments specified via CLI
      * @param namelessArgumentIsSingleDirectory whether the nameless input arguments matches a single directory
      */
-    private static void mergeInputNamelessArguments(
-        ConfigurationRoot config,
-        Path cwd,
-        List<String> cliInputArguments,
-        boolean namelessArgumentIsSingleDirectory
-    ) {
-        if (!cliInputArguments.isEmpty() && !namelessArgumentIsSingleDirectory) {
+    private static void mergeInputNamelessArguments(ConfigurationRoot config, Path cwd, List<String> cliInputArguments) {
+        if (!cliInputArguments.isEmpty() && !namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
             // interprete input arguments as include rules and ignore all previously defined include and exclude rules
             config.getInput().setBaseDirectory(cwd);
             config
@@ -305,7 +310,9 @@ public class ConfigurationMerger {
      * Merge output section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
-     * @param baseDirectory the current working directory
+     * @param cwd the current working directory
+     * @param cliInputArguments the nameless input arguments specified via CLI
+     * @param cliOutputBaseDirectory the current working directory
      * @param csvPath the csv output path specified with CLI option
      * @param excelPath the excel output path specified with CLI option
      * @param reportColumns add list of additional property columns as provided by CLI option
@@ -316,7 +323,8 @@ public class ConfigurationMerger {
     public static void mergeOutput(
         ConfigurationRoot config,
         Path cwd,
-        Path baseDirectory,
+        List<String> cliInputArguments,
+        Path cliOutputBaseDirectory,
         String csvPath,
         String excelPath,
         List<String> reportColumns,
@@ -329,11 +337,13 @@ public class ConfigurationMerger {
             config.setOutput(new ConfigurationOutputSection());
         }
 
-        // set output base directory depending on cli options
-        if (Objects.isNull(baseDirectory) && Objects.isNull(config.getOutput().getBaseDirectory())) {
+        // set output base directory based on cli options
+        if (Objects.isNull(config.getOutput().getBaseDirectory()) && namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
+            config.getOutput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
+        } else if (Objects.isNull(cliOutputBaseDirectory) && Objects.isNull(config.getOutput().getBaseDirectory())) {
             config.getOutput().setBaseDirectory(cwd);
-        } else if (Objects.nonNull(baseDirectory)) {
-            config.getOutput().setBaseDirectory(baseDirectory);
+        } else if (Objects.nonNull(cliOutputBaseDirectory)) {
+            config.getOutput().setBaseDirectory(cliOutputBaseDirectory);
         }
 
         mergeOutputReportSection(config.getOutput(), csvPath, excelPath, reportColumns);
