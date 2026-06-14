@@ -20,7 +20,19 @@ public class GlobResolverTest {
     private static String DIR_SEPERATOR = FileSystems.getDefault().getSeparator();
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
+
+    @Test
+    public void testIsGlobPattern() {
+        // pattern
+        assertTrue(GlobResolver.isGlobPattern("/test/*.tif"));
+        assertTrue(GlobResolver.isGlobPattern("/test/image.{jpg,tif}"));
+        assertTrue(GlobResolver.isGlobPattern("/test/**/original/*.{jpg,tif}"));
+
+        // regular filepaths
+        assertFalse(GlobResolver.isGlobPattern("/test/image.tif"));
+        assertFalse(GlobResolver.isGlobPattern("/test/directory/"));
+    }
 
     @Test
     @EnabledOnOs({ OS.LINUX })

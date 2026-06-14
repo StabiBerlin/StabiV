@@ -12,7 +12,7 @@ On Ubuntu 22.04, 24.04 no additional packages need to be installed. On Debian 12
 dnf install -y libxcrypt-compat
 ```
 
-Ubuntu 20.04, Debian 11 and Rocky Linux 8 are not supported. You could try to install Java and ExifTool manually, and then adapt the `spk-iv-cli-sh` accordingly.
+Ubuntu 20.04, Debian 11 and Rocky Linux 8 are not supported. You could try to install Java and ExifTool manually, and then adapt the `spk-iv-cli.sh` accordingly.
 
 Finally, you can start the tool from your console with the following command:
 

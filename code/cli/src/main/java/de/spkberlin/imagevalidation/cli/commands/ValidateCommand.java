@@ -43,8 +43,11 @@ import picocli.CommandLine.Spec;
 
     @|bold Examples|@
 
-    Validate all TIF files in all subdirectories and check JHove has detected them as wellformed:%n
-      ${COMMAND-FULL-NAME} --imageRule="$.jhove.wellformed/equal/true" /path/to/images/**/*.tif
+    Validate a single file and check whether JHove detects it as wellformed:%n
+      ${COMMAND-FULL-NAME} --imageRule="$.jhove.wellformed/equal/true" /path/to/image.tif
+
+    Validate all tif files in all subdirectories and check whether JHove detects them as wellformed:%n
+      ${COMMAND-FULL-NAME} --imageRule="$.jhove.wellformed/equal/true" --include "**.tif" /path/to/directory
 
     Use a config file to define all validation options:%n
       ${COMMAND-FULL-NAME} --config /path/to/config.yaml
@@ -86,7 +89,7 @@ public class ValidateCommand implements Callable<Integer> {
         Path configFilepath;
     }
 
-    @ArgGroup(validate = true, heading = "%n@|bold Processing Options|@%n%n", order = 2, exclusive = false)
+    @ArgGroup(validate = true, heading = "%n@|bold Processing Options|@%n%n", order = 3, exclusive = false)
     public ProcessingOptions processingOptions = new ProcessingOptions();
 
     static class ProcessingOptions {
@@ -107,6 +110,9 @@ public class ValidateCommand implements Callable<Integer> {
             paramLabel = "ALGORITHM",
             description = """
             The checksum algorithm that is used to calculate image file checksums (default SHA-1).
+
+            Possible values are listed in the Java documentation:
+            https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#messagedigest-algorithms
             """
         )
         String checksumAlgorithm;
@@ -161,7 +167,7 @@ public class ValidateCommand implements Callable<Integer> {
               - `lowerThan`, `lowerThanOrEqual`, `greaterThan`, `greaterThanOrEqual` - compares the property to a number
               - `isInteger` - checks that the property is an integer
 
-            The expected value can be either a simple value, or a list of values separated by comma.
+            The expected value can be either a simple value or a list of values separated by comma.
             """
         )
         List<String> imageRules = Collections.emptyList();
@@ -174,6 +180,9 @@ public class ValidateCommand implements Callable<Integer> {
             Add a validation requirement that a certain property needs to be consistent across all images of a directory
 
             Properties need to be specified a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
+
+            Examples
+            - `$.exiftool..PhotometricInterpretation` - all images in a directory need to have the same color format
             """
         )
         List<String> consistentProperties = Collections.emptyList();
@@ -229,8 +238,9 @@ public class ValidateCommand implements Callable<Integer> {
             arity = "1",
             paramLabel = "DIRECTORY",
             description = """
-            The directory path that is used as base directory when resolving relative filepaths for output options
-            (in particular the CSV and Excel report filepath options). Defaults to the global base directory.
+            The directory that is used as base directory when resolving relative filepaths for output options
+            (in particular the CSV and Excel report filepath options). Defaults to the global base directory or the current working
+            directory, if no global base directory is specified via the nameless INPUT argument.
 
             For example:
             - `/path/to/directory`
@@ -248,7 +258,9 @@ public class ValidateCommand implements Callable<Integer> {
 
             The filename may contain the following substitution variables:
 
-            - `directory`
+            - `directory` - the name of the directory containing images
+            - `date` - the current date in format `YY-MM-DD`
+            - `time` - the current time in format `HH-MM-SS`
 
             On Linux, the parameter needs to be enclosed in single quotes if a variable is included to prevent that environment variables
             are substituted instead, e.g. `--checksum '${directory}.sha1'`.
@@ -265,7 +277,7 @@ public class ValidateCommand implements Callable<Integer> {
         String csvOutputFilepath;
 
         /** The filepath to the generated CSV file. */
-        @Option(names = { "--excel" }, paramLabel = "FILEPATH", description = "Excel output file")
+        @Option(names = { "--excel" }, paramLabel = "FILEPATH", description = "Excel output file (xlsx)")
         String excelOutputFilepath;
 
         @Option(
@@ -283,7 +295,7 @@ public class ValidateCommand implements Callable<Integer> {
 
             Properties are selected by specifying a JsonPath, see `extract` subcommand or RFC 9535 (https://datatracker.ietf.org/doc/html/rfc9535).
 
-            A label can be any text.
+            The label can be any text.
             """
         )
         List<String> reportColumns = Collections.emptyList();
@@ -301,21 +313,6 @@ public class ValidateCommand implements Callable<Integer> {
     public InputOptions inputOptions = new InputOptions();
 
     static class InputOptions {
-
-        /** The base directory for relative input filepaths. */
-        @Option(
-            names = { "--inputBaseDirectory" },
-            arity = "1",
-            paramLabel = "DIRECTORY",
-            description = """
-            The directory path that is used as base directory when resolving relative filepaths defined for input options
-            (in particular the include and exclude options). Defaults to the global base directory.
-
-            For example:
-            - `/path/to/directory`
-            """
-        )
-        Path baseDirectory;
 
         @Option(
             names = { "--exclude" },
@@ -337,11 +334,11 @@ public class ValidateCommand implements Callable<Integer> {
             paramLabel = "PATTERN",
             arity = "1",
             description = """
-            one ore multiple files, directories or glob patterns that are excluded from validation
+            one ore multiple files, directories or glob patterns that are validated
 
             Examples
-            - `&ast;.tif` - validate all tif files in this directory not considering subdirectories
-            - `&ast;&ast;.tif` - validate all tif files in all subdirectories
+            - `&ast;.tif` - validate all tif files in the base directory not considering subdirectories
+            - `&ast;&ast;.tif` - validate all tif files in the base directory including all subdirectories
             - `&ast;&ast;/&ast;.{tif,jpg}` - validate tif and jpg files in all subdirectories, but not the base directory
             """
         )
@@ -349,19 +346,31 @@ public class ValidateCommand implements Callable<Integer> {
 
         /** The list of directories and files that are being validated. */
         @Parameters(
-            paramLabel = "BASE_DIRECTORY",
-            arity = "1",
+            paramLabel = "INPUT",
+            arity = "0..*",
             description = """
-            The global base directory that is used to resolve all relative filepaths. Defaults to the current working directory. If more
-            specific base directories are defined, e.g. via `--inputBaseDirectory` or `--outputBaseDirectry`, then they will overwrite the
-            global base directory. Also, if base directories are specified inside the configuration file, they will also overwrite this
-            global base directory.
+            Defines which images files are validated.
+
+            If a single directory is provided as INPUT, it is interpreted as the base directory that is scanned for image files based on
+            all defined include and exclude rules (either via command line arguments or via a configuration file). In all other cases,
+            include and exclude rules are ignored. For example, if a single image file is provided as INPUT, it is considered the only file
+            that needs to be evaluated in dependent of any other include or exclude rules. If multiple individual files or a filepath
+            pattern is provided as INPUT, the matching images files are validated while ignoring any additional include and exclude rules.
+
+            By default, if nothing is provided as INPUT, the current working directory is assumed as base directory and scanned for image
+            files based on all include and exclude rules.
+
+            If more specific base directories are defined, e.g. via `--inputBaseDirectory` or `--outputBaseDirectry`, then they will
+            overwrite the base directory that is provided here (if it is specified).
 
             Examples
             - `/path/to/directory` - validate all files according to include and exclude rules in this directory
+            - `/path/to/file.tif` - validate this single tif file only
+            - `/path/to/000001.tif /path/to/000002.tif` - validate these two tif files only
+            - `/path/to/*.tif` - validate all tif files in this directory, ignoring any include and exclude rules
             """
         )
-        Path globalBaseDirectory = Path.of(CWD);
+        List<String> inputArguments;
     }
 
     /** Called when CLI arguments were successfully parsed. */
@@ -456,16 +465,9 @@ public class ValidateCommand implements Callable<Integer> {
             config = ConfigurationParser.parseConfigurationFile(configFilepath);
         }
 
-        if (Objects.isNull(inputOptions.baseDirectory)) {
-            inputOptions.baseDirectory = inputOptions.globalBaseDirectory;
-        }
-        if (Objects.isNull(outputOptions.baseDirectory)) {
-            outputOptions.baseDirectory = inputOptions.globalBaseDirectory;
-        }
-
         logger.debug("merge configuration with command line options");
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
-        ConfigurationMerger.mergeInput(config, inputOptions.baseDirectory, inputOptions.includes, inputOptions.excludes);
+        ConfigurationMerger.mergeInput(config, Path.of(CWD), inputOptions.inputArguments, inputOptions.includes, inputOptions.excludes);
         ConfigurationMerger.mergeProcessing(config, processingOptions.parallelThreads, processingOptions.checksumAlgorithm);
         ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
         ConfigurationMerger.mergeValidation(
@@ -477,6 +479,7 @@ public class ValidateCommand implements Callable<Integer> {
         );
         ConfigurationMerger.mergeOutput(
             config,
+            Path.of(CWD),
             outputOptions.baseDirectory,
             outputOptions.csvOutputFilepath,
             outputOptions.excelOutputFilepath,

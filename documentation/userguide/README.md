@@ -176,6 +176,44 @@ The Image Validation CLI can be configured via a separate configuration file as 
 
 A detailed description of all command line options can be found inside the separate `cli` documentation (HTML files), or by adding the `--help` option when starting the Image Validation CLI. Both of these descriptions are the same.
 
+### Specifying Images Files That Are Validated
+
+The Image Validation CLI decides which images are being validated based on various command line options and options defined in the configuration file (in case it is provided). The are multiple scenarios.
+
+You may validate a single image file by listing this image file as only nameless input argument to the `validate` command:
+
+```
+spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif
+```
+
+You may validate multiple image files by listing each of them as nameless input arguments:
+
+```
+spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif examples/simple/wellformed/simple_grayscale.tif
+```
+
+You may validate all image files of a directory by specifying a filepath pattern as nameless input argument:
+
+```
+spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/*.tif
+```
+
+In all these scenarios, include and exclude rules are ignored, because specific files or filepath patterns are provided.
+
+In contrast, you may validate images inside a directory (and subdirectories) based on include and exclude rules by specifying a single directory as nameless input argument:
+
+```
+spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed
+```
+
+In this case, you may add various include and exclude rules that are evaluated:
+
+```
+spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" --include="*.tif" --exclude="multipage.tif" examples/simple/wellformed
+```
+
+By default, if no include rules are specified, the generic include rule `**` (any file in any subdirectory) is used.
+
 ## Configuration File Options
 
 The Image Validation CLI can be configured with a single configuration file in [YAML](https://en.wikipedia.org/wiki/YAML) format. Loading multiple configuration files is not supported. You can find example configuration files in the `examples` directory.
@@ -196,9 +234,9 @@ The `input` section specifies which directories and files will be processed, and
 
 You may specify two lists of file patterns (`includes` and `excludes`), which define with files to include and which files to exclude from validation.
 
-Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--inputBaseDirectory` or as the very last command line argument, which defines a global base directory. In case nothing is defined, the current working directory is used.
+Relative file paths are resolved relative to a base directory. You can specify this base directory as configuration option `baseDirectory` in the configuration file, as command line parameter `--inputBaseDirectory` or as a nameless command line argument, which then is considered the base directory. In case nothing is defined, the current working directory is used.
 
-If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated. If no include patterns are defined, the include all files pattern (`**`) is used by default.
+If a directory is listed in `includes`, all of its contents are validated, including any subdirectories. If a pattern is listed in `includes`, subdirectories and their files are only processed if the full file path matches the pattern. For example, the pattern `directory/*.tif` only matches files with the `.tif` extension, and thus, subdirectories are skipped. In contrast, the pattern `directory/**` matches any files or subdirectories, and thus, subdirectories and their files are also validated. If no include patterns are defined, the pattern `**` (any file in any subdirectory) is used by default.
 
 Patterns can be defined via the "glob" syntax. Single asterisks (\*) match any characters without crossing directory boundaries. Double asterisks (\*\*) match any characters crossing directory bounds. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>).
 
@@ -728,7 +766,7 @@ The `path` property may use the following substitution variables to generate the
 - `time` - the current time in format `HH-MM-SS`
 - `inputBaseDirectoryName` - the name of the base directory of the input configuration
 
-Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00_report_for_spk-berlin.xslx`.
+Variables may be referenced via the syntax `${variable}`. For example, the template `${date}_${time}_report_for_${inputBaseDirectoryName}.xlsx` generates filenames that consist of the date and time, e.g. `2026-05-19_08-00-00_report_for_spk-berlin.xlsx`.
 
 The layout section allows customizing the Excel file with the following options:
 

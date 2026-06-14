@@ -3,5 +3,5 @@ package de.spkberlin.imagevalidation.cli.common;
 public class Constants {
 
     public static final String CLI_COMMAND_NAME = "spk-iv-cli";
-    public static final String VERSION = "0.6.0";
+    public static final String VERSION = "1.0.0-SNAPSHOT";
 }

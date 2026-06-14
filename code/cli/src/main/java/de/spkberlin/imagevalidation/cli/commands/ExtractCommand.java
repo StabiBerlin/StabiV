@@ -84,7 +84,7 @@ public class ExtractCommand implements Callable<Integer> {
             names = { "--extractor" },
             paramLabel = "MODULE",
             description = """
-            Extraction module that is applied to each image file.
+            Extraction module that is applied to an image file.
 
             Possible values:
               - `jhove` - extract image properties via JHove, see https://jhove.openpreservation.org/
@@ -98,7 +98,7 @@ public class ExtractCommand implements Callable<Integer> {
             names = { "-p", "--property" },
             paramLabel = "PROPERTY",
             description = """
-            An optional property selector (JsonPath) to limit what property or properties are printed
+            An optional property selector (JsonPath) to limit what property or properties are extracted and printed.
 
             Examples
             - `$` - all properties
@@ -121,7 +121,7 @@ public class ExtractCommand implements Callable<Integer> {
             paramLabel = "PATH",
             index = "0",
             arity = "1..a.",
-            description = "filepath to individual file whose properties are extracted"
+            description = "filepath to an image file whose properties are extracted"
         )
         Path filepath;
     }

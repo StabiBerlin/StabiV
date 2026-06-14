@@ -232,13 +232,9 @@ public class GlobResolver {
      * @return a pair of the absolute base path (a directory or file) and the optional remaining glob pattern
      */
     public static Pair<Path, String> splitGlobPattern(String pattern, Path baseDirectory) {
-        Integer firstGlobCharIdx = Arrays.stream(GLOB_PATTERN_CHARACTERS)
-            .map(c -> pattern.indexOf(c))
-            .filter(i -> i >= 0)
-            .reduce(Integer::min)
-            .orElse(pattern.length());
+        int firstGlobCharIdx = findFirstGlobCharIndex(pattern);
 
-        if (firstGlobCharIdx.equals(pattern.length())) {
+        if (firstGlobCharIdx == pattern.length()) {
             // there is no glob pattern
             return Pair.of(baseDirectory.resolve(Path.of(pattern)).normalize(), "");
         }
@@ -249,5 +245,30 @@ public class GlobResolver {
         String globSuffix = pattern.substring(lastSeperatorIdx + 1, pattern.length());
 
         return Pair.of(baseDirectory.resolve(Path.of(directoryPrefix)).normalize(), globSuffix);
+    }
+
+    /**
+     * Return the index of the first character in the string that is interpreted as glob pattern. If no such character is found, the string
+     * is not a pattern at all, and the total length of the string is returned instead.
+     *
+     * @param pattern the string to check
+     * @return the index of the first character that corresponds to a glob pattern, or the size of the string if no such character is found
+     */
+    public static int findFirstGlobCharIndex(String pattern) {
+        return Arrays.stream(GLOB_PATTERN_CHARACTERS)
+            .map(c -> pattern.indexOf(c))
+            .filter(i -> i >= 0)
+            .reduce(Integer::min)
+            .orElse(pattern.length());
+    }
+
+    /**
+     * Return true of the string contains a glob pattern.
+     *
+     * @param pattern the string to check
+     * @return true if it is a glob pattern, else false
+     */
+    public static boolean isGlobPattern(String pattern) {
+        return findFirstGlobCharIndex(pattern) != pattern.length();
     }
 }

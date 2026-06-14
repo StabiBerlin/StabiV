@@ -16,9 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
 public class ValidateCommandTest {
+
+    @TempDir
+    private Path tempDir;
 
     private static final String NEWLINE = System.getProperty("line.separator");
 
@@ -41,10 +45,10 @@ public class ValidateCommandTest {
     }
 
     /**
-     * Check that a single file can be validated for being wellformed accoring to JHove.
+     * Check that a single file can be validated by providing it as include argument.
      */
     @Test
-    public void validateSimpleTif() {
+    public void validateSimpleTifViaIncludeArgument() {
         CommandLine cmd = new CommandLine(new ValidateCommand());
         int exitCode = cmd.execute(
             "-v",
@@ -56,17 +60,96 @@ public class ValidateCommandTest {
     }
 
     /**
-     * Check that a single file can be validated for being wellformed accoring to JHove.
+     * Check that a single file can be validated by providing it as nameless input argument.
+     */
+    @Test
+    public void validateSingleTifViaNamelessArgument() {
+        CommandLine cmd = new CommandLine(new ValidateCommand());
+        int exitCode = cmd.execute(
+            "-v",
+            "--imageRule=$.jhove.wellformed/equal/true",
+            SIMPLE_DIRECTORY.resolve("wellformed/simple_rgb.tif").toString()
+        );
+        assertEquals(0, exitCode);
+    }
+
+    /**
+     *
+     * Check that multiple individual file can be validated by providing them as nameless input arguments.
+     */
+    @Test
+    public void validateMultipleTifViaNamelessArgument() {
+        CommandLine cmd = new CommandLine(new ValidateCommand());
+        int exitCode = cmd.execute(
+            "-v",
+            "--imageRule=$.jhove.wellformed/equal/true",
+            SIMPLE_DIRECTORY.resolve("wellformed/simple_rgb.tif").toString(),
+            SIMPLE_DIRECTORY.resolve("wellformed/simple_grayscale.tif").toString()
+        );
+        assertEquals(0, exitCode);
+    }
+
+    /**
+     * Check that files matching a file pattern can be validated by providing the pattern as nameless input argument.
+     */
+    @Test
+    public void validateTifPatternAsNamelessArgument() {
+        CommandLine cmd = new CommandLine(new ValidateCommand());
+        int exitCode = cmd.execute(
+            "-v",
+            "--imageRule=$.jhove.wellformed/equal/true",
+            SIMPLE_DIRECTORY.resolve("wellformed/*.tif").toString()
+        );
+        assertEquals(0, exitCode);
+    }
+
+    /**
+     * Check that a directory can be validated with a simple configuation file.
      */
     @Test
     public void validateSimpleConfigExample() {
         CommandLine cmd = new CommandLine(new ValidateCommand());
-        int exitCode = cmd.execute("-v", "--config=" + SIMPLE_CONFIG_PATH.toAbsolutePath().toString(), SIMPLE_DIRECTORY.toString());
+        int exitCode = cmd.execute(
+            "-v",
+            "--config=" + SIMPLE_CONFIG_PATH.toAbsolutePath().toString(),
+            "--outputBaseDirectory=" + tempDir,
+            SIMPLE_DIRECTORY.toString()
+        );
         assertEquals(3, exitCode);
     }
 
     /**
-     * Check that a single file can be validated for being wellformed accoring to JHove.
+     * Check that the SPK-Berlin example configuration successfully validates a specific directory provided as nameless input argument.
+     */
+    @Test
+    void validateSpkBerlinSingleValidDirectory() {
+        CommandLine cmd = new CommandLine(new ValidateCommand());
+        int exitCode = cmd.execute(
+            "-v",
+            "--config=" + SPK_BERLIN_CONFIG_PATH.toAbsolutePath().toString(),
+            "--outputBaseDirectory=" + tempDir,
+            SPK_BERLIN_DIRECTORY.resolve("consecutive_numbering_valid").toString()
+        );
+        assertEquals(0, exitCode);
+    }
+
+    /**
+     * Check that the SPK-Berlin example configurations fails to validate for a specific directory provided as nameless input argument.
+     */
+    @Test
+    void validateSpkBerlinSingleInvalidDirectory() {
+        CommandLine cmd = new CommandLine(new ValidateCommand());
+        int exitCode = cmd.execute(
+            "-v",
+            "--config=" + SPK_BERLIN_CONFIG_PATH.toAbsolutePath().toString(),
+            "--outputBaseDirectory=" + tempDir,
+            SPK_BERLIN_DIRECTORY.resolve("consistency_invalid").toString()
+        );
+        assertEquals(3, exitCode);
+    }
+
+    /**
+     * Check that the SPK-Berlin example configuration correctly fails and succeeds for all example directories.
      */
     @Test
     public void validateSpkBerlinConfigExample() throws JsonProcessingException, JsonMappingException {
@@ -77,6 +160,7 @@ public class ValidateCommandTest {
             "-v",
             "--json",
             "--config=" + SPK_BERLIN_CONFIG_PATH.toAbsolutePath().toString(),
+            "--outputBaseDirectory=" + tempDir,
             SPK_BERLIN_DIRECTORY.toString()
         );
         assertEquals(3, exitCode);

@@ -19,6 +19,7 @@ import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.imagevalidation.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.imagevalidation.cli.extraction.ExtractorType;
+import de.spkberlin.imagevalidation.cli.path.GlobResolver;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.imagevalidation.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
@@ -29,6 +30,7 @@ import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimp
 import de.spkberlin.imagevalidation.common.validation.images.state.ImageRuleSimpleConditionOperatorType;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationFailureSeverity;
 import de.spkberlin.imagevalidation.common.validation.state.ValidationReportColumn;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,19 +44,36 @@ public class ConfigurationMerger {
      * Merge input section of yaml configuration with CLI options.
      *
      * @param config the yaml configuration
-     * @param cliBaseDirectory the path to the configuration file
+     * @param cwd the current working directory
+     * @param cliInputArguments the nameless input arguments specified via CLI
      * @param includes the list of includes filepaths specified with CLI option
      * @param excludes the list of exclided filepaths specified with CLI option
      */
-    public static void mergeInput(ConfigurationRoot config, Path cliBaseDirectory, List<String> includes, List<String> excludes) {
+    public static void mergeInput(
+        ConfigurationRoot config,
+        Path cwd,
+        List<String> cliInputArguments,
+        List<String> includes,
+        List<String> excludes
+    ) {
         // make sure input section exists
         if (Objects.isNull(config.getInput())) {
             config.setInput(new ConfigurationInputSection());
         }
 
         // make sure base directory is defined
-        if (Objects.isNull(config.getInput().getBaseDirectory())) {
-            config.getInput().setBaseDirectory(cliBaseDirectory);
+        if (cliInputArguments.isEmpty() && Objects.isNull(config.getInput().getBaseDirectory())) {
+            // use cwd as base directory
+            config.getInput().setBaseDirectory(cwd);
+        }
+
+        boolean namelessArgumentIsSingleDirectory =
+            cliInputArguments.size() == 1 &&
+            !GlobResolver.isGlobPattern(cliInputArguments.get(0)) &&
+            Files.isDirectory(Path.of(cliInputArguments.get(0)));
+        if (namelessArgumentIsSingleDirectory) {
+            // use input argument as base directory
+            config.getInput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
         }
 
         // make sure includes are defined
@@ -73,6 +92,37 @@ public class ConfigurationMerger {
             config.getInput().setExcludes(new ArrayList<>());
         }
         mergeConfigurationPaths(config.getInput().getExcludes(), config.getInput().getBaseDirectory(), excludes);
+
+        mergeInputNamelessArguments(config, cwd, cliInputArguments, namelessArgumentIsSingleDirectory);
+    }
+
+    /**
+     * Merge nameless input arguments that are not a single directory, meaning, include and exclude rules are overwritten.
+     *
+     * @param config the yaml configuration
+     * @param cwd the current working directory
+     * @param cliInputArguments the nameless input arguments specified via CLI
+     * @param namelessArgumentIsSingleDirectory whether the nameless input arguments matches a single directory
+     */
+    private static void mergeInputNamelessArguments(
+        ConfigurationRoot config,
+        Path cwd,
+        List<String> cliInputArguments,
+        boolean namelessArgumentIsSingleDirectory
+    ) {
+        if (!cliInputArguments.isEmpty() && !namelessArgumentIsSingleDirectory) {
+            // interprete input arguments as include rules and ignore all previously defined include and exclude rules
+            config.getInput().setBaseDirectory(cwd);
+            config
+                .getInput()
+                .setIncludes(
+                    cliInputArguments
+                        .stream()
+                        .map(arg -> new ConfigurationPath(arg, cwd))
+                        .toList()
+                );
+            config.getInput().setExcludes(Collections.emptyList());
+        }
     }
 
     /**
@@ -265,6 +315,7 @@ public class ConfigurationMerger {
      */
     public static void mergeOutput(
         ConfigurationRoot config,
+        Path cwd,
         Path baseDirectory,
         String csvPath,
         String excelPath,
@@ -278,7 +329,10 @@ public class ConfigurationMerger {
             config.setOutput(new ConfigurationOutputSection());
         }
 
-        if (Objects.isNull(config.getOutput().getBaseDirectory())) {
+        // set output base directory depending on cli options
+        if (Objects.isNull(baseDirectory) && Objects.isNull(config.getOutput().getBaseDirectory())) {
+            config.getOutput().setBaseDirectory(cwd);
+        } else if (Objects.nonNull(baseDirectory)) {
             config.getOutput().setBaseDirectory(baseDirectory);
         }
 
