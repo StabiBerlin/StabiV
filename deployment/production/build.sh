@@ -7,4 +7,4 @@ cd "$(dirname "$0")"
 cd ../../
 
 # build image
-podman build -f deployment/production/Dockerfile -t image_validation_cli_production:latest .
+podman build -f deployment/production/Dockerfile -t stabiv_production:latest .

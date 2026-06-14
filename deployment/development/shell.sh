@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_NAME=image_validation_cli_development
+PROJECT_NAME=stabiv_development
 
 PS_OUTPUT=$(podman-compose -p ${PROJECT_NAME} ps -f json)
 

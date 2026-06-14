@@ -20,7 +20,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# install image validation dependencies
+# install stabiv dependencies
 RUN apt-get update && \
     apt-get install -y exiftool && \
     apt-get clean && \
@@ -56,6 +56,6 @@ RUN apt-get update && \
 WORKDIR /root/workspace
 
 COPY --from=0 /root/workspace/code/cli/target/runtimeDependencies /root/build/jars
-COPY --from=0 /root/workspace/code/cli/target/imagevalidation-cli-1.0.0-SNAPSHOT.jar /root/build/jars/imagevalidation-cli-1.0.0-SNAPSHOT.jar
+COPY --from=0 /root/workspace/code/cli/target/stabiv-cli-1.0.0-SNAPSHOT.jar /root/build/jars/stabiv-cli-1.0.0-SNAPSHOT.jar
 
-ENTRYPOINT ["java", "-cp", "/root/build/jars/*", "de.spkberlin.imagevalidation.cli.entrypoint.Main"]
+ENTRYPOINT ["java", "-cp", "/root/build/jars/*", "de.spkberlin.stabiv.cli.entrypoint.Main"]

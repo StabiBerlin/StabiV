@@ -1,4 +1,4 @@
-# SPK-Berlin Image Validation (Windows)
+# StabiV (Windows)
 
 This tool provides a command line interface (CLI) that validates images and their metadata against a set of validation rules.
 
@@ -9,7 +9,7 @@ On Windows, no additional installation is required. Double-click on `prompt.bat`
 You can now start the tool from your console with the following command:
 
 ```
-spk-iv-cli.bat --help
+stabiv.bat --help
 ```
 
 ## First Steps
@@ -18,7 +18,7 @@ In order to get familiar with this tool, you should start taking a look at the `
 properties with [JHove](https://jhove.openpreservation.org/) and [Exiftool](https://exiftool.org/) and visualizes the extracted information:
 
 ```
-spk-iv-cli.bat extract examples/simple/wellformed/simple_rgb.tif
+stabiv.bat extract examples/simple/wellformed/simple_rgb.tif
 ```
 
 The extracted properties are visualized as a hierarchical JSON file:
@@ -64,7 +64,7 @@ hierarchy via a JSONPath ([RFC 9535](https://datatracker.ietf.org/doc/html/rfc95
 In order to extract the TIF tag `PhotometricInterpretation`, you can use the following command:
 
 ```
-spk-iv-cli.bat extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif
+stabiv.bat extract -p "$.exiftool..PhotometricInterpretation" examples/simple/wellformed/simple_rgb.tif
 ```
 
 Its output should be:
@@ -80,13 +80,13 @@ There are many other possible path variants. A comprehensive list of examples ca
 You can test validating images from the two examples provided in the `examples` directory.
 
 ```
-spk-iv-cli.bat validate -v --config=examples\simple\config.yaml examples\simple
+stabiv.bat validate -v --config=examples\simple\config.yaml examples\simple
 ```
 
 or
 
 ```
-spk-iv-cli.bat validate -v --config=examples\spk-berlin\config.yaml examples\spk-berlin
+stabiv.bat validate -v --config=examples\spk-berlin\config.yaml examples\spk-berlin
 ```
 
 Both commands will generate an CSV file `output.csv` in their respective directories.

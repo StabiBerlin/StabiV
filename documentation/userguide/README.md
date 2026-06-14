@@ -1,6 +1,6 @@
 # User Guide
 
-This document describes how the Image Validation CLI can be used to validate images and directories of images.
+This document describes how StabiV can be used to validate images and directories of images.
 
 ## Contents
 
@@ -11,6 +11,7 @@ This document is structured into the following sections:
   - [JSONPath](#jsonpath)
   - [YAML Format](#yaml-format)
 - [Command Line Options](#command-line-options)
+  - [Specifying Which Image Files Are Validated](#specifying-which-image-files-are-validated)
 - [Configuration File Options](#command-line-options)
   - [Input Section](#input-section)
   - [Processing Section](#processing-section)
@@ -24,7 +25,7 @@ This document is structured into the following sections:
 
 ## Getting Started
 
-The Image Validation CLI is currently supported on Windows and Linux. Since installation is slightly different on both platforms, there are two separate guides located here:
+StabiV is currently supported on Windows and Linux. Since installation is slightly different on both platforms, there are two separate guides located here:
 
 - [Getting Started on Windows](../getting-started/Windows.md)
 - [Getting Started on Linux](../getting-started/Linux.md)
@@ -82,11 +83,11 @@ For example:
 - `$.TIFF.IFD[0].SubfileType` - selects the property `SubfileType` of the first IFD of the TIF
 - `$..SubfileType` - selects any `SubfileType` properties in the hierarchy
 
-You can experiment with different JSONPaths by copying the JSON document to the [JSONPath Online Evaluator](https://jsonpath.com/) and typing in any JSONPath. Alternatively, you can use the `extract` command of the Image Validation CLI and apply a JSONPath with the `--property` argument as mentioned in the _Getting Started_ guide.
+You can experiment with different JSONPaths by copying the JSON document to the [JSONPath Online Evaluator](https://jsonpath.com/) and typing in any JSONPath. Alternatively, you can use the `extract` command of the StabiV CLI and apply a JSONPath with the `--property` argument as mentioned in the _Getting Started_ guide.
 
 JSONPaths containing special characters like asterisks (`*`) should be enclosed in double quotes (`"`) or single quotes (`'`) to avoid any parsing problems both in YAML configuration files and command line arguments.
 
-There are a lot more possibilities to define JSONPaths. Unfortunately, a comprehensive documentation of all options exceeds the scope of this user guide. Detailed information about the syntax can be found in [RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535) or in the [documentation](https://github.com/json-path/JsonPath) of the Java library that is used by the Image Validation CLI to resolve JSONPaths. Various examples are listed here (from the RFC documentation):
+There are a lot more possibilities to define JSONPaths. Unfortunately, a comprehensive documentation of all options exceeds the scope of this user guide. Detailed information about the syntax can be found in [RFC 9535](https://datatracker.ietf.org/doc/html/rfc9535) or in the [documentation](https://github.com/json-path/JsonPath) of the Java library that is used by StabiV to resolve JSONPaths. Various examples are listed here (from the RFC documentation):
 
 - [Various Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-jsonpath-examples)
 - [Wildcard Examples](https://datatracker.ietf.org/doc/html/rfc9535#name-examples-3)
@@ -98,7 +99,7 @@ There are a lot more possibilities to define JSONPaths. Unfortunately, a compreh
 
 ### YAML Format
 
-The [YAML](https://en.wikipedia.org/wiki/YAML) (Yet Another Markup Language) format is very similar to the JSON format and also allows storing hierarchical properties as simple text. The Image Validation CLI uses the YAML format to specify validation rules as configuration files.
+The [YAML](https://en.wikipedia.org/wiki/YAML) (Yet Another Markup Language) format is very similar to the JSON format and also allows storing hierarchical properties as simple text. StabiV uses the YAML format to specify validation rules as configuration files.
 
 In comparison to JSON, the YAML format is usually easier for humans to read and write. Besides, you can specify comments, which makes them ideal for configuration files.
 
@@ -137,7 +138,7 @@ This document models the property `property` as a list instead of a section cont
 }
 ```
 
-The Image Validation CLI configuration file uses these lists whenever a configuration options accepts an arbitrary amount of something, e.g. the list of image validation rules, or the list of directories that are supposed to be validated.
+StabiV configuration files use these lists whenever a configuration options accepts an arbitrary amount of something, e.g. the list of image validation rules, or the list of directories that are supposed to be validated.
 
 Lists may not only contain specific values, but also subproperties:
 
@@ -160,7 +161,7 @@ This document corresponds to the following JSON document:
 }
 ```
 
-In case of Image Validation CLI configuration files, each list element needs to contain the same subproperties. The following YAML document would usually not be a valid configuration even though it is considered a valid YAML document:
+In case of StabiV configuration files, each list element needs to contain the same subproperties. The following YAML document would usually not be a valid configuration even though it is considered a valid YAML document:
 
 ```YAML
 property:
@@ -172,30 +173,30 @@ If there are issues in a YAML configuration file, detailed error messages are pr
 
 ## Command Line Options
 
-The Image Validation CLI can be configured via a separate configuration file as well as command line options. Command line options usually extend options from a configuration file, unless only one specific value is allowed for this option. For example, the list of included files and directories from a configuration file is extended by additional files or directories provided via command line options. In contrast, the configuration file option to specify the output location of the CSV report is overwritten by the command line option `--csv`, because only one value is allowed for this option.
+StabiV can be configured via a separate configuration file or command line options. Command line options usually extend options from a configuration file, unless only one specific value is allowed for this option. For example, the list of included files and directories from a configuration file is extended by additional files or directories provided via command line options. In contrast, the configuration file option to specify the output location of the CSV report is overwritten by the command line option `--csv`, because only one value is allowed for this option.
 
-A detailed description of all command line options can be found inside the separate `cli` documentation (HTML files), or by adding the `--help` option when starting the Image Validation CLI. Both of these descriptions are the same.
+A detailed description of all command line options can be found inside the separate `cli` documentation (HTML files), or by adding the `--help` option when starting the StabiV CLI. Both of these descriptions are the same.
 
-### Specifying Images Files That Are Validated
+### Specifying Which Image Files Are Validated
 
-The Image Validation CLI decides which images are being validated based on various command line options and options defined in the configuration file (in case it is provided). The are multiple scenarios.
+StabiV decides which images are being validated based on various command line options and options defined in the configuration file (in case it is provided). The are multiple scenarios.
 
 You may validate a single image file by listing this image file as only nameless input argument to the `validate` command:
 
 ```
-spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif
+stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif
 ```
 
 You may validate multiple image files by listing each of them as nameless input arguments:
 
 ```
-spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif examples/simple/wellformed/simple_grayscale.tif
+stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif examples/simple/wellformed/simple_grayscale.tif
 ```
 
 You may validate all image files of a directory by specifying a filepath pattern as nameless input argument:
 
 ```
-spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/*.tif
+stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/*.tif
 ```
 
 In all these scenarios, include and exclude rules are ignored, because specific files or filepath patterns are provided.
@@ -203,20 +204,20 @@ In all these scenarios, include and exclude rules are ignored, because specific 
 In contrast, you may validate images inside a directory (and subdirectories) based on include and exclude rules by specifying a single directory as nameless input argument:
 
 ```
-spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed
+stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed
 ```
 
 In this case, you may add various include and exclude rules that are evaluated:
 
 ```
-spk-iv-cli validate -v --imageRule="$.jhove.wellformed/equal/true" --include="*.tif" --exclude="multipage.tif" examples/simple/wellformed
+stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" --include="*.tif" --exclude="multipage.tif" examples/simple/wellformed
 ```
 
 By default, if no include rules are specified, the generic include rule `**` (any file in any subdirectory) is used.
 
 ## Configuration File Options
 
-The Image Validation CLI can be configured with a single configuration file in [YAML](https://en.wikipedia.org/wiki/YAML) format. Loading multiple configuration files is not supported. You can find example configuration files in the `examples` directory.
+StabiV can be configured with a single configuration file in [YAML](https://en.wikipedia.org/wiki/YAML) format. Loading multiple configuration files is not supported. You can find example configuration files in the `examples` directory.
 
 Configuration files consists of the following main YAML sections:
 
@@ -874,7 +875,7 @@ output:
 
 #### Logging
 
-The logging section allows controlling what log messages are generated during the execution of the image validation CLI. There are two options:
+The logging section allows controlling what log messages are generated during the execution of StabiV. There are two options:
 
 - `json` - whether to write JSON-formatted log messages to `stdout`, and regular log messages to `stderr`
 - `verbosity` - the verbosity of regular log messages, either `error`, `warning`, `info`, `debug`, `trace`
@@ -901,7 +902,7 @@ output:
 
 ## General Processing Steps
 
-The "validate" command of the Image Validation CLI works by following these general processing steps:
+The "validate" command of the StabiV CLI works by following these general processing steps:
 
 1. Read command line options
 2. Load configuration file if provided
@@ -924,7 +925,7 @@ The "validate" command of the Image Validation CLI works by following these gene
 
 ## JSON Output Mode
 
-In order to post-process validation results, the Image Validation CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
+In order to post-process validation results, the StabiV CLI supports a JSON output mode by specifying the `--json` option. When this mode is active, validation reports are printed to the "stdout" [output stream](https://en.wikipedia.org/wiki/Standard_streams) for every image file and directory. Any log messages are redirected to the "stderr" output stream. This allows triggering other tools based on the validation success or failure, e.g. to send an e-mail in case there is a validation error.
 
 The JSON output mode generates one JSON document per line of output. Each JSON document follows the same structure and consists of the following properties:
 
@@ -966,7 +967,7 @@ Based on the JSON output mode, it is possible to automate various tasks, e.g., t
 
 The `move_directories.sh` script depends on the following options that need to be adjusted in the script itself:
 
-- `SPK_IV_CLI_COMMAND` - the actual image validation command that is executed
+- `STABIV_COMMAND` - the actual cli command that is executed
 - `RSYNC_OPTIONS` - options for the `rsync` command that determines how files are copied or moved, see [man page](https://linux.die.net/man/1/rsync)
 - `SOURCE_BASE_DIRECTORY` - the base directory of the source files that will being copied or moved
 - `SUCCESS_TARGET` - the target directory for image directories that were successfully validated
@@ -974,7 +975,7 @@ The `move_directories.sh` script depends on the following options that need to b
 
 The `SOURCE_BASE_DIRECTORY` determines the starting point at which the directory hierarchy is preserved. For example, copying a directory `/path/to/base/with/subdirectory` with the base directory `/path/to/base` will copy `subdirectory` but also create a parent directory `with` at the target location.
 
-After editing these options, you can start the `move_directories.sh` script by providing any image validation CLI options to it, for example:
+After editing these options, you can start the `move_directories.sh` script by providing any StabiV CLI options to it, for example:
 
 ```
 bash move_directories.sh -v --config ../examples/spk-berlin/config.yaml
@@ -984,12 +985,12 @@ Note that, by default, the CLI command `validate` and JSON output option `--json
 
 Then, the script follows these steps:
 
-1. Execute image validation CLI with provided command line arguments
+1. Execute StabiV with provided command line arguments
 2. Parse each JSON output line and extract information
 3. If validation results were provided for a directory
    - determine whether validation was successful or not from the JSON output
    - call `rsync` with either the `SUCCESS_TARGET` or `FAILURE_TARGET` directory
-4. Repeat until image validation CLI is done
+4. Repeat until StabiV is done
 
 ## Exit Codes
 

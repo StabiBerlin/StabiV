@@ -1,0 +1,18 @@
+@ECHO OFF 
+setlocal
+
+REM Get directory of this script
+set SCRIPT_DIR=%~dp0
+
+REM java directory
+set JAVA_HOME=%SCRIPT_DIR%\tools\java
+
+REM exiftool directory
+set EXIFTOOL_HOME=%SCRIPT_DIR%\tools\exiftool
+
+REM modify path
+set PATH=%EXIFTOOL_HOME%;%PATH%
+
+%JAVA_HOME%\bin\java -cp "%SCRIPT_DIR%\tools\stabiv\*" de.spkberlin.stabiv.cli.entrypoint.Main %*
+
+endlocal

@@ -20,7 +20,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# install image validation dependencies
+# install stabiv dependencies
 RUN apt-get update && \
     apt-get install -y exiftool && \
     apt-get clean && \

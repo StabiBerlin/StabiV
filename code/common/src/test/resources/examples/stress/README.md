@@ -1,6 +1,6 @@
 # Stress Test Example
 
-This example dataset is used to stress test the Image Validation CLI. First you needs to generate directories with images using the `generate.sh` or `generate.bat` scripts. Both scripts require 3 parameters:
+This example dataset is used to stress test the StabiV CLI. First you need to generate directories with images using the `generate.sh` or `generate.bat` scripts. Both scripts require 3 parameters:
 
 1. the tif file that is used as a template and is duplicated
 2. the number of directories to create
@@ -27,11 +27,11 @@ Afterwards, you can start the validation of this directory:
 Linux:
 
 ```
-bash spk-iv-cli.sh validate -v --config examples/stress/config.yaml examples/stress
+bash stabiv.sh validate -v --config examples/stress/config.yaml examples/stress
 ```
 
 Windows:
 
 ```
-spk-iv-cli.bat validate -v --config examples\stress\config.yaml examples\stress
+stabiv.bat validate -v --config examples\stress\config.yaml examples\stress
 ```

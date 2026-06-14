@@ -3,18 +3,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>de.spkberlin.imagevalidation</groupId>
-    <artifactId>imagevalidation-parent-pom</artifactId>
+    <groupId>de.spkberlin.stabiv</groupId>
+    <artifactId>stabiv-parent-pom</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../parent/pom.xml</relativePath>
   </parent>
-  <artifactId>imagevalidation-cli</artifactId>
+  <artifactId>stabiv-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>Image Validation CLI</name>
+  <name>StabiV CLI</name>
 
   <properties>
-    <main.class>de.spkberlin.imagevalidation.cli.entrypoint.Main</main.class>
+    <main.class>de.spkberlin.stabiv.cli.entrypoint.Main</main.class>
   </properties>
 
   <dependencies>
@@ -84,16 +84,16 @@
       <artifactId>expressly</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.spkberlin.imagevalidation</groupId>
-      <artifactId>imagevalidation-extractor-exiftool</artifactId>
+      <groupId>de.spkberlin.stabiv</groupId>
+      <artifactId>stabiv-extractor-exiftool</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.spkberlin.imagevalidation</groupId>
-      <artifactId>imagevalidation-extractor-jhove</artifactId>
+      <groupId>de.spkberlin.stabiv</groupId>
+      <artifactId>stabiv-extractor-jhove</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.spkberlin.imagevalidation</groupId>
-      <artifactId>imagevalidation-common</artifactId>
+      <groupId>de.spkberlin.stabiv</groupId>
+      <artifactId>stabiv-common</artifactId>
     </dependency>
   </dependencies>
 
@@ -177,7 +177,7 @@
               <mainClass>picocli.codegen.docgen.manpage.ManPageGenerator</mainClass>
               <arguments>
                 <argument>--outdir=${project.build.directory}/generated-picocli-docs</argument>
-                <argument>de.spkberlin.imagevalidation.cli.commands.MainCommand</argument>
+                <argument>de.spkberlin.stabiv.cli.commands.MainCommand</argument>
               </arguments>
             </configuration>
           </execution>
@@ -270,6 +270,7 @@
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <configuration>
+              <finalName>stabiv-${project.version}</finalName>
               <inlineDescriptors>
                 <inlineDescriptor>
                   <id>linux-x64</id>
@@ -329,7 +330,7 @@
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/runtimeDependencies</directory>
-                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <outputDirectory>tools/stabiv</outputDirectory>
                       <includes>
                         <include>*.jar</include>
                       </includes>
@@ -338,7 +339,7 @@
                   <files>
                     <file>
                       <source>${project.build.directory}/${project.build.finalName}.jar</source>
-                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <outputDirectory>tools/stabiv</outputDirectory>
                     </file>
                     <file>
                       <source>${project.basedir}/../extractor-exiftool/src/main/exiftool/exiftool</source>
@@ -397,6 +398,7 @@
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <configuration>
+              <finalName>stabiv-${project.version}</finalName>
               <inlineDescriptors>
                 <inlineDescriptor>
                   <id>windows-x64</id>
@@ -463,7 +465,7 @@
                     </fileSet>
                     <fileSet>
                       <directory>${project.build.directory}/runtimeDependencies</directory>
-                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <outputDirectory>tools/stabiv</outputDirectory>
                       <includes>
                         <include>*.jar</include>
                       </includes>
@@ -472,7 +474,7 @@
                   <files>
                     <file>
                       <source>${project.build.directory}/${project.build.finalName}.jar</source>
-                      <outputDirectory>tools/spk-iv-cli</outputDirectory>
+                      <outputDirectory>tools/stabiv</outputDirectory>
                     </file>
                     <file>
                       <source>${project.basedir}/../../CHANGELOG.md</source>

@@ -1,13 +1,13 @@
 #/bin/bash
 
-# This script parses the JSON output of the image validation CLI and uses the "rsync" command to move directories 
+# This script parses the JSON output of the stabiv CLI and uses the "rsync" command to move directories 
 # to two different locations depending on whether validation was succesful or not for that directory.
 
 # the directory of this script
 SCRIPT_DIR=$(dirname "$0")
 
-# the base validation command for the image validation CLI
-SPK_IV_CLI_COMMAND="bash $SCRIPT_DIR/../spk-iv-cli.sh validate --json $@"
+# the base validation command for the stabiv CLI
+STABIV_COMMAND="bash $SCRIPT_DIR/../stabiv.sh validate --json $@"
 
 # any additional rsync options, e.g.
 # -a, archive mode, recursive copy, preserve permissions, owner, group, modification time, symlinks
@@ -32,9 +32,9 @@ FAILURE_TARGET="$(realpath $SCRIPT_DIR/../target/failed)"
 
 ### --- end of settings ---
 
-echo "start spk-iv-cli"
-echo "+ $SPK_IV_CLI_COMMAND"
-$SPK_IV_CLI_COMMAND \
+echo "start stabiv"
+echo "+ $STABIV_COMMAND"
+$STABIV_COMMAND \
 \
 | while read -r LINE; do
   # parse JSON output
