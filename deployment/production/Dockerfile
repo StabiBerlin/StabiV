@@ -56,6 +56,6 @@ RUN apt-get update && \
 WORKDIR /root/workspace
 
 COPY --from=0 /root/workspace/code/cli/target/runtimeDependencies /root/build/jars
-COPY --from=0 /root/workspace/code/cli/target/stabiv-cli-1.0.0-SNAPSHOT.jar /root/build/jars/stabiv-cli-1.0.0-SNAPSHOT.jar
+COPY --from=0 /root/workspace/code/cli/target/stabiv-cli-1.0.0.jar /root/build/jars/stabiv-cli-1.0.0.jar
 
 ENTRYPOINT ["java", "-cp", "/root/build/jars/*", "de.spkberlin.stabiv.cli.entrypoint.Main"]
