@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 - 2026-06-17
+
+General Improvements
+
+- Add system requirements section to Getting Started documents describing the approximate amount of RAM that is needed depending on the number of images and properties
+
 ## v1.0.0 - 2026-06-15
 
 Breaking Changes

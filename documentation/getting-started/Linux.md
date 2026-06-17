@@ -20,6 +20,18 @@ Finally, you can start the tool from your console with the following command:
 bash stabiv.sh --help
 ```
 
+## System Requirements
+
+StabiV may run both on powerful and small systems. However, depending on the number of images that need to be processed and the amount of information that is extracted and collected from these images, more or less free RAM is needed. The most amount of RAM is needed when generating an Excel report:
+
+| Required Free RAM | 10.000 Images | 20.000 Images |
+| ----------------- | ------------- | ------------- |
+| 10 Properties     | ~1.6 GB       | ~2.2 GB       |
+| 20 Properties     | ~1.9 GB       | ~3.7 GB       |
+| 30 Properties     | ~2.3 GB       | ~4.4 GB       |
+
+Please note that your individual RAM requirements may be higher depending on your images and configuration. These statistics have been estimated using a simplified dataset consisting of tiny TIF images. For large TIF images that are validated in parallel by multiple worker threads (see `--threads` option) more RAM might be required.
+
 ## First Steps
 
 In order to get familiar with this tool, you should start taking a look at the `extract` command. The `extract` command parses image

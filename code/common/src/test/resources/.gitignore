@@ -3,3 +3,4 @@ old
 **/*.xlsx
 **/.~lock*
 **/*.sha1
+**/*.pdf
