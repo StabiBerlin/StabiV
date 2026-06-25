@@ -6,6 +6,7 @@ import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExcelLayoutFixed
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExcelLayoutSection;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExcelSection;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExcelStyleSection;
+import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExtractionExiftoolSection;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExtractionSection;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationInputSection;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationLoggingSection;
@@ -157,8 +158,15 @@ public class ConfigurationMerger {
      *
      * @param config the yaml configuration
      * @param modules the list of extraction modules specified with CLI option
+     * @param cliExiftoolPath path to exiftool binary specified with CLI option
+     * @param cliExiftoolArguments list of arguments for exiftool specified with CLI option
      */
-    public static void mergeExtraction(ConfigurationRoot config, List<ExtractorType> modules) {
+    public static void mergeExtraction(
+        ConfigurationRoot config,
+        List<ExtractorType> modules,
+        Path cliExiftoolPath,
+        List<String> cliExiftoolArguments
+    ) {
         // make sure extraction section exists
         if (Objects.isNull(config.getExtraction())) {
             config.setExtraction(new ConfigurationExtractionSection());
@@ -166,6 +174,18 @@ public class ConfigurationMerger {
         // merge modules
         if (Objects.nonNull(modules) && !modules.isEmpty()) {
             config.getExtraction().setModules(modules);
+        }
+        // make sure exiftool section exists
+        if (Objects.isNull(config.getExtraction().getExiftool())) {
+            config.getExtraction().setExiftool(new ConfigurationExtractionExiftoolSection());
+        }
+        // overwrite path to exiftool binary
+        if (Objects.nonNull(cliExiftoolPath)) {
+            config.getExtraction().getExiftool().setPath(cliExiftoolPath);
+        }
+        // overwrite exiftool arguments
+        if (Objects.nonNull(cliExiftoolArguments) && !cliExiftoolArguments.isEmpty()) {
+            config.getExtraction().getExiftool().setArguments(cliExiftoolArguments);
         }
     }
 

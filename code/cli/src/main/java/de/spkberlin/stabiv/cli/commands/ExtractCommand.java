@@ -109,6 +109,30 @@ public class ExtractCommand implements Callable<Integer> {
             """
         )
         String jsonPath;
+
+        /** The filepath to the exiftool binary. */
+        @Option(
+            names = { "--exiftoolPath" },
+            paramLabel = "PATH",
+            description = """
+            The filepath to the exiftool binary (default "exiftool").
+            """
+        )
+        Path exiftoolPath = ExiftoolExtractor.DEFAULT_CMD;
+
+        /** The list of exiftool arguments. */
+        @Option(
+            names = { "--exiftoolArguments" },
+            paramLabel = "ARGUMENTS",
+            description = """
+            The arguments provided to the exiftool command (default "-a -u -s -G5 -charset filename=utf8").
+
+            The argument "-G" is mandatory such that hierarchical properties can be parsed from the output of exiftool.
+
+            Arguments need to be enclosed in quotes, e.g., `--exiftoolArguments="-a -u -s -G5 -charset filename=utf8"`.
+            """
+        )
+        List<String> exiftoolArguments = ExiftoolExtractor.DEFAULT_CLI_ARGS;
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Input Options|@%n%n", order = 1, exclusive = false, multiplicity = "1")
@@ -138,7 +162,7 @@ public class ExtractCommand implements Callable<Integer> {
 
         Map<ExtractorType, Extractor> extractorsMap = Map.of(
             ExtractorType.exiftool,
-            new ExiftoolExtractor(),
+            new ExiftoolExtractor(extractionOptions.exiftoolPath, extractionOptions.exiftoolArguments),
             ExtractorType.jhove,
             new JHoveExtractor()
         );

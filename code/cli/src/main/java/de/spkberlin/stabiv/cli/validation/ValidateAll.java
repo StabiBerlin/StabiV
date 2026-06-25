@@ -86,7 +86,7 @@ public class ValidateAll {
         DirectoryValidationResult directoryResult = DirectoryValidation.validate(
             directory,
             files,
-            new ExtractorList(config.getExtraction().getModules()),
+            new ExtractorList(config.getExtraction().getModules(), config.getExtraction().getExiftool()),
             config.getValidation().getImageRules(),
             config.getValidation().getDirectoryRules().getConsistentProperties(),
             config.getValidation().getDirectoryRules().getConsecutiveNumbering(),

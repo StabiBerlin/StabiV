@@ -3,7 +3,6 @@ package de.spkberlin.stabiv.common.math;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import de.spkberlin.stabiv.common.math.NumberConsecutiveness;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;

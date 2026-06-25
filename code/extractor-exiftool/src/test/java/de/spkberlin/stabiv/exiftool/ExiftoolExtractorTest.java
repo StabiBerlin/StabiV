@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.spkberlin.stabiv.common.extract.ExtractionError;
 import de.spkberlin.stabiv.common.extract.ExtractionResult;
-import de.spkberlin.stabiv.exiftool.ExiftoolExtractor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,7 +53,7 @@ public class ExiftoolExtractorTest {
      */
     @Test
     public void testIncorrectCommand() {
-        ExiftoolExtractor extractor = new ExiftoolExtractor("exiftoolSomething", ExiftoolExtractor.DEFAULT_CLI_ARGS);
+        ExiftoolExtractor extractor = new ExiftoolExtractor(Path.of("exiftoolSomething"), ExiftoolExtractor.DEFAULT_CLI_ARGS);
         assertThrows(ExtractionError.class, () -> extractor.extractProperties(EXAMPLE_PATH));
     }
 
@@ -120,7 +119,7 @@ public class ExiftoolExtractorTest {
         assertNotEquals(null, extractor.getVersion());
         assertNotEquals("unknown version", extractor.getVersion());
 
-        extractor = new ExiftoolExtractor("exiftool-invalid-command", Collections.emptyList());
+        extractor = new ExiftoolExtractor(Path.of("exiftool-invalid-command"), Collections.emptyList());
         assertEquals("unknown version", extractor.getVersion());
     }
 }

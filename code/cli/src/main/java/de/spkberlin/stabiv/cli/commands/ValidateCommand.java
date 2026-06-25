@@ -136,6 +136,30 @@ public class ValidateCommand implements Callable<Integer> {
             """
         )
         List<ExtractorType> modules = List.of(ExtractorType.exiftool, ExtractorType.jhove);
+
+        /** The filepath to the exiftool binary. */
+        @Option(
+            names = { "--exiftoolPath" },
+            paramLabel = "PATH",
+            description = """
+            The filepath to the exiftool binary (default "exiftool").
+            """
+        )
+        Path exiftoolPath;
+
+        /** The list of exiftool arguments. */
+        @Option(
+            names = { "--exiftoolArguments" },
+            paramLabel = "ARGUMENTS",
+            description = """
+            The arguments provided to the exiftool command (default "-a -u -s -G5 -charset filename=utf8").
+
+            The argument "-G" is mandatory such that hierarchical properties can be parsed from the output of exiftool.
+
+            Arguments need to be enclosed in quotes, e.g., `--exiftoolArguments="-a -u -s -G5 -charset filename=utf8"`.
+            """
+        )
+        List<String> exiftoolArguments;
     }
 
     @ArgGroup(validate = true, heading = "%n@|bold Validation Options|@%n%n", order = 5, exclusive = false)
@@ -421,7 +445,10 @@ public class ValidateCommand implements Callable<Integer> {
 
         if (Objects.nonNull(csvPath) || Objects.nonNull(excelPath)) {
             // determine extractor versions
-            Map<String, String> extractorVersions = new ExtractorList(config.getExtraction().getModules())
+            Map<String, String> extractorVersions = new ExtractorList(
+                config.getExtraction().getModules(),
+                config.getExtraction().getExiftool()
+            )
                 .getImplementations()
                 .entrySet()
                 .stream()
@@ -469,7 +496,12 @@ public class ValidateCommand implements Callable<Integer> {
         ConfigurationLoggingVerbosityType verbosity = ConfigurationLoggingSection.VERBOSITY_LEVELS.get(outputOptions.verbosity.length + 1);
         ConfigurationMerger.mergeInput(config, Path.of(CWD), inputOptions.inputArguments, inputOptions.includes, inputOptions.excludes);
         ConfigurationMerger.mergeProcessing(config, processingOptions.parallelThreads, processingOptions.checksumAlgorithm);
-        ConfigurationMerger.mergeExtraction(config, extractionOptions.modules);
+        ConfigurationMerger.mergeExtraction(
+            config,
+            extractionOptions.modules,
+            extractionOptions.exiftoolPath,
+            extractionOptions.exiftoolArguments
+        );
         ConfigurationMerger.mergeValidation(
             config,
             validationOptions.imageRules,

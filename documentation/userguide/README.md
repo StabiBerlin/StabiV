@@ -327,7 +327,7 @@ The `extraction` sections allows configuring how image properties are extracted 
 
 #### Extraction Modules
 
-Currently, only the list of modules can be configured:
+You can define the list of modules that are used to extract image properties:
 
 For example:
 
@@ -346,6 +346,41 @@ extraction:
   modules:
     - exiftool
     - jhove
+```
+
+#### ExifTool Options
+
+For the exiftool module, the following configuration options can be changed:
+
+- `path` - the filepath to the exiftool binary (by default `exiftool`)
+- `arguments` - the list of arguments that are provided to the exiftool binary (by default `-a -u -s -G5 -charset filename=utf8`)
+
+The list arguments needs to contain `-G` such that the hierarchy of image properties can be extracted. Without it, extracting image properties will fail. Other arguments are optional. Arguments that change the output format are not allowed and will cause an error, e.g., `-X` to output properties as XML.
+
+For example:
+
+```YAML
+extraction:
+
+  exiftool:
+    path: /path/to/exiftool
+    arguments:
+      - "-G5" # print group name for each tag, mandatory argument
+      - "-a" # allow duplicate tags to be extracted
+      - "-u" # extract unknown tags
+      - "-s" # short tag names
+      - "-charset filename=utf8" # declare filenames to be encoded as utf8
+```
+
+Default configuration:
+
+```YAML
+extraction:
+
+  exiftool:
+    path: exiftool
+    arguments:
+      - "-a -u -s -G5 -charset filename=utf8"
 ```
 
 ### Validation Section

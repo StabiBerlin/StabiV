@@ -13,6 +13,17 @@ processing:
   threads: 4
   checksumAlgorithm: SHA-1
 
+extraction:
+  modules:
+    - jhove
+    - exiftool
+
+  exiftool:
+    path: exiftool
+    arguments:
+      - "-a -u -s -G5"
+      - "-charset filename=utf8"
+
 validation:
   directoryRules:
     consistentProperties:

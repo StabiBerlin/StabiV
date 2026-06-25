@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ExiftoolExtractor implements Extractor {
 
-    public static final String DEFAULT_CMD = "exiftool";
-    public static final List<String> DEFAULT_CLI_ARGS = List.of("-a", "-u", "-s", "-G5");
+    public static final Path DEFAULT_CMD = Path.of("exiftool");
+    public static final List<String> DEFAULT_CLI_ARGS = List.of("-a -u -s -G5 -charset filename=utf8");
     public static final List<String> VERSION_ARGS = List.of("-ver");
 
     private static final Logger logger = LoggerFactory.getLogger(ExiftoolExtractor.class);
@@ -50,7 +50,7 @@ public class ExiftoolExtractor implements Extractor {
     private static final String HIERARCHY_SEPARATOR = "-";
     private static final String PROPERTY_VALUE_SEPARATOR = ":";
 
-    private String cmd;
+    private Path cmd;
     private List<String> cliArgs;
 
     /**
@@ -59,7 +59,7 @@ public class ExiftoolExtractor implements Extractor {
      * @param cmd the ExifTool command to be executed (default "exiftool")
      * @param cliArgs the list of command line arguments for ExifTool (default "-a -u -s -G5")
      */
-    public ExiftoolExtractor(String cmd, List<String> cliArgs) {
+    public ExiftoolExtractor(Path cmd, List<String> cliArgs) {
         this.cmd = cmd;
         this.cliArgs = cliArgs;
     }
@@ -97,7 +97,7 @@ public class ExiftoolExtractor implements Extractor {
     public String getExifVersion() {
         StringBuilder stdout = new StringBuilder();
         try {
-            List<String> command = Stream.of(Stream.of(this.cmd), VERSION_ARGS.stream())
+            List<String> command = Stream.of(Stream.of(this.cmd.toString()), VERSION_ARGS.stream())
                 .flatMap(s -> s)
                 .toList();
 
@@ -128,8 +128,13 @@ public class ExiftoolExtractor implements Extractor {
         StringBuilder stdout = new StringBuilder();
         StringBuilder stderr = new StringBuilder();
         try {
-            List<String> command = Stream.of(Stream.of(this.cmd), this.cliArgs.stream(), Stream.of(filename.toString()))
+            List<String> command = Stream.of(
+                Stream.of(this.cmd.toString()), 
+                this.cliArgs.stream().flatMap(a -> Arrays.stream(a.split(" "))), 
+                Stream.of(filename.toString())
+            )
                 .flatMap(s -> s)
+                .filter(s -> !s.isBlank())
                 .toList();
 
             logger.trace("start process '{}'", command.stream().collect(Collectors.joining(" ")));

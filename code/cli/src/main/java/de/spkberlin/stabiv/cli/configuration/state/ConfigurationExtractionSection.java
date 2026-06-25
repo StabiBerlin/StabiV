@@ -10,8 +10,12 @@ public class ConfigurationExtractionSection {
     @NotEmpty
     private List<@Valid ExtractorType> modules;
 
+    @Valid
+    private ConfigurationExtractionExiftoolSection exiftool;
+
     public ConfigurationExtractionSection() {
-        modules = List.of(ExtractorType.exiftool, ExtractorType.jhove);
+        this.modules = List.of(ExtractorType.exiftool, ExtractorType.jhove);
+        this.exiftool = new ConfigurationExtractionExiftoolSection();
     }
 
     public List<ExtractorType> getModules() {
@@ -20,5 +24,13 @@ public class ConfigurationExtractionSection {
 
     public void setModules(List<ExtractorType> modules) {
         this.modules = modules;
+    }
+
+    public ConfigurationExtractionExiftoolSection getExiftool() {
+        return this.exiftool;
+    }
+
+    public void setExiftool(ConfigurationExtractionExiftoolSection exiftool) {
+        this.exiftool = exiftool;
     }
 }

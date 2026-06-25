@@ -1,5 +1,6 @@
 package de.spkberlin.stabiv.cli.extraction;
 
+import de.spkberlin.stabiv.cli.configuration.state.ConfigurationExtractionExiftoolSection;
 import de.spkberlin.stabiv.common.extract.Extractor;
 import de.spkberlin.stabiv.common.extract.ExtractorImplementationsInterface;
 import de.spkberlin.stabiv.exiftool.ExiftoolExtractor;
@@ -15,19 +16,22 @@ public class ExtractorList implements ExtractorImplementationsInterface {
 
     private List<ExtractorType> activeExtractorTypes;
 
-    public ExtractorList(List<ExtractorType> activeExtractorTypes) {
+    public ExtractorList(List<ExtractorType> activeExtractorTypes, ConfigurationExtractionExiftoolSection exiftoolConfig) {
         this.activeExtractorTypes = activeExtractorTypes;
-        initializeExtactor();
+        initializeExtactor(exiftoolConfig);
     }
 
-    private void initializeExtactor() {
+    private void initializeExtactor(ConfigurationExtractionExiftoolSection exiftoolConfig) {
         for (ExtractorType extractorType : activeExtractorTypes) {
             if (!EXTRACTOR_IMPLEMENTATIONS.containsKey(extractorType)) {
                 if (extractorType.equals(ExtractorType.jhove)) {
                     EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.jhove, ThreadLocal.withInitial(() -> new JHoveExtractor()));
                 }
                 if (extractorType.equals(ExtractorType.exiftool)) {
-                    EXTRACTOR_IMPLEMENTATIONS.put(ExtractorType.exiftool, ThreadLocal.withInitial(() -> new ExiftoolExtractor()));
+                    EXTRACTOR_IMPLEMENTATIONS.put(
+                        ExtractorType.exiftool,
+                        ThreadLocal.withInitial(() -> new ExiftoolExtractor(exiftoolConfig.getPath(), exiftoolConfig.getArguments()))
+                    );
                 }
             }
         }
