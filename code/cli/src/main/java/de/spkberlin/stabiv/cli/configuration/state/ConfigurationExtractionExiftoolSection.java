@@ -1,9 +1,8 @@
 package de.spkberlin.stabiv.cli.configuration.state;
 
+import de.spkberlin.stabiv.exiftool.ExiftoolExtractor;
 import java.nio.file.Path;
 import java.util.List;
-
-import de.spkberlin.stabiv.exiftool.ExiftoolExtractor;
 
 public class ConfigurationExtractionExiftoolSection {
 

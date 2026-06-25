@@ -129,8 +129,8 @@ public class ExiftoolExtractor implements Extractor {
         StringBuilder stderr = new StringBuilder();
         try {
             List<String> command = Stream.of(
-                Stream.of(this.cmd.toString()), 
-                this.cliArgs.stream().flatMap(a -> Arrays.stream(a.split(" "))), 
+                Stream.of(this.cmd.toString()),
+                this.cliArgs.stream().flatMap(a -> Arrays.stream(a.split(" "))),
                 Stream.of(filename.toString())
             )
                 .flatMap(s -> s)
