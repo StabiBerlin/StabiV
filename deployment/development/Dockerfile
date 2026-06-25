@@ -2,6 +2,9 @@ FROM docker.io/library/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# declare generic utf8 locale to support utf8 filepaths
+ENV LANG=C.UTF-8
+
 # install developer basics
 RUN apt-get update && \
     apt-get install -y bash git git-lfs tmux vim dnsutils jq && \

@@ -180,7 +180,8 @@ public class ValidateCommandTest {
             "size_deviations_valid",
             "consistency_valid",
             "consecutive_numbering_valid",
-            "size_deviations_center_slice_invalid"
+            "size_deviations_center_slice_invalid",
+            "utf8😜_filepath_valid"
         );
         for (String validDirectory : validDirectories) {
             assertTrue(successByPath.get(Path.of(validDirectory)));
