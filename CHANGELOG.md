@@ -1,15 +1,12 @@
 # Changelog
 
-## v1.1.0 - 2026-06-25
+## v1.1.0 - 2026-06-26
 
 General Improvements
 
 - Allow to configure exiftool command line arguments and path to binary via cli options and config file
+- Relay image filepath via temporary argument file to exiftool to avoid potential filepath encoding issues on Windows
 - Add test case for utf8 encoded directory paths
-
-Breaking Changes
-
-- Default arguments for exiftool was extended with `-charset filename=utf8` to `-a -u -s -G5 -charset filename=utf8`, use command line option `--exiftoolArguments="-a -u -s -G5"` for previous behavior
 
 ## v1.0.1 - 2026-06-17
 

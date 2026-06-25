@@ -1,6 +1,9 @@
 @ECHO OFF 
 setlocal enabledelayedexpansion
 
+REM change to utf8 console
+chcp 65001 > nul
+
 REM Get directory of this script
 set SCRIPT_DIR=%~dp0
 

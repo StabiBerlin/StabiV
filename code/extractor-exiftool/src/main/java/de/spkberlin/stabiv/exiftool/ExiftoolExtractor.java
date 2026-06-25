@@ -8,7 +8,10 @@ import de.spkberlin.stabiv.common.properties.PathPropertiesTree;
 import de.spkberlin.stabiv.common.properties.PathProperty;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -120,18 +123,21 @@ public class ExiftoolExtractor implements Extractor {
     /**
      * Spawn a new process for ExifTool and collect both stdout and stderr.
      *
-     * @param filename the filepath of the file to process with ExifTool
+     * @param filepath the filepath of the file to process with ExifTool
      * @return the stdout of ExifTool
      * @throws ExtractionError in case something failed or there is data transmitted on stderr
      */
-    public String runExifTool(Path filename) throws ExtractionError {
-        StringBuilder stdout = new StringBuilder();
-        StringBuilder stderr = new StringBuilder();
+    public String runExifTool(Path filepath) throws ExtractionError {
+        Path tempFile = null;
+        StringBuilder stdout = null;
+        StringBuilder stderr = null;
         try {
+            tempFile = Files.createTempFile("stabiv-", ".txt");
+            Files.writeString(tempFile, filepath.toString(), StandardCharsets.UTF_8);
             List<String> command = Stream.of(
                 Stream.of(this.cmd.toString()),
                 this.cliArgs.stream().flatMap(a -> Arrays.stream(a.split(" "))),
-                Stream.of(filename.toString())
+                Stream.of("-@", tempFile.toString())
             )
                 .flatMap(s -> s)
                 .filter(s -> !s.isBlank())
@@ -139,21 +145,8 @@ public class ExiftoolExtractor implements Extractor {
 
             logger.trace("start process '{}'", command.stream().collect(Collectors.joining(" ")));
             Process process = new ProcessBuilder(command).start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stdout.append(line);
-                    stdout.append(NEWLINE);
-                }
-            }
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    stderr.append(line);
-                    stderr.append(NEWLINE);
-                }
-            }
+            stdout = collectInputStream(process.getInputStream());
+            stderr = collectInputStream(process.getErrorStream());
 
             logger.trace("exiftool stdout was:\n\n{}", stdout.toString());
             if (!stderr.isEmpty()) {
@@ -163,8 +156,37 @@ public class ExiftoolExtractor implements Extractor {
         } catch (IOException e) {
             logger.trace("error starting exiftool", e);
             throw new ExtractionError("exiftool failed to run with: " + e.getMessage());
+        } finally {
+            if (Objects.nonNull(tempFile)) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                } catch (IOException e) {
+                    logger.trace("error deleting temporary file at {}", tempFile.toString());
+                }
+            }
         }
         return stdout.toString();
+    }
+
+    /**
+     * Read from an input stream and collect all lines into a string builder.
+     *
+     * @param inputStream the input stream to read from
+     * @return the string builder with all lines that were read
+     */
+    private StringBuilder collectInputStream(InputStream inputStream) {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+                builder.append(NEWLINE);
+            }
+        } catch (IOException e) {
+            logger.trace("error reading input from exiftool", e);
+            throw new ExtractionError("exiftool failed to run with: " + e.getMessage());
+        }
+        return builder;
     }
 
     /**
