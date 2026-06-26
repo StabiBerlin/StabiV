@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -394,7 +395,7 @@ public class ValidateCommand implements Callable<Integer> {
             - `/path/to/*.tif` - validate all tif files in this directory, ignoring any include and exclude rules
             """
         )
-        List<String> inputArguments;
+        List<String> inputArguments = Collections.emptyList();
     }
 
     /** Called when CLI arguments were successfully parsed. */
@@ -405,6 +406,12 @@ public class ValidateCommand implements Callable<Integer> {
 
         logger.info("run validate command");
 
+        if (Objects.isNull(configOptions.configFilepath) && inputOptions.inputArguments.isEmpty()) {
+            logger.error("you need to provide at least a config file or reference files as INPUT argument");
+            CommandLine.usage(this, System.out);
+            return 2;
+        }
+
         Path configFilepath = null;
         if (Objects.nonNull(configOptions.configFilepath)) {
             configFilepath = Path.of(CWD).resolve(configOptions.configFilepath).normalize().toAbsolutePath();
@@ -414,7 +421,7 @@ public class ValidateCommand implements Callable<Integer> {
         try {
             config = loadConfiguration(configFilepath);
         } catch (IOException e) {
-            logger.error("configuration file could not be loaded, exiting ...");
+            logger.error("configuration file {} could not be loaded, exiting ...", configFilepath.toString());
             return 2;
         }
 

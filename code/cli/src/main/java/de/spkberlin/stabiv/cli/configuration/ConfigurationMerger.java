@@ -63,7 +63,7 @@ public class ConfigurationMerger {
         }
 
         // make sure base directory is defined
-        if ((Objects.isNull(cliInputArguments) || cliInputArguments.isEmpty()) && Objects.isNull(config.getInput().getBaseDirectory())) {
+        if (cliInputArguments.isEmpty() && Objects.isNull(config.getInput().getBaseDirectory())) {
             // use cwd as base directory
             config.getInput().setBaseDirectory(cwd);
         }
@@ -101,7 +101,6 @@ public class ConfigurationMerger {
      */
     private static boolean namelessInputArgumentIsSingleDirectory(List<String> cliInputArguments) {
         boolean isSingleDirectory =
-            Objects.nonNull(cliInputArguments) &&
             cliInputArguments.size() == 1 &&
             !GlobResolver.isGlobPattern(cliInputArguments.get(0)) &&
             Files.isDirectory(Path.of(cliInputArguments.get(0)));
@@ -117,9 +116,7 @@ public class ConfigurationMerger {
      * @param namelessArgumentIsSingleDirectory whether the nameless input arguments matches a single directory
      */
     private static void mergeInputNamelessArguments(ConfigurationRoot config, Path cwd, List<String> cliInputArguments) {
-        if (
-            Objects.nonNull(cliInputArguments) && !cliInputArguments.isEmpty() && !namelessInputArgumentIsSingleDirectory(cliInputArguments)
-        ) {
+        if (!cliInputArguments.isEmpty() && !namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
             // interprete input arguments as include rules and ignore all previously defined include and exclude rules
             config.getInput().setBaseDirectory(cwd);
             config
