@@ -116,6 +116,21 @@ public class GlobResolverTest {
 
     @Test
     @EnabledOnOs({ OS.LINUX, OS.WINDOWS })
+    public void testResolveSingleFile() throws IOException {
+        Path fileA = Files.createFile(tempDir.resolve("fileA.tif"));
+        Path fileB = Files.createFile(tempDir.resolve("fileB.tif"));
+        Path fileC = Files.createFile(tempDir.resolve("fileC.jpg"));
+
+        List<Path> matched = GlobResolver.resolveOne(new GlobPattern(fileB.toString(), tempDir));
+
+        assertFalse(matched.contains(fileA));
+        assertTrue(matched.contains(fileB));
+        assertFalse(matched.contains(fileC));
+        assertFalse(matched.contains(tempDir));
+    }
+
+    @Test
+    @EnabledOnOs({ OS.LINUX, OS.WINDOWS })
     public void testResolveAbsolutePattern() throws IOException {
         Path fileA = Files.createFile(tempDir.resolve("fileA.tif"));
         Path fileB = Files.createFile(tempDir.resolve("fileB.tif"));

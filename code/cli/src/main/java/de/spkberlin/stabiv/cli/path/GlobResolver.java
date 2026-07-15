@@ -121,8 +121,11 @@ public class GlobResolver {
             String absolutePattern = joinGlobPattern(splittedPattern);
             includeMatcher = getPathMatcherFromPattern(includePattern.getPattern(), includeBaseDirectory);
             logger.debug("resolve include glob '{}' for base directory '{}'", absolutePattern, basePath);
+        } else if (!Files.isDirectory(basePath)) {
+            logger.debug("resolve single file as single path '{}'", basePath);
+            return List.of(basePath);
         } else {
-            logger.debug("resolve anything for path '{}'", basePath);
+            logger.debug("resolve all files of non-pattern directory '{}'", basePath);
         }
 
         List<PathMatcher> excludeMatcher = excludePattern
