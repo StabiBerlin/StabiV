@@ -164,7 +164,7 @@ public class ReportGenerator {
             ReportRow.ofDirectory(
                 Stream.of(
                     ReportCell.of(directory.toAbsolutePath().normalize().toString()), // path
-                    ReportCell.of(directory.getFileName().toString(), highlightType), // directory name
+                    ReportCell.of(Objects.toString(directory.getFileName(), ""), highlightType), // directory name
                     totalImagesCell, // file name / total images
                     ReportCell.of(passedValidation, highlightType), // directory passed
                     ReportCell.empty(highlightType),
@@ -202,7 +202,7 @@ public class ReportGenerator {
                     Stream.concat(
                         Stream.of(
                             ReportCell.of(filepath.toAbsolutePath().normalize().toString()), // path
-                            ReportCell.of(filepath.getParent().getFileName().toString()), // directory name
+                            ReportCell.of(Objects.toString(filepath.getParent().getFileName(), "")), // directory name
                             ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
                             ReportCell.empty(highlightType), // directory passed validation
                             ReportCell.of(passedValidation, highlightType), // file passed validation
