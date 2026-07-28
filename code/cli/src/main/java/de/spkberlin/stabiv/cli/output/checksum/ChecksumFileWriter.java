@@ -64,7 +64,7 @@ public class ChecksumFileWriter {
 
     private static String resolveFilenameTemplate(String filenameTemplate, Path directory) {
         Map<String, String> variables = Map.ofEntries(
-            Map.entry("directory", directory.getFileName().toString()),
+            Map.entry("directory", Objects.toString(directory.getFileName(), "")),
             Map.entry("date", LocalDateTime.now().format(dateFormat)),
             Map.entry("time", LocalDateTime.now().format(timeFormat))
         );

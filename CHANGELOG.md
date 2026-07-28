@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.1 - 2026-07-28
+
+Fixes
+
+- Fix problem generating Excel report and checksum file when validating files in the root directory
+
 ## v1.2.0 - 2026-07-28
 
 Improvements
