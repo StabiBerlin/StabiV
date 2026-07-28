@@ -1,8 +1,10 @@
 package de.spkberlin.stabiv.cli.path;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,20 @@ public class SimplePatternResolver {
             baseDirectory
         );
         return Pair.of(splittedPattern.getKey(), FileSystems.getDefault().getPathMatcher(globPattern));
+    }
+
+    /**
+     * Resolve a simple include pattern considering exclude rules.
+     *
+     * @param includePattern the include pattern referencing as simple path pattern
+     * @param baseDirectory the base directory in case of relative paths
+     * @param excludeMatcher the list of exclude rules as PathMatcher instances
+     * @return the list of matches files
+     * @throws IOException in case something fails scanning for files
+     */
+    public static List<Path> resolve(String includePattern, Path baseDirectory, List<PathMatcher> excludeMatcher) throws IOException {
+        Pair<Path, PathMatcher> includePair = getPathMatcher(includePattern, baseDirectory);
+        return FileUtils.walkDirectory(includePair.getKey(), includePair.getValue(), excludeMatcher);
     }
 
     /**

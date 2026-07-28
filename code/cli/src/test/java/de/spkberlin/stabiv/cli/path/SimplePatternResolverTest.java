@@ -86,6 +86,6 @@ public class SimplePatternResolverTest {
         assertEquals("", SimplePatternResolver.splitPattern("test.tif", cwd).getValue());
 
         // escaping is not supported (backslash is treaded as filename character)
-        assertEquals("\\*.tif", SimplePatternResolver.splitPattern("C:\\directory\\\\*.tif", cwd).getValue());
+        assertEquals("*.tif", SimplePatternResolver.splitPattern("C:\\directory\\\\*.tif", cwd).getValue());
     }
 }

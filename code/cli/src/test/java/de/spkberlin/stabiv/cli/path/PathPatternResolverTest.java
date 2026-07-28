@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 public class PathPatternResolverTest {
@@ -112,16 +114,36 @@ public class PathPatternResolverTest {
      * Check that escaping glob characters in a relative path pattern works.
      */
     @Test
-    public void testResolveWithEscapedGlobCharacters() throws IOException {
+    @EnabledOnOs({ OS.LINUX })
+    public void testResolveWithEscapedGlobCharactersLinux() throws IOException {
         Path subdirectory = tempDir.resolve("sub[dir]ectory");
         Files.createDirectory(subdirectory);
         Path fileA = Files.createFile(subdirectory.resolve("fileA.tif"));
         Path fileB = Files.createFile(subdirectory.resolve("fileB.tif"));
         Path fileC = Files.createFile(subdirectory.resolve("fileC.jpg"));
 
-        List<Path> matched = PathPatternResolver.resolveOne(
-            new PathPattern("glob:sub\\[dir\\]ectory" + DIR_SEPERATOR + "fileB.tif", tempDir)
-        );
+        List<Path> matched = PathPatternResolver.resolveOne(new PathPattern("glob:sub\\[dir\\]ectory/fileB.tif", tempDir));
+
+        assertFalse(matched.contains(fileA));
+        assertTrue(matched.contains(fileB));
+        assertFalse(matched.contains(fileC));
+        assertFalse(matched.contains(subdirectory));
+        assertFalse(matched.contains(tempDir));
+    }
+
+    /**
+     * Check that escaping glob characters in a relative path pattern works.
+     */
+    @Test
+    @EnabledOnOs({ OS.WINDOWS })
+    public void testResolveWithEscapedGlobCharactersWindows() throws IOException {
+        Path subdirectory = tempDir.resolve("sub[dir]ectory");
+        Files.createDirectory(subdirectory);
+        Path fileA = Files.createFile(subdirectory.resolve("fileA.tif"));
+        Path fileB = Files.createFile(subdirectory.resolve("fileB.tif"));
+        Path fileC = Files.createFile(subdirectory.resolve("fileC.jpg"));
+
+        List<Path> matched = PathPatternResolver.resolveOne(new PathPattern("glob:sub\\[dir\\]ectory\\\\fileB.tif", tempDir));
 
         assertFalse(matched.contains(fileA));
         assertTrue(matched.contains(fileB));

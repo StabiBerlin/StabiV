@@ -105,23 +105,24 @@ public class PathPatternResolver {
      */
     public static List<Path> resolveOne(PathPattern includePattern, List<PathPattern> excludePattern, Path defaultBaseDirectory)
         throws IOException {
-        Pair<Path, PathMatcher> includePair = pathPatternToPathMatcher(includePattern, defaultBaseDirectory);
-        Path basePath = includePair.getKey();
-        PathMatcher includeMatcher = includePair.getValue();
-
-        if (Files.isRegularFile(basePath)) {
-            // include pattern references single regular file
-            return List.of(basePath);
-        }
-
         List<PathMatcher> excludeMatcher = excludePattern
             .stream()
-            .map(p ->
-                pathPatternToPathMatcher(p, Objects.nonNull(p.getBaseDirectory()) ? p.getBaseDirectory() : defaultBaseDirectory).getValue()
-            )
+            .map(p -> pathPatternToPathMatcher(p, Objects.requireNonNullElse(p.getBaseDirectory(), defaultBaseDirectory)).getValue())
             .toList();
 
-        return walkDirectory(basePath, includeMatcher, excludeMatcher);
+        Path baseDirectory = Objects.requireNonNullElse(includePattern.getBaseDirectory(), defaultBaseDirectory);
+        PathPatternType patternType = PathPatternType.getType(includePattern.getPattern(), baseDirectory);
+        if (patternType.equals(PathPatternType.EXACT)) {
+            return ExactPatternResolver.resolve(includePattern.getPattern(), baseDirectory, excludeMatcher);
+        } else if (patternType.equals(PathPatternType.SIMPLE)) {
+            return SimplePatternResolver.resolve(includePattern.getPattern(), baseDirectory, excludeMatcher);
+        } else if (patternType.equals(PathPatternType.GLOB)) {
+            return GlobPatternResolver.resolve(includePattern.getPattern(), baseDirectory, excludeMatcher);
+        } else if (patternType.equals(PathPatternType.REGEX)) {
+            return RegexPatternResolver.resolve(includePattern.getPattern(), baseDirectory, excludeMatcher);
+        }
+
+        throw new IllegalArgumentException("unknown type of include pattern");
     }
 
     /**
@@ -132,9 +133,9 @@ public class PathPatternResolver {
      * @return a pair of absolute base path and path matcher
      */
     public static Pair<Path, PathMatcher> pathPatternToPathMatcher(PathPattern pattern, Path defaultBaseDirectory) {
-        Path baseDirectory = Objects.nonNull(pattern.getBaseDirectory()) ? pattern.getBaseDirectory() : defaultBaseDirectory;
-
+        Path baseDirectory = Objects.requireNonNullElse(pattern.getBaseDirectory(), defaultBaseDirectory);
         PathPatternType patternType = PathPatternType.getType(pattern.getPattern(), baseDirectory);
+
         if (patternType.equals(PathPatternType.EXACT)) {
             return ExactPatternResolver.getPathMatcher(pattern.getPattern(), baseDirectory);
         } else if (patternType.equals(PathPatternType.SIMPLE)) {
@@ -146,31 +147,5 @@ public class PathPatternResolver {
         }
 
         throw new IllegalArgumentException("unknown type of include pattern");
-    }
-
-    /**
-     * Walk a directory and match files based on include and exclude path matchers.
-     *
-     * @param directory the directory
-     * @param includeMatcher a include matcher
-     * @param excludeMatcher a list of exclude matcher
-     * @return the list of matching paths
-     * @throws IOException in case filepath is not available
-     */
-    public static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<PathMatcher> excludeMatcher)
-        throws IOException {
-        logger.error("start walking directory '{}'", directory);
-        List<Path> matches = Files.walk(directory)
-            .map(p -> {
-                logger.trace("scan file path '{}'", p);
-                return p;
-            })
-            .filter(p -> Files.isRegularFile(p) || Files.isDirectory(p))
-            .filter(p -> Objects.isNull(includeMatcher) || !p.equals(directory))
-            .filter(p -> Objects.isNull(includeMatcher) || includeMatcher.matches(p))
-            .filter(p -> !excludeMatcher.stream().anyMatch(m -> m.matches(p)))
-            .toList();
-        logger.trace("matched paths are: {}", matches);
-        return matches;
     }
 }

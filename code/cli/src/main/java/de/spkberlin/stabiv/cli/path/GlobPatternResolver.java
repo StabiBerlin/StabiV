@@ -1,9 +1,12 @@
 package de.spkberlin.stabiv.cli.path;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Arrays;
+import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,20 @@ public class GlobPatternResolver {
     }
 
     /**
+     * Resolve a glob include pattern considering exclude rules.
+     *
+     * @param includePattern the include pattern as a glob path pattern
+     * @param baseDirectory the base directory in case of relative paths
+     * @param excludeMatcher the list of exclude rules as PathMatcher instances
+     * @return the list of matches files
+     * @throws IOException in case something fails scanning for files
+     */
+    public static List<Path> resolve(String includePattern, Path baseDirectory, List<PathMatcher> excludeMatcher) throws IOException {
+        Pair<Path, PathMatcher> includePair = getPathMatcher(includePattern, baseDirectory);
+        return FileUtils.walkDirectory(includePair.getKey(), includePair.getValue(), excludeMatcher);
+    }
+
+    /**
      * Join a splitted glob pattern back together into a string.
      *
      * @param splittedPattern the splitted glob pattern
@@ -45,9 +62,14 @@ public class GlobPatternResolver {
      */
     public static String buildGlobPattern(Pair<Path, String> splittedPattern) {
         if (splittedPattern.getRight().isEmpty()) {
-            return String.format("glob:%s", splittedPattern.getKey().toString());
+            return String.format("glob:%s", escapePath(splittedPattern.getKey().toString()));
         }
-        return String.format("glob:%s%s%s", splittedPattern.getLeft(), DIR_SEPERATOR, splittedPattern.getRight());
+        return String.format(
+            "glob:%s%s%s",
+            escapePath(splittedPattern.getKey().toString()),
+            escapePath(DIR_SEPERATOR),
+            splittedPattern.getRight()
+        );
     }
 
     /**
@@ -66,7 +88,11 @@ public class GlobPatternResolver {
 
         if (firstGlobCharIdx == patternWithoutPrefix.length()) {
             // there is no glob pattern
-            return Pair.of(baseDirectory.toAbsolutePath().resolve(Path.of(unescapePattern(patternWithoutPrefix))).normalize(), "");
+            Path path = baseDirectory.toAbsolutePath().resolve(Path.of(unescapePattern(patternWithoutPrefix))).normalize();
+            if (Files.isRegularFile(path)) {
+                return Pair.of(path.getParent(), path.getFileName().toString());
+            }
+            return Pair.of(path, "");
         }
 
         // there is glob character somewhere
@@ -86,9 +112,8 @@ public class GlobPatternResolver {
      */
     public static int findFirstGlobCharIndex(String pattern) {
         return Arrays.stream(GLOB_PATTERN_CHARACTERS)
-            .map(c -> pattern.indexOf(c))
+            .map(c -> firstIndexOfUnescapedCharacter(pattern, c.charAt(0), ESCAPE_CHARACTER.charAt(0)))
             .filter(i -> i >= 0)
-            .filter(i -> i == 0 || !pattern.substring(i - 1, i).equals(ESCAPE_CHARACTER))
             .reduce(Integer::min)
             .orElse(pattern.length());
     }
@@ -131,5 +156,15 @@ public class GlobPatternResolver {
      */
     public static String unescapePattern(String basePath) {
         return basePath.replaceAll("\\\\([\\\\*\\?\\[\\]{}])", "$1");
+    }
+
+    /**
+     * Escapes any glob pattern characters from the path part of a glob path pattern that should not be interpreted as glob characters.
+     *
+     * @param basePath the path containing characters that need escaping
+     * @return the path with escaped characters
+     */
+    public static String escapePath(String path) {
+        return path.replaceAll("([\\\\*\\?\\[\\]{}])", "\\\\$1");
     }
 }

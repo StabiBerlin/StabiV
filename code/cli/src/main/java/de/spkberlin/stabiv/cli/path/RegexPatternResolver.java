@@ -1,8 +1,10 @@
 package de.spkberlin.stabiv.cli.path;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -26,5 +28,19 @@ public class RegexPatternResolver {
         }
         // do not modify or interpret pattern, but simply relay it to PathMatcher class
         return Pair.of(baseDirectory, FileSystems.getDefault().getPathMatcher(pattern));
+    }
+
+    /**
+     * Resolve a regex include pattern considering exclude rules.
+     *
+     * @param includePattern the include pattern as a regex path pattern
+     * @param baseDirectory the base directory in case of relative paths
+     * @param excludeMatcher the list of exclude rules as PathMatcher instances
+     * @return the list of matches files
+     * @throws IOException in case something fails scanning for files
+     */
+    public static List<Path> resolve(String includePattern, Path baseDirectory, List<PathMatcher> excludeMatcher) throws IOException {
+        Pair<Path, PathMatcher> includePair = getPathMatcher(includePattern, baseDirectory);
+        return FileUtils.walkDirectory(includePair.getKey(), includePair.getValue(), excludeMatcher);
     }
 }

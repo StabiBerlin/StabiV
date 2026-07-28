@@ -4,9 +4,11 @@ import de.spkberlin.stabiv.cli.configuration.state.ConfigurationInputSection;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -122,5 +124,31 @@ public class FileUtils {
 
             i++;
         }
+    }
+
+    /**
+     * Walk a directory and match files based on include and exclude path matchers.
+     *
+     * @param directory the directory
+     * @param includeMatcher a include matcher
+     * @param excludeMatcher a list of exclude matcher
+     * @return the list of matching paths
+     * @throws IOException in case filepath is not available
+     */
+    public static List<Path> walkDirectory(Path directory, PathMatcher includeMatcher, List<PathMatcher> excludeMatcher)
+        throws IOException {
+        logger.trace("start walking directory '{}'", directory);
+        List<Path> matches = Files.walk(directory)
+            .map(p -> {
+                logger.trace("scan file path '{}'", p);
+                return p;
+            })
+            .filter(p -> Files.isRegularFile(p) || Files.isDirectory(p))
+            .filter(p -> Objects.isNull(includeMatcher) || !p.equals(directory))
+            .filter(p -> Objects.isNull(includeMatcher) || includeMatcher.matches(p))
+            .filter(p -> !excludeMatcher.stream().anyMatch(m -> m.matches(p)))
+            .toList();
+        logger.trace("matched paths are: {}", matches);
+        return matches;
     }
 }
