@@ -62,7 +62,6 @@ public class ExactPatternResolver {
      * Escape a simple pattern such that it can be used with a Java PathMatcher via the glob syntax.
      *
      * @param path the path to the file or directory
-     * @param wildcard whether to add a wildcard at the end
      * @return the escaped pattern to be used with the PathMatcher class and glob syntax
      */
     public static String buildGlobPattern(Path path) {

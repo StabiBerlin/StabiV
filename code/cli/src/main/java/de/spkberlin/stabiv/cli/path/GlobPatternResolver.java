@@ -161,7 +161,7 @@ public class GlobPatternResolver {
     /**
      * Escapes any glob pattern characters from the path part of a glob path pattern that should not be interpreted as glob characters.
      *
-     * @param basePath the path containing characters that need escaping
+     * @param path the path containing characters that need escaping
      * @return the path with escaped characters
      */
     public static String escapePath(String path) {

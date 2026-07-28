@@ -85,7 +85,7 @@ public class SimplePatternResolver {
 
         if (firstStarCharIdx == -1) {
             // there is no star symbol in the pattern
-            return Pair.of(baseDirectory.resolve(Path.of(pattern)).normalize(), "");
+            return Pair.of(baseDirectory.resolve(Path.of(pattern)).toAbsolutePath().normalize(), "");
         }
 
         // there is star symbol somewhere
@@ -93,6 +93,6 @@ public class SimplePatternResolver {
         String directoryPrefix = pattern.substring(0, Math.max(0, lastSeperatorIdx));
         String patternSuffix = pattern.substring(lastSeperatorIdx + 1, pattern.length());
 
-        return Pair.of(baseDirectory.resolve(Path.of(directoryPrefix)).normalize(), patternSuffix);
+        return Pair.of(baseDirectory.resolve(Path.of(directoryPrefix)).toAbsolutePath().normalize(), patternSuffix);
     }
 }

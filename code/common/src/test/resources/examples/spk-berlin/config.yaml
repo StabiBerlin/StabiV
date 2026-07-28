@@ -3,11 +3,9 @@ input:
     - "**"
   excludes:
     - "config.yaml"
-    - "**.csv"
-    - "**.xlsx"
+    - "regex:^.*\\.csv$"
+    - "glob:**{.xlsx,.sha1,.gitignore}"
     - ".~lock*"
-    - "**.sha1"
-    - "**.gitignore"
 
 processing:
   threads: 4

@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.0 - TBD
+
+Improvements
+
+- File paths with special characters like `[`, `]`, `{`, `}`, `?` can now be used
+- The user guide contains a new section describing how file path patterns can be used
+- Regular expressions can be used to match file paths using the `regex:` prefix
+
+Breaking Changes
+
+- File path patterns that use the special syntax `[]`, `{}` or `?` need to prefixed with `glob:` and fully escaped
+
 ## v1.1.0 - 2026-06-26
 
 General Improvements
