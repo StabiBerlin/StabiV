@@ -180,7 +180,7 @@ A detailed description of all command line options can be found inside the separ
 
 ### Specifying Which Image Files Are Validated
 
-StabiV decides which images are being validated based on various command line options and options defined in the configuration file (in case it is provided). The are multiple scenarios.
+StabiV decides which images are being validated based on various command line options and options defined in the configuration file (in case it is provided). There are multiple scenarios.
 
 You may validate a single image file by listing this image file as only nameless input argument to the `validate` command:
 
@@ -194,13 +194,13 @@ You may validate multiple image files by listing each of them as nameless input 
 stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/simple_rgb.tif examples/simple/wellformed/simple_grayscale.tif
 ```
 
-You may validate all image files of a directory by specifying a filepath pattern as nameless input argument:
+You may validate all image files of a directory by specifying a file path pattern as nameless input argument:
 
 ```
 stabiv validate -v --imageRule="$.jhove.wellformed/equal/true" examples/simple/wellformed/*.tif
 ```
 
-In all these scenarios, include and exclude rules are ignored, because specific files or filepath patterns are provided.
+In all these scenarios, include and exclude rules are ignored, because specific files or file path patterns are provided.
 
 In contrast, you may validate images inside a directory (and subdirectories) based on include and exclude rules by specifying a single directory as nameless input argument:
 
@@ -227,9 +227,9 @@ When referencing files or directories with wildcards or other pattern syntax, yo
 
 If an exact path to an existing file or directory is provided, it is used as is without further processing. This means, you can reference a file even if it contains special symbols like the asterisk (`*`) in its name (Linux only). If such a file exists, the asterisk (`*`) is not interpreted as a wildcard and only that specific file is considered. If such a file does not exist, the file path is treated as a wildcard pattern.
 
-If a file path contains an asterisk (`*`), it is considered a simplified wildcard pattern. You may use a single asterisk (`*`) to match any characters without crossing directory boundaries. The pattern `*.tif` matches tif files in the respective directory, but not inside subdirectories. In contrast, double asterisks (`**`) match any characters also crossing directory bounds. The pattern `**.tif` matches tif files in the respective directory and all of its subdirectories.
+In case a file path contains an asterisk (`*`), it is considered a simplified wildcard pattern. You may use a single asterisk (`*`) to match any characters without crossing directory boundaries. The pattern `*.tif` matches TIF files in the respective directory, but not inside subdirectories. In contrast, double asterisks (`**`) match any characters also crossing directory bounds. The pattern `**.tif` matches TIF files in the respective directory and all of its subdirectories.
 
-In case you would like to use advanced patterns, e.g. `*.{jpg,png}`, you may use the full glob syntax by adding the prefix `glob:` to the beginning of your file path pattern. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>). Keep in mind that the special characters `*`, `[`, `]`, `{`, `}`, `?` need to be escaped with the backslash character (`\`) if they are not to be interpreted as pattern syntax. For example, in Windows, this means directories need to be separated by two backslashes, e.g. `glob:C:\\directory\\*.{jpg,png,tif}`. In addition, if this pattern in defined inside a YAML configuration file and enclosed in quotes, YAML requires an additional level of escaping, meaning four backslashes are required to indicate a directory separation:
+In case you would like to use advanced patterns, e.g. `*.{jpg,png}`, you may use the full glob syntax by adding the prefix `glob:` to the beginning of your file path pattern. More information about the glob syntax can be found in the documentation of [FileSystem::getPathMatcher](<https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)>). Keep in mind that the special characters `*`, `[`, `]`, `{`, `}`, `?` need to be escaped with the backslash character (`\`) if they are not to be interpreted as pattern syntax. For example, on Windows, this means directories need to be separated by two backslashes, e.g. `glob:C:\\directory\\*.{jpg,png,tif}`. In addition, if this pattern in defined inside a YAML configuration file and enclosed in quotes, YAML requires an additional level of escaping, meaning four backslashes are required to indicate a directory separation:
 
 ```YAML
 input:
@@ -238,7 +238,7 @@ input:
     - "glob:C:\\\\directory\\\\*.{jpg,png,tif}"
 ```
 
-Finally, you may also use regular expressions for matching file paths by adding the `regex:` prefix to the beginning of your file path. The regular expression is matched against the full file path. Detailed information about the exact synatax can be found in the documentation of the Java [Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) class. In contrast to the glob syntax, relative file paths are not supported, because the base directory cannot be inferred from a regular expression. Instead, the base directory is always taken from other parameters, e.g. via the `--inputBaseDirectory` command line argument or by specifying the base directory directly inside the configuration file:
+Finally, you may also use regular expressions for matching file paths by adding the `regex:` prefix to the beginning of your file path. The regular expression is matched against the full file path. Detailed information about the exact syntax can be found in the documentation of the Java [Pattern](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html) class. In contrast to the glob syntax, relative file paths are not supported, because the base directory cannot be inferred from a regular expression. Instead, the base directory is always taken from other parameters, e.g. via the `--inputBaseDirectory` command line argument or by specifying the base directory directly inside the configuration file:
 
 ```YAML
 input:
@@ -385,7 +385,7 @@ extraction:
 
 For the exiftool module, the following configuration options can be changed:
 
-- `path` - the filepath to the exiftool binary (by default `exiftool`)
+- `path` - the file path to the exiftool binary (by default `exiftool`)
 - `arguments` - the list of arguments that are provided to the exiftool binary (by default `-a -u -s -G5 -charset filename=utf8`)
 
 The list of arguments needs to contain `-G` such that the hierarchy of image properties can be extracted and `-charset filename=utf8` such that filenames with special characters (e.g., umlauts) are correctly passed from Java to ExifTool. Without it, extracting image properties will fail. Other arguments are optional. Arguments that change the output format are not allowed and will cause an error, e.g., `-X` to output properties as XML.
