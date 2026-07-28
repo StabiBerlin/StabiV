@@ -2,12 +2,12 @@ package de.spkberlin.stabiv.cli.path;
 
 import java.nio.file.Path;
 
-public class GlobPattern {
+public class PathPattern {
 
     private Path baseDirectory;
     private String pattern;
 
-    public GlobPattern(String pattern, Path baseDirectory) {
+    public PathPattern(String pattern, Path baseDirectory) {
         this.pattern = pattern;
         this.baseDirectory = baseDirectory;
     }

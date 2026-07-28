@@ -20,7 +20,8 @@ import de.spkberlin.stabiv.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.stabiv.cli.extraction.ExtractorType;
-import de.spkberlin.stabiv.cli.path.GlobResolver;
+import de.spkberlin.stabiv.cli.path.PathPatternResolver;
+import de.spkberlin.stabiv.cli.path.PathPatternType;
 import de.spkberlin.stabiv.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.stabiv.common.validation.directories.state.DirectoryConsistencyCondition;
 import de.spkberlin.stabiv.common.validation.directories.state.DirectoryPropertyDeviationsAggregateType;
@@ -68,7 +69,7 @@ public class ConfigurationMerger {
             config.getInput().setBaseDirectory(cwd);
         }
 
-        if (namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
+        if (namelessInputArgumentIsSingleDirectory(cliInputArguments, cwd)) {
             // use input argument as base directory
             config.getInput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
         }
@@ -99,11 +100,11 @@ public class ConfigurationMerger {
      * @param cliInputArguments the nameless input arguments specified via CLI
      * @return true if there is only one nameless input argument referencing a directory
      */
-    private static boolean namelessInputArgumentIsSingleDirectory(List<String> cliInputArguments) {
+    private static boolean namelessInputArgumentIsSingleDirectory(List<String> cliInputArguments, Path cwd) {
         boolean isSingleDirectory =
             cliInputArguments.size() == 1 &&
-            !GlobResolver.isGlobPattern(cliInputArguments.get(0)) &&
-            Files.isDirectory(Path.of(cliInputArguments.get(0)));
+            PathPatternType.getType(cliInputArguments.get(0), cwd).equals(PathPatternType.EXACT) &&
+            Files.isDirectory(cwd.resolve(Path.of(cliInputArguments.get(0))));
         return isSingleDirectory;
     }
 
@@ -116,7 +117,7 @@ public class ConfigurationMerger {
      * @param namelessArgumentIsSingleDirectory whether the nameless input arguments matches a single directory
      */
     private static void mergeInputNamelessArguments(ConfigurationRoot config, Path cwd, List<String> cliInputArguments) {
-        if (!cliInputArguments.isEmpty() && !namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
+        if (!cliInputArguments.isEmpty() && !namelessInputArgumentIsSingleDirectory(cliInputArguments, cwd)) {
             // interprete input arguments as include rules and ignore all previously defined include and exclude rules
             config.getInput().setBaseDirectory(cwd);
             config
@@ -358,7 +359,7 @@ public class ConfigurationMerger {
         }
 
         // set output base directory based on cli options
-        if (Objects.isNull(config.getOutput().getBaseDirectory()) && namelessInputArgumentIsSingleDirectory(cliInputArguments)) {
+        if (Objects.isNull(config.getOutput().getBaseDirectory()) && namelessInputArgumentIsSingleDirectory(cliInputArguments, cwd)) {
             config.getOutput().setBaseDirectory(Path.of(cliInputArguments.get(0)));
         } else if (Objects.isNull(config.getOutput().getBaseDirectory())) {
             config.getOutput().setBaseDirectory(cwd);

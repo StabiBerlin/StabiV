@@ -52,7 +52,7 @@ public class ValidateCommandTest {
     public void validateSimpleTifViaIncludeArgument() {
         CommandLine cmd = new CommandLine(new ValidateCommand());
         int exitCode = cmd.execute(
-            "-v",
+            "-vvv",
             "--imageRule=$.jhove.wellformed/equal/true",
             "--include=wellformed/simple_rgb.tif",
             SIMPLE_DIRECTORY.toString()

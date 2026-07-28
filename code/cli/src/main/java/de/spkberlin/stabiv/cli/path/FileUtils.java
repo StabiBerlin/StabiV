@@ -27,18 +27,18 @@ public class FileUtils {
      */
     public static Map<Path, List<Path>> resolveFiles(ConfigurationInputSection config) throws IOException {
         logger.info("resolve files and directories");
-        List<GlobPattern> includePattern = config
+        List<PathPattern> includePattern = config
             .getIncludes()
             .stream()
-            .map(p -> new GlobPattern(p.getPath(), p.getBaseDirectory()))
+            .map(p -> new PathPattern(p.getPath(), p.getBaseDirectory()))
             .toList();
-        List<GlobPattern> excludePattern = config
+        List<PathPattern> excludePattern = config
             .getExcludes()
             .stream()
-            .map(p -> new GlobPattern(p.getPath(), p.getBaseDirectory()))
+            .map(p -> new PathPattern(p.getPath(), p.getBaseDirectory()))
             .toList();
 
-        List<Path> resolvedFiles = GlobResolver.resolveMany(includePattern, excludePattern);
+        List<Path> resolvedFiles = PathPatternResolver.resolveMany(includePattern, excludePattern);
 
         if (resolvedFiles.isEmpty()) {
             logger.warn("no files to validate");
