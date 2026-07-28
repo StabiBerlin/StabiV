@@ -1,12 +1,13 @@
 # Changelog
 
-## v1.2.0 - TBD
+## v1.2.0 - 2026-07-28
 
 Improvements
 
 - File paths with special characters like `[`, `]`, `{`, `}`, `?` can now be used
 - The user guide contains a new section describing how file path patterns can be used
 - Regular expressions can be used to match file paths using the `regex:` prefix
+- Updated included OpenJDK to v26.0.2
 
 Breaking Changes
 
