@@ -203,7 +203,7 @@ public class ReportGenerator {
                         Stream.of(
                             ReportCell.of(filepath.toAbsolutePath().normalize().toString()), // path
                             ReportCell.of(Objects.toString(filepath.getParent().getFileName(), "")), // directory name
-                            ReportCell.of(filepath.getFileName().toString(), highlightType), // file name
+                            ReportCell.of(Objects.toString(filepath.getFileName(), ""), highlightType), // file name
                             ReportCell.empty(highlightType), // directory passed validation
                             ReportCell.of(passedValidation, highlightType), // file passed validation
                             ReportCell.of(validationErrors, validationWarnings), // validation error or warning

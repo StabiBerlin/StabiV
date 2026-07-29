@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.text.StringSubstitutor;
 
 public class ReportFile {
@@ -22,7 +23,7 @@ public class ReportFile {
         Map<String, String> variables = Map.ofEntries(
             Map.entry("date", LocalDateTime.now().format(dateFormat)),
             Map.entry("time", LocalDateTime.now().format(timeFormat)),
-            Map.entry("inputBaseDirectoryName", inputBaseDirectory.getFileName().toString())
+            Map.entry("inputBaseDirectoryName", Objects.toString(inputBaseDirectory.getFileName(), ""))
         );
         return StringSubstitutor.replace(filepathTemplate, variables);
     }

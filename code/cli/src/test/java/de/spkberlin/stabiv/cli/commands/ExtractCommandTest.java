@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.spkberlin.stabiv.cli.commands.ExtractCommand;
 import de.spkberlin.stabiv.cli.common.TestConstants;
 import java.io.PrintWriter;
 import java.io.StringWriter;

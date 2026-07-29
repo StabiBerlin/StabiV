@@ -20,7 +20,6 @@ import de.spkberlin.stabiv.cli.configuration.state.ConfigurationRoot;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationValidationDirectoryRules;
 import de.spkberlin.stabiv.cli.configuration.state.ConfigurationValidationSection;
 import de.spkberlin.stabiv.cli.extraction.ExtractorType;
-import de.spkberlin.stabiv.cli.path.PathPatternResolver;
 import de.spkberlin.stabiv.cli.path.PathPatternType;
 import de.spkberlin.stabiv.common.validation.directories.state.DirectoryConsecutiveNumberingCondition;
 import de.spkberlin.stabiv.common.validation.directories.state.DirectoryConsistencyCondition;

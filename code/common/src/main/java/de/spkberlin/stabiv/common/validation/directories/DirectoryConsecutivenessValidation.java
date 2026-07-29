@@ -90,7 +90,7 @@ public class DirectoryConsecutivenessValidation {
                     filepath -> filepath,
                     filepath -> {
                         try {
-                            Matcher m = pattern.matcher(filepath.getFileName().toString());
+                            Matcher m = pattern.matcher(Objects.toString(filepath.getFileName(), ""));
                             Boolean found = m.find();
                             String group = m.group(matchGroup);
                             Integer number = Integer.parseInt(group);

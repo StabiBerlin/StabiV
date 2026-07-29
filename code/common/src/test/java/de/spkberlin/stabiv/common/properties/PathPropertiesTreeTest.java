@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.spkberlin.stabiv.common.properties.PathPropertiesTree;
-import de.spkberlin.stabiv.common.properties.PathProperty;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Map;

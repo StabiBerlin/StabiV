@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,7 @@ public class GlobPatternResolver {
             // there is no glob pattern
             Path path = baseDirectory.toAbsolutePath().resolve(Path.of(unescapePattern(patternWithoutPrefix))).normalize();
             if (Files.isRegularFile(path)) {
-                return Pair.of(path.getParent(), path.getFileName().toString());
+                return Pair.of(path.getParent(), Objects.toString(path.getFileName(), ""));
             }
             return Pair.of(path, "");
         }

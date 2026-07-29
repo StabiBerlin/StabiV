@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.2 - 2026-07-29
+
+Fixes
+
+- Fix problem when generating report filename based on variable substitution if input base directory is a root directory
+
 ## v1.2.1 - 2026-07-28
 
 Fixes

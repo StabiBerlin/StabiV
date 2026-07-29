@@ -106,8 +106,7 @@ public class FileUtils {
             return filepath;
         }
 
-        String filename = filepath.getFileName().toString();
-
+        String filename = Objects.toString(filepath.getFileName(), "empty");
         String basename = FilenameUtils.getBaseName(filename);
         String extension = FilenameUtils.getExtension(filename);
 

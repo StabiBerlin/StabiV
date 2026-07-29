@@ -47,8 +47,9 @@ public class ChecksumFileWriter {
         String checksumFileContent = checksums
             .entrySet()
             .stream()
+            .filter(e -> Objects.nonNull(e.getKey()) && Objects.nonNull(e.getValue()))
             .sorted(Map.Entry.comparingByKey())
-            .map(e -> resolveLineFormat(lineFormatTemplate, e.getValue(), e.getKey().getFileName().toString()))
+            .map(e -> resolveLineFormat(lineFormatTemplate, e.getValue(), Objects.toString(e.getKey().getFileName(), "")))
             .collect(Collectors.joining("\n"));
 
         logger.info("write checksum file '{}'", checksumFilepath.toString());

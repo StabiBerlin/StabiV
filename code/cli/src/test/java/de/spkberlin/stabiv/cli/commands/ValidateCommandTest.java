@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.spkberlin.stabiv.cli.commands.ValidateCommand;
 import de.spkberlin.stabiv.cli.common.TestConstants;
 import de.spkberlin.stabiv.cli.output.json.JsonLogEntry;
 import java.io.PrintWriter;
