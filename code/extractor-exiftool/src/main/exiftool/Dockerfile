@@ -33,15 +33,9 @@ COPY --from=build /usr/bin/exiftool /usr/bin/exiftool
 RUN dnf install -y libxcrypt-compat && dnf clean all
 RUN exiftool -ver
 
-# test exiftool works on fedora 42 without any perl
-FROM docker.io/library/fedora:42 as fedora42
-COPY --from=rocky9 /usr/bin/exiftool /usr/bin/exiftool
-RUN dnf install -y libxcrypt-compat && dnf clean all
-RUN exiftool -ver
-
 # test exiftool works on fedora 43 without any perl
 FROM docker.io/library/fedora:43 as fedora43
-COPY --from=fedora42 /usr/bin/exiftool /usr/bin/exiftool
+COPY --from=rocky9 /usr/bin/exiftool /usr/bin/exiftool
 RUN dnf install -y libxcrypt-compat && dnf clean all
 RUN exiftool -ver
 
@@ -71,9 +65,14 @@ FROM docker.io/library/ubuntu:25.10 as ubuntu2510
 COPY --from=ubuntu2404 /usr/bin/exiftool /usr/bin/exiftool
 RUN exiftool -ver
 
+# test exiftool works on ubuntu 26.04 without any perl
+FROM docker.io/library/ubuntu:26.04 as ubuntu2604
+COPY --from=ubuntu2510 /usr/bin/exiftool /usr/bin/exiftool
+RUN exiftool -ver
+
 # test exiftool works on debian 12 without any perl
 FROM docker.io/library/debian:12 as debian12
-COPY --from=ubuntu2510 /usr/bin/exiftool /usr/bin/exiftool
+COPY --from=ubuntu2604 /usr/bin/exiftool /usr/bin/exiftool
 RUN exiftool -ver
 
 # test exiftool works on debian 13 without any perl

@@ -4,9 +4,9 @@ This tool provides a command line interface (CLI) that validates images and thei
 
 ## Installation
 
-On Linux, StabiV includes OpenJDK and ExifTool binaries that should work out-of-the-box on many Linux distributions.
+On Linux, download and unpack the latest release from [GitHub](https://github.com/StabiBerlin/StabiV/releases). The release file includes both OpenJDK and ExifTool binaries such that StabiV works out-of-the-box on many Linux distributions. However, you may also use the OpenJDK runtime and ExifTool that is packaged with your operating system. In this case, make sure that `java` and `exiftool` commands are available, and adapt `stabiv.sh` accordingly.
 
-On Ubuntu 22.04, 24.04 no additional packages need to be installed. On Debian 12 and 13 no additional packages need to be installed. However, on Rocky Linux 9 and Fedora 42 and 43, you need to install the package `libxcrypt-compat`:
+On Ubuntu 22.04, 24.04 and 26.04 no additional packages need to be installed. On Debian 12 and 13 no additional packages need to be installed. However, on Rocky Linux 9, Fedora 43 and Fedora 44, you need to install the package `libxcrypt-compat`:
 
 ```
 dnf install -y libxcrypt-compat

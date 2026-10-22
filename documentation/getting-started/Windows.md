@@ -4,7 +4,7 @@ This tool provides a command line interface (CLI) that validates images and thei
 
 ## Installation
 
-On Windows, no additional installation is required. Double-click on `prompt.bat` to open a command prompt in this directory.
+On Windows, download and unpack the latest release from [GitHub](https://github.com/StabiBerlin/StabiV/releases). No additional installation is required. Double-click on `prompt.bat` to open a command prompt in this directory.
 
 You can now start the tool from your console with the following command:
 
