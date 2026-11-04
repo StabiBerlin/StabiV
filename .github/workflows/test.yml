@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install ExifTool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libimage-exiftool-perl
+          exiftool -ver
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: oracle-openjdk
+          java-version: "21"
+          cache: maven
+
+      - name: Run compile
+        run: cd code/parent && mvn -B -ntp -am compile
+
+      - name: Run checkstyle
+        run: cd code/parent && mvn -B -ntp -am compile checkstyle:checkstyle
+
+      - name: Run tests
+        run: cd code/parent && mvn -B -ntp test
