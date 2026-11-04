@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
       - name: Install ExifTool
         run: |
           sudo apt-get update
@@ -24,9 +27,6 @@ jobs:
           distribution: oracle-openjdk
           java-version: "21"
           cache: maven
-
-      - name: Check out repository
-        uses: actions/checkout@v7
 
       - name: Run compile
         run: cd code/parent && mvn -B -ntp -am compile
